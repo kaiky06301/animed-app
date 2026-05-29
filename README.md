@@ -4,7 +4,7 @@ App mobile do **Animed** — solução para o Challenge da empresa parceira **Cl
 
 O Animed é voltado ao **TUTOR** e transforma o cuidado com o pet numa jornada **gamificada**: cada ação de cuidado (vacina, consulta, check-up, atualização de peso, compra em parceiro…) vira pontos que sobem o nível do tutor e desbloqueiam **descontos** em pet shops parceiros.
 
-Entrega da disciplina **Mobile Application Development** — Sprint 1/2.
+> 📌 **Status:** este repositório é a **base de desenvolvimento da Sprint 3** da disciplina **Mobile Application Development**. A entrega oficial da Sprint 1/2 foi feita em repositório separado — aqui partimos do zero, com a mesma stack e a ideia já validada, pra evoluir o app no segundo semestre.
 
 ---
 
@@ -73,15 +73,23 @@ O desconto é aplicado **automaticamente** no preço dos produtos da tela **Reco
 
 ---
 
-## ✅ Requisitos da disciplina atendidos
+## ✅ Fundamentos já cobertos (base pra Sprint 3)
 
-| Requisito (Sprint 1) | Implementação | Pontos |
-|----------------------|---------------|-------:|
-| **Navegação entre telas** (mín. 5 rotas) | React Navigation: Bottom Tabs (5) + Native Stack (3) = **8 rotas** | 20 |
-| **Protótipo visual funcional** | Tema escuro consistente, paleta verde-menta + laranja + dourado, fluxo lógico | 30 |
-| **Formulário com manipulação de estado** | `CadastroPetScreen` usa `useState` em todos os campos com feedback dinâmico | 20 |
-| **Armazenamento local (AsyncStorage)** | `AnimedContext` persiste pet, pontos, plano, histórico e ações já contabilizadas | 20 |
-| **Vídeo narrado** | A gravar (até 5 min, em dispositivo físico/emulador) | 10 |
+| Item | Implementação |
+|------|---------------|
+| **Navegação entre telas** | React Navigation: Bottom Tabs (5) + Native Stack (3) = **8 rotas** |
+| **Protótipo visual** | Tema escuro consistente, paleta verde-menta + laranja + dourado, fluxo lógico |
+| **Formulário com estado** | `CadastroPetScreen` usa `useState` em todos os campos com feedback dinâmico |
+| **Persistência local** | `AnimedContext` salva pet, pontos, plano, histórico e ações já contabilizadas via AsyncStorage |
+| **Domínio de gamificação** | Regras de pontos, níveis e desconto isoladas em `src/utils/nivel.ts` (fácil de evoluir) |
+
+## 🚧 Próximos passos (Sprint 3)
+
+- Integração com a API Java (`animed-api`) — substituir mocks por chamadas reais
+- Autenticação do tutor
+- Notificações de lembretes (vacina, consulta, medicação)
+- IA personalizada por raça/histórico
+- Telemedicina (plano Premium)
 
 ---
 
