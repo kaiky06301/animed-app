@@ -1,20 +1,32 @@
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { RaizNavigator } from './src/navigation/RaizNavigator';
+import { AnimedProvider } from './src/state/AnimedContext';
+import { cores } from './src/theme/cores';
+
+const TemaAnimed = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: cores.fundo,
+    card: cores.fundoElevado,
+    text: cores.textoPrincipal,
+    border: cores.borda,
+    primary: cores.primaria,
+  },
+};
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <AnimedProvider>
+        <NavigationContainer theme={TemaAnimed}>
+          <StatusBar style="light" />
+          <RaizNavigator />
+        </NavigationContainer>
+      </AnimedProvider>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
