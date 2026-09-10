@@ -85,11 +85,7 @@ export function PerfilScreen({ navigation }: Props) {
 
       <View style={estilos.grade}>
         <Indicador rotulo="Pontos" valor={pontos.toString()} cor={nivel.cor} />
-        <Indicador
-          rotulo="Plano"
-          selo={<SeloPlano plano={plano} />}
-          onPress={() => navigation.navigate('Planos')}
-        />
+        <Indicador rotulo="Plano" selo={<SeloPlano plano={plano} />} />
       </View>
 
       {petPrincipal ? (
