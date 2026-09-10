@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MoedaAnimed } from './MoedaAnimed';
+import { NIVEIS } from '../utils/nivel';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
 export type TipoRecompensa = 'pontos' | 'moedas';
@@ -69,7 +70,37 @@ export function ExplicacaoRecompensa({
                 </Text>
               </View>
 
-              <Text style={estilos.subtitulo}>Como ganhar</Text>
+              <Text style={estilos.subtitulo}>Os três níveis</Text>
+              {NIVEIS.map((n) => {
+                const atual = n.nome === nivelAtual;
+                return (
+                  <View key={n.codigo} style={[estilos.nivel, atual && estilos.nivelAtual]}>
+                    <Text style={estilos.nivelEmoji}>{n.emoji}</Text>
+
+                    <View style={{ flex: 1 }}>
+                      <Text style={[estilos.nivelNome, atual && { color: n.cor }]}>
+                        {n.nome}
+                        {atual ? ' · você está aqui' : ''}
+                      </Text>
+                      <Text style={estilos.nivelFaixa}>
+                        {n.maximo === Infinity
+                          ? `${n.minimo}+ pontos`
+                          : `${n.minimo} a ${n.maximo} pontos`}
+                      </Text>
+                    </View>
+
+                    <Text style={[estilos.nivelDesconto, atual && { color: n.cor }]}>
+                      {n.descontoPercentual}%
+                    </Text>
+                  </View>
+                );
+              })}
+
+              <Text style={estilos.rodape}>
+                As moedas só podem ser gastas a partir do Tutor Premium.
+              </Text>
+
+              <Text style={[estilos.subtitulo, { marginTop: espacamentos.md }]}>Como ganhar</Text>
               <Linha texto="Registrar vacina, consulta ou medicação" />
               <Linha texto="Fazer check-up e manter os prazos em dia" />
               <Linha texto="Comprar ou fazer check-in em parceiros" />
@@ -177,6 +208,19 @@ const estilos = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: espacamentos.xs,
   },
+  nivel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    paddingVertical: espacamentos.sm,
+    paddingHorizontal: espacamentos.sm,
+    borderRadius: raios.md,
+  },
+  nivelAtual: { backgroundColor: cores.superficieAlt },
+  nivelEmoji: { fontSize: 18 },
+  nivelNome: { color: cores.textoPrincipal, fontSize: 13, fontWeight: '700' },
+  nivelFaixa: { color: cores.textoSuave, fontSize: 11, marginTop: 1 },
+  nivelDesconto: { color: cores.textoSecundario, fontSize: 14, fontWeight: '800' },
   linha: { flexDirection: 'row', alignItems: 'center', gap: espacamentos.sm, paddingVertical: 3 },
   linhaTexto: { flex: 1, color: cores.textoSecundario, fontSize: 13 },
   rodape: {
