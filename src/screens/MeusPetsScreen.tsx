@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Platform,
   Pressable,
   RefreshControl,
@@ -16,6 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { mensagemDoErro } from '../api/cliente';
+import { useFotoPet } from '../hooks/useFotoPet';
 import { useExcluirPet, usePets } from '../hooks/usePets';
 import type { RaizParamList } from '../navigation/tipos';
 import type { Pet } from '../services/tipos';
@@ -125,13 +127,7 @@ export function MeusPetsScreen() {
               style={estilos.itemToque}
               onPress={() => navigation.navigate('Vacinas', { idPet: item.id, nomePet: item.nome })}
             >
-              <View style={estilos.avatar}>
-                <Ionicons
-                  name={item.especie === 'GATO' ? 'logo-octocat' : 'paw'}
-                  size={22}
-                  color={cores.primaria}
-                />
-              </View>
+              <AvatarPet especie={item.especie} idPet={item.id} />
 
               <View style={estilos.itemInfo}>
                 <Text style={estilos.itemNome}>{item.nome}</Text>
@@ -178,6 +174,25 @@ export function MeusPetsScreen() {
   );
 }
 
+/** Avatar do pet na lista: usa a foto escolhida ou o ícone da espécie. */
+function AvatarPet({ idPet, especie }: { idPet: number; especie: string }) {
+  const { uri } = useFotoPet(idPet);
+
+  return (
+    <View style={estilos.avatar}>
+      {uri ? (
+        <Image source={{ uri }} style={estilos.avatarFoto} />
+      ) : (
+        <Ionicons
+          name={especie === 'GATO' ? 'logo-octocat' : 'paw'}
+          size={22}
+          color={cores.primaria}
+        />
+      )}
+    </View>
+  );
+}
+
 const estilos = StyleSheet.create({
   fundo: { flex: 1, backgroundColor: cores.fundo },
   centro: {
@@ -220,7 +235,9 @@ const estilos = StyleSheet.create({
     backgroundColor: cores.primariaSuave,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  avatarFoto: { width: '100%', height: '100%' },
   itemInfo: { flex: 1 },
   itemNome: { ...tipografia.subtitulo, color: cores.textoPrincipal },
   itemDetalhe: { ...tipografia.legenda, color: cores.textoSecundario, marginTop: 2 },

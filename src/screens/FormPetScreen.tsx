@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,10 +9,12 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Botao } from '../components/Botao';
 import { CampoTexto } from '../components/CampoTexto';
 import { mensagemDoErro } from '../api/cliente';
+import { useFotoPet } from '../hooks/useFotoPet';
 import { useAtualizarPet, useCriarPet } from '../hooks/usePets';
 import type { RaizParamList } from '../navigation/tipos';
 import { useAuth } from '../state/AuthContext';
@@ -25,8 +28,8 @@ const ESPECIES = [
 ] as const;
 
 const SEXOS = [
-  { valor: 'MACHO', rotulo: 'Macho' },
-  { valor: 'FEMEA', rotulo: 'Fêmea' },
+  { valor: 'MACHO', rotulo: 'Macho', icone: 'male', cor: '#3B82F6' },
+  { valor: 'FEMEA', rotulo: 'Fêmea', icone: 'female', cor: '#F472B6' },
 ] as const;
 
 export function FormPetScreen({ route, navigation }: Props) {
@@ -36,6 +39,9 @@ export function FormPetScreen({ route, navigation }: Props) {
   const { usuario } = useAuth();
   const criar = useCriarPet();
   const atualizar = useAtualizarPet();
+
+  // A foto só pode ser escolhida depois que o pet existe (precisa do id)
+  const { uri: fotoUri, escolherFoto, pontosGanhos } = useFotoPet(petEmEdicao?.id ?? null);
 
   const [nome, setNome] = useState(petEmEdicao?.nome ?? '');
   const [especie, setEspecie] = useState<string>(petEmEdicao?.especie ?? 'CACHORRO');
@@ -111,6 +117,35 @@ export function FormPetScreen({ route, navigation }: Props) {
         </Text>
 
         <View style={estilos.formulario}>
+          {editando ? (
+            <View style={estilos.areaFoto}>
+              <Pressable onPress={escolherFoto} style={estilos.moldura}>
+                {fotoUri ? (
+                  <Image source={{ uri: fotoUri }} style={estilos.foto} />
+                ) : (
+                  <View style={estilos.fotoVazia}>
+                    <Ionicons name="camera-outline" size={26} color={cores.textoSuave} />
+                  </View>
+                )}
+              </Pressable>
+
+              <Text style={estilos.dicaFoto}>
+                {pontosGanhos > 0
+                  ? `Foto adicionada! +${pontosGanhos} pontos`
+                  : fotoUri
+                    ? 'Toque na foto para trocar'
+                    : 'Adicione uma foto do pet'}
+              </Text>
+            </View>
+          ) : (
+            <View style={estilos.avisoFoto}>
+              <Ionicons name="camera-outline" size={18} color={cores.textoSecundario} />
+              <Text style={estilos.avisoFotoTexto}>
+                Depois de salvar você poderá adicionar a foto — a primeira foto rende pontos.
+              </Text>
+            </View>
+          )}
+
           <CampoTexto
             rotulo="Nome"
             placeholder="Como ele se chama?"
@@ -145,9 +180,23 @@ export function FormPetScreen({ route, navigation }: Props) {
                 <Pressable
                   key={opcao.valor}
                   onPress={() => setSexo(ativa ? null : opcao.valor)}
-                  style={[estilos.opcao, ativa && estilos.opcaoAtiva]}
+                  style={[
+                    estilos.opcao,
+                    estilos.opcaoComIcone,
+                    ativa && { borderColor: opcao.cor, backgroundColor: `${opcao.cor}22` },
+                  ]}
                 >
-                  <Text style={[estilos.opcaoTexto, ativa && estilos.opcaoTextoAtivo]}>
+                  <Ionicons
+                    name={opcao.icone}
+                    size={17}
+                    color={ativa ? opcao.cor : cores.textoSuave}
+                  />
+                  <Text
+                    style={[
+                      estilos.opcaoTexto,
+                      ativa && { color: opcao.cor, fontWeight: '600' },
+                    ]}
+                  >
                     {opcao.rotulo}
                   </Text>
                 </Pressable>
@@ -244,6 +293,34 @@ const estilos = StyleSheet.create({
     backgroundColor: cores.superficieAlt,
     alignItems: 'center',
   },
+  areaFoto: { alignItems: 'center', gap: espacamentos.xs, marginBottom: espacamentos.md },
+  moldura: {
+    width: 92,
+    height: 92,
+    borderRadius: raios.pill,
+    borderWidth: 2,
+    borderColor: cores.primaria,
+    overflow: 'hidden',
+  },
+  foto: { width: '100%', height: '100%' },
+  fotoVazia: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: cores.superficieAlt,
+  },
+  dicaFoto: { color: cores.textoSecundario, fontSize: 12 },
+  avisoFoto: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    backgroundColor: cores.superficieAlt,
+    borderRadius: raios.md,
+    padding: espacamentos.sm + 2,
+    marginBottom: espacamentos.md,
+  },
+  avisoFotoTexto: { flex: 1, color: cores.textoSecundario, fontSize: 12 },
+  opcaoComIcone: { flexDirection: 'row', gap: 7 },
   opcaoAtiva: {
     borderColor: cores.primaria,
     backgroundColor: cores.primariaSuave,

@@ -28,3 +28,9 @@ export async function atualizarPet(id: number, pet: PetRequisicao): Promise<Pet>
 export async function excluirPet(id: number): Promise<void> {
   await api.delete(`/api/pets/${id}`);
 }
+
+/** Informa a API que o pet ganhou foto; devolve os pontos creditados. */
+export async function registrarFotoDoPet(idPet: number): Promise<number> {
+  const { data } = await api.post<{ pontosGanhos: number }>(`/api/pets/${idPet}/foto`);
+  return data.pontosGanhos ?? 0;
+}
