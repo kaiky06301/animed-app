@@ -206,19 +206,22 @@ export function HomeScreen({ navigation }: Props) {
       )}
 
       {!!pet && pets.length < 5 && (
-        <Pressable
-          onPress={() => navigation.navigate('FormPet', { pet: undefined })}
-          style={({ pressed }) => pressed && { opacity: 0.85 }}
-        >
-          <View style={estilos.bannerContainer}>
-            <Image
-              source={require('../../assets/banner-cadastre-pet.png')}
-              style={estilos.bannerImagem}
-              resizeMode="cover"
-              accessibilityLabel="Cadastre seu pet. Comece sua jornada, cada dado preenchido gera pontos."
-            />
-          </View>
-        </Pressable>
+        <View style={estilos.bannerContainer}>
+          <Image
+            source={require('../../assets/banner-cadastre-pet.png')}
+            style={estilos.bannerImagem}
+            resizeMode="cover"
+            accessibilityLabel="Cadastre seu pet. Comece sua jornada, cada dado preenchido gera pontos."
+          />
+
+          <Pressable
+            onPress={() => navigation.navigate('FormPet', { pet: undefined })}
+            style={({ pressed }) => [estilos.bannerBotao, pressed && { opacity: 0.85 }]}
+          >
+            <Text style={estilos.bannerBotaoTexto}>Cadastrar pet</Text>
+            <Ionicons name="arrow-forward" size={16} color="#3B1A05" />
+          </Pressable>
+        </View>
       )}
 
       <SeletorPet
@@ -394,6 +397,19 @@ const estilos = StyleSheet.create({
     overflow: 'hidden',
   },
   bannerImagem: { width: '100%', height: '100%' },
+  bannerBotao: {
+    position: 'absolute',
+    left: '5%',
+    bottom: '12%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: espacamentos.md,
+    paddingVertical: espacamentos.sm + 2,
+    borderRadius: raios.pill,
+    backgroundColor: '#FFA24C',
+  },
+  bannerBotaoTexto: { color: '#3B1A05', fontSize: 13, fontWeight: '800' },
   nivelNoPet: { fontSize: 12, fontWeight: '700', marginTop: 4 },
   dicaProgressoPet: { color: cores.textoSecundario, fontSize: 11, marginTop: 5 },
   barraPet: { height: 9, marginTop: espacamentos.sm + 2 },
