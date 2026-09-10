@@ -103,7 +103,16 @@ export function HomeScreen({ navigation }: Props) {
               </View>
 
               <View style={{ flex: 1 }}>
-                <Text style={estilos.nomePet}>{pet.nome}</Text>
+                <View style={estilos.linhaNome}>
+                  <Text style={estilos.nomePet}>{pet.nome}</Text>
+                  {!!pet.sexo && (
+                    <Ionicons
+                      name={pet.sexo === 'FEMEA' ? 'female' : 'male'}
+                      size={17}
+                      color={pet.sexo === 'FEMEA' ? '#F472B6' : '#3B82F6'}
+                    />
+                  )}
+                </View>
                 <Text style={estilos.descPet}>
                   {[
                     pet.raca || 'Sem raça definida',
@@ -114,7 +123,7 @@ export function HomeScreen({ navigation }: Props) {
                 </Text>
 
                 {/* Progresso de pontos até o próximo nível */}
-                <View style={estilos.barraFundo}>
+                <View style={[estilos.barraFundo, estilos.barraPet]}>
                   <View
                     style={[
                       estilos.barraProgresso,
@@ -125,10 +134,11 @@ export function HomeScreen({ navigation }: Props) {
               </View>
 
               <View style={estilos.seloPontos}>
-                <Ionicons name="paw" size={13} color={cores.laranja} />
+                <Ionicons name="paw" size={14} color={cores.laranja} />
                 <Text style={estilos.seloPontosTexto}>
                   {pontos.toLocaleString('pt-BR')} pts
                 </Text>
+                <Ionicons name="star" size={13} color={cores.dourado} />
               </View>
             </View>
 
@@ -301,6 +311,8 @@ const estilos = StyleSheet.create({
   },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.md },
   cartaoPet: { gap: espacamentos.md },
+  linhaNome: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  barraPet: { height: 9, marginTop: espacamentos.sm + 2 },
   molduraFoto: {
     width: 62,
     height: 62,
@@ -319,14 +331,14 @@ const estilos = StyleSheet.create({
   seloPontos: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: raios.pill,
-    backgroundColor: cores.laranjaSuave,
+    backgroundColor: '#3A2A18',
   },
-  seloPontosTexto: { color: cores.laranja, fontSize: 12, fontWeight: '800' },
+  seloPontosTexto: { color: '#F6E7D3', fontSize: 13, fontWeight: '800' },
   rodapePet: {
     flexDirection: 'row',
     alignItems: 'center',

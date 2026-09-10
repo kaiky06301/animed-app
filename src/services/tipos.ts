@@ -13,10 +13,13 @@ export interface RespostaAutenticacao {
   role: Perfil;
 }
 
+export type SexoPet = 'MACHO' | 'FEMEA';
+
 export interface Pet {
   id: number;
   nome: string;
   especie: string;
+  sexo: SexoPet | null;
   raca: string | null;
   dataNascimento: string | null;
   idadeAnos: number | null;
@@ -30,6 +33,7 @@ export interface Pet {
 export interface PetRequisicao {
   nome: string;
   especie: string;
+  sexo?: SexoPet | null;
   raca?: string | null;
   dataNascimento?: string | null;
   pesoKg?: number | null;

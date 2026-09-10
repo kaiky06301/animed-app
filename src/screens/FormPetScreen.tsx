@@ -24,6 +24,11 @@ const ESPECIES = [
   { valor: 'GATO', rotulo: 'Gato' },
 ] as const;
 
+const SEXOS = [
+  { valor: 'MACHO', rotulo: 'Macho' },
+  { valor: 'FEMEA', rotulo: 'Fêmea' },
+] as const;
+
 export function FormPetScreen({ route, navigation }: Props) {
   const petEmEdicao = route.params?.pet;
   const editando = !!petEmEdicao;
@@ -34,6 +39,7 @@ export function FormPetScreen({ route, navigation }: Props) {
 
   const [nome, setNome] = useState(petEmEdicao?.nome ?? '');
   const [especie, setEspecie] = useState<string>(petEmEdicao?.especie ?? 'CACHORRO');
+  const [sexo, setSexo] = useState<string | null>(petEmEdicao?.sexo ?? null);
   const [raca, setRaca] = useState(petEmEdicao?.raca ?? '');
   const [dataNascimento, setDataNascimento] = useState(petEmEdicao?.dataNascimento ?? '');
   const [peso, setPeso] = useState(
@@ -70,6 +76,7 @@ export function FormPetScreen({ route, navigation }: Props) {
     const dados = {
       nome: nome.trim(),
       especie,
+      sexo: (sexo as 'MACHO' | 'FEMEA' | null) ?? null,
       raca: raca.trim() || null,
       dataNascimento: dataNascimento.trim() || null,
       pesoKg: peso ? Number(peso.replace(',', '.')) : null,
@@ -120,6 +127,24 @@ export function FormPetScreen({ route, navigation }: Props) {
                 <Pressable
                   key={opcao.valor}
                   onPress={() => setEspecie(opcao.valor)}
+                  style={[estilos.opcao, ativa && estilos.opcaoAtiva]}
+                >
+                  <Text style={[estilos.opcaoTexto, ativa && estilos.opcaoTextoAtivo]}>
+                    {opcao.rotulo}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={estilos.rotulo}>Sexo</Text>
+          <View style={estilos.opcoes}>
+            {SEXOS.map((opcao) => {
+              const ativa = sexo === opcao.valor;
+              return (
+                <Pressable
+                  key={opcao.valor}
+                  onPress={() => setSexo(ativa ? null : opcao.valor)}
                   style={[estilos.opcao, ativa && estilos.opcaoAtiva]}
                 >
                   <Text style={[estilos.opcaoTexto, ativa && estilos.opcaoTextoAtivo]}>
