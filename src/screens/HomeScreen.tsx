@@ -3,7 +3,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { usePets } from '../hooks/usePets';
@@ -111,24 +111,28 @@ export function HomeScreen({ navigation }: Props) {
       <View style={estilos.grade}>
         <AtalhoBotao
           icone="medkit"
+          cor={CORES_ATALHO.cuidados}
           titulo="Cuidados"
           subtitulo="Vacina, consulta, peso"
           onPress={() => navigation.navigate('Cuidados')}
         />
         <AtalhoBotao
           icone="gift"
+          cor={CORES_ATALHO.recompensas}
           titulo="Recompensas"
           subtitulo="Use seus pontos"
           onPress={() => navigation.navigate('Recompensas')}
         />
         <AtalhoBotao
           icone="people"
+          cor={CORES_ATALHO.comunidade}
           titulo="Comunidade"
           subtitulo="Dicas de tutores"
           onPress={() => navigation.navigate('Comunidade')}
         />
         <AtalhoBotao
           icone="diamond"
+          cor={CORES_ATALHO.planos}
           titulo="Planos"
           subtitulo="Faça upgrade"
           onPress={() => navigation.navigate('Planos')}
@@ -138,24 +142,43 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
+/** Cada atalho tem a própria cor, para diferenciar as áreas do app. */
+const CORES_ATALHO = {
+  cuidados: '#3DDC97',
+  recompensas: '#A78BFA',
+  comunidade: '#3B82F6',
+  planos: '#FFC857',
+} as const;
+
 function AtalhoBotao({
   icone,
+  cor,
   titulo,
   subtitulo,
   onPress,
 }: {
   icone: keyof typeof Ionicons.glyphMap;
+  cor: string;
   titulo: string;
   subtitulo: string;
   onPress: () => void;
 }) {
   return (
-    <Cartao style={estilos.atalho}>
-      <Ionicons name={icone} size={22} color={cores.primaria} />
-      <Text style={estilos.atalhoTitulo}>{titulo}</Text>
-      <Text style={estilos.atalhoSub}>{subtitulo}</Text>
-      <Botao titulo="Abrir" variante="sutil" onPress={onPress} estilo={{ marginTop: 8 }} />
-    </Cartao>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [estilos.atalhoArea, pressed && { opacity: 0.75 }]}
+    >
+      <Cartao style={estilos.atalho}>
+        <Ionicons name={icone} size={34} color={cor} />
+
+        <View style={estilos.atalhoLinhaTitulo}>
+          <Text style={estilos.atalhoTitulo}>{titulo}</Text>
+          <Ionicons name="chevron-forward" size={18} color={cores.textoSuave} />
+        </View>
+
+        <Text style={estilos.atalhoSub}>{subtitulo}</Text>
+      </Cartao>
+    </Pressable>
   );
 }
 
@@ -210,7 +233,14 @@ const estilos = StyleSheet.create({
     marginTop: espacamentos.sm,
   },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.md },
-  atalho: { width: '47%', gap: 4 },
-  atalhoTitulo: { color: cores.textoPrincipal, fontSize: 15, fontWeight: '700', marginTop: 6 },
-  atalhoSub: { color: cores.textoSecundario, fontSize: 12 },
+  atalhoArea: { width: '47%' },
+  atalho: { gap: 2, paddingVertical: espacamentos.md },
+  atalhoLinhaTitulo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: espacamentos.sm,
+  },
+  atalhoTitulo: { color: cores.textoPrincipal, fontSize: 17, fontWeight: '700' },
+  atalhoSub: { color: cores.textoSecundario, fontSize: 13 },
 });
