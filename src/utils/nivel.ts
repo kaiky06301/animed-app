@@ -70,6 +70,7 @@ export const PONTOS = {
   idade: 10,
   peso: 10,
   historicoSaude: 20,
+  fotoPet: 15,
   perfilCompleto: 50,
 
   atualizarPeso: 5,
@@ -93,6 +94,7 @@ export const ROTULOS_ACOES: Record<AcaoPontuavel, string> = {
   idade: 'Informou a idade',
   peso: 'Informou o peso',
   historicoSaude: 'Adicionou histórico de saúde',
+  fotoPet: 'Adicionou a foto do pet',
   perfilCompleto: 'Perfil completo (bônus)',
   atualizarPeso: 'Atualizou o peso',
   registrarVacina: 'Registrou vacinação',
