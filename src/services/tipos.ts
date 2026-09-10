@@ -1,0 +1,71 @@
+/** Contratos de dados trocados com a API. */
+
+export type Perfil = 'TUTOR' | 'DOUTOR';
+
+export interface RespostaAutenticacao {
+  token: string;
+  tipo: string;
+  expiraEmMs: number;
+  idUsuario: number;
+  idTutor: number | null;
+  nome: string;
+  email: string;
+  role: Perfil;
+}
+
+export interface Pet {
+  id: number;
+  nome: string;
+  especie: string;
+  raca: string | null;
+  dataNascimento: string | null;
+  idadeAnos: number | null;
+  pesoKg: number | null;
+  castrado: boolean;
+  observacoesSaude: string | null;
+  idTutor: number;
+  nomeTutor: string;
+}
+
+export interface PetRequisicao {
+  nome: string;
+  especie: string;
+  raca?: string | null;
+  dataNascimento?: string | null;
+  pesoKg?: number | null;
+  castrado?: boolean;
+  observacoesSaude?: string | null;
+  idTutor: number;
+}
+
+export interface Vacina {
+  id: number;
+  nomeVacina: string;
+  dataAplicacao: string;
+  dataProximaDose: string | null;
+  veterinarioResponsavel: string | null;
+  clinica: string | null;
+  lote: string | null;
+  observacoes: string | null;
+  idPet: number;
+  nomePet: string;
+}
+
+export interface VacinaRequisicao {
+  nomeVacina: string;
+  dataAplicacao: string;
+  dataProximaDose?: string | null;
+  veterinarioResponsavel?: string | null;
+  clinica?: string | null;
+  lote?: string | null;
+  observacoes?: string | null;
+  idPet: number;
+}
+
+/** Envelope de paginação devolvido pelo Spring Data. */
+export interface Pagina<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+}

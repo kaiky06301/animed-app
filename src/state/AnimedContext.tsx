@@ -13,6 +13,7 @@ import type { EstadoPersistido, Pet, PlanoB2C } from './tipos';
 const CHAVE_STORAGE = '@animed/estado-v1';
 
 const ESTADO_INICIAL: EstadoPersistido = {
+  tutor: null,
   pet: null,
   pontos: 0,
   plano: 'gratuito',

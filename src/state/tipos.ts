@@ -3,6 +3,12 @@ import type { AcaoPontuavel } from '../utils/nivel';
 export type Especie = 'cao' | 'gato';
 export type PlanoB2C = 'gratuito' | 'intermediario' | 'premium';
 
+export interface Tutor {
+  nome: string;
+  email: string;
+  desde: string;
+}
+
 export interface Pet {
   nome: string;
   especie: Especie;
@@ -21,6 +27,7 @@ export interface EventoPontuacao {
 }
 
 export interface EstadoPersistido {
+  tutor: Tutor | null;
   pet: Pet | null;
   pontos: number;
   plano: PlanoB2C;
