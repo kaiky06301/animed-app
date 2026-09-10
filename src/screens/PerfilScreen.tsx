@@ -127,10 +127,10 @@ export function PerfilScreen({ navigation }: Props) {
       )}
 
       <Cartao>
-        <Text style={estilos.secao}>Atalhos</Text>
+        <Text style={estilos.secao}>Sua conta</Text>
         <ItemMenu
           icone="diamond"
-          titulo="Planos B2C"
+          titulo="Planos de assinatura"
           subtitulo={ROTULO_PLANO[plano]}
           onPress={() => navigation.navigate('Planos')}
         />

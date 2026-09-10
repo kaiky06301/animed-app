@@ -6,7 +6,9 @@ import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
+import { usePets } from '../hooks/usePets';
 import { useAnimed } from '../state/AnimedContext';
+import { useAuth } from '../state/AuthContext';
 import { cores, espacamentos, raios } from '../theme/cores';
 import { nivelPorPontos, progressoNivel, proximoNivel } from '../utils/nivel';
 import type { AbasParamList, RaizParamList } from '../navigation/tipos';
@@ -17,7 +19,12 @@ type Props = CompositeScreenProps<
 >;
 
 export function HomeScreen({ navigation }: Props) {
-  const { pet, pontos, registrarAcao } = useAnimed();
+  const { pontos, registrarAcao } = useAnimed();
+
+  // O pet exibido vem da API, mesma fonte da aba "Meus pets"
+  const { usuario } = useAuth();
+  const { data: pets } = usePets(usuario?.idTutor ?? null);
+  const pet = pets?.[0] ?? null;
   const nivel = nivelPorPontos(pontos);
   const proximo = proximoNivel(pontos);
   const progresso = progressoNivel(pontos);
@@ -70,7 +77,7 @@ export function HomeScreen({ navigation }: Props) {
           <Botao
             titulo="Cadastrar pet"
             variante="laranja"
-            onPress={() => navigation.navigate('CadastroPet')}
+            onPress={() => navigation.navigate('FormPet', { pet: undefined })}
             estilo={{ marginTop: espacamentos.md }}
           />
         </Cartao>
@@ -79,7 +86,7 @@ export function HomeScreen({ navigation }: Props) {
           <View style={estilos.linhaPet}>
             <View style={estilos.avatarPet}>
               <Ionicons
-                name={pet.especie === 'gato' ? 'logo-octocat' : 'paw'}
+                name={pet.especie === 'GATO' ? 'logo-octocat' : 'paw'}
                 size={28}
                 color={cores.primaria}
               />
@@ -87,7 +94,13 @@ export function HomeScreen({ navigation }: Props) {
             <View style={{ flex: 1 }}>
               <Text style={estilos.nomePet}>{pet.nome}</Text>
               <Text style={estilos.descPet}>
-                {pet.raca || 'Sem raça'} · {pet.idade || '—'} · {pet.peso || '—'} kg
+                {[
+                  pet.raca || 'Sem raça definida',
+                  pet.idadeAnos != null ? `${pet.idadeAnos} ano(s)` : null,
+                  pet.pesoKg != null ? `${pet.pesoKg} kg` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </Text>
             </View>
           </View>
