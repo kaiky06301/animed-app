@@ -63,11 +63,6 @@ export function HomeScreen({ navigation }: Props) {
           style={({ pressed }) => [estilos.distintivoNivel, pressed && { opacity: 0.7 }]}
         >
           <Ionicons name="paw" size={22} color={cores.laranja} />
-          {pets.length > 0 && (
-            <View style={estilos.contadorPets}>
-              <Text style={estilos.contadorPetsTexto}>{pets.length}</Text>
-            </View>
-          )}
         </Pressable>
       </View>
 
@@ -375,21 +370,6 @@ const estilos = StyleSheet.create({
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.md },
   cartaoPet: { gap: espacamentos.md },
   linhaNome: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  contadorPets: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: 5,
-    borderRadius: raios.pill,
-    backgroundColor: cores.laranja,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: cores.fundo,
-  },
-  contadorPetsTexto: { color: '#3B1A05', fontSize: 11, fontWeight: '800' },
   bannerContainer: {
     width: '100%',
     aspectRatio: 1200 / 343,
