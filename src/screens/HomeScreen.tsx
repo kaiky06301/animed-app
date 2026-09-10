@@ -9,6 +9,7 @@ import { Cartao } from '../components/Cartao';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { SeletorPet } from '../components/SeletorPet';
 import { useSaudeDoPet } from '../hooks/useSaudeDoPet';
+import { useTutor } from '../hooks/useTutor';
 import { useAnimed } from '../state/AnimedContext';
 import { usePetAtivo } from '../state/PetAtivoContext';
 import { cores, espacamentos, raios } from '../theme/cores';
@@ -21,7 +22,13 @@ type Props = CompositeScreenProps<
 >;
 
 export function HomeScreen({ navigation }: Props) {
-  const { pontos, registrarAcao } = useAnimed();
+  const { registrarAcao } = useAnimed();
+
+  // Pontos, moedas e nível são calculados pela API
+  const { data: tutor } = useTutor();
+  const pontos = tutor?.pontosTotais ?? 0;
+  const moedas = tutor?.moedas ?? 0;
+  const moedasLiberadas = tutor?.podeGastarMoedas ?? false;
 
   // O pet exibido é o selecionado no seletor; o app inteiro segue essa escolha
   const { petAtivo: pet, pets, selecionarPet } = usePetAtivo();
@@ -99,11 +106,7 @@ export function HomeScreen({ navigation }: Props) {
           </View>
         </Pressable>
       ) : (
-        <Pressable
-          onPress={() => navigation.navigate('Vacinas', { idPet: pet.id, nomePet: pet.nome })}
-          style={({ pressed }) => pressed && { opacity: 0.8 }}
-        >
-          <Cartao style={estilos.cartaoPet}>
+        <Cartao style={estilos.cartaoPet}>
             <View style={estilos.linhaPet}>
               <View style={estilos.molduraFoto}>
                 {fotoPet ? (
@@ -155,16 +158,42 @@ export function HomeScreen({ navigation }: Props) {
                 </Text>
               </View>
 
-              <View style={estilos.seloPontos}>
-                <Ionicons name="paw" size={14} color={cores.laranja} />
-                <Text style={estilos.seloPontosTexto}>
-                  {pontos.toLocaleString('pt-BR')} pts
-                </Text>
-                <Ionicons name="star" size={13} color={cores.dourado} />
+              <View style={estilos.selos}>
+                <View style={estilos.seloPontos}>
+                  <Ionicons name="paw" size={14} color={cores.laranja} />
+                  <Text style={estilos.seloPontosTexto}>
+                    {pontos.toLocaleString('pt-BR')} pts
+                  </Text>
+                  <Ionicons name="star" size={13} color={cores.dourado} />
+                </View>
+
+                {/* Moedas ficam visíveis mesmo bloqueadas, para o tutor
+                    acompanhar o saldo que vai poder gastar no Premium. */}
+                <View style={[estilos.seloMoedas, !moedasLiberadas && estilos.seloBloqueado]}>
+                  <Ionicons
+                    name="logo-bitcoin"
+                    size={13}
+                    color={moedasLiberadas ? cores.dourado : cores.textoSuave}
+                  />
+                  <Text
+                    style={[
+                      estilos.seloMoedasTexto,
+                      !moedasLiberadas && { color: cores.textoSecundario },
+                    ]}
+                  >
+                    {moedas.toLocaleString('pt-BR')}
+                  </Text>
+                  {!moedasLiberadas && (
+                    <Ionicons name="lock-closed" size={11} color={cores.textoSuave} />
+                  )}
+                </View>
               </View>
             </View>
 
-            <View style={estilos.rodapePet}>
+            <Pressable
+              onPress={() => navigation.navigate('Vacinas', { idPet: pet.id, nomePet: pet.nome })}
+              style={({ pressed }) => [estilos.rodapePet, pressed && { opacity: 0.7 }]}
+            >
               <View
                 style={[
                   estilos.iconeSaude,
@@ -195,9 +224,8 @@ export function HomeScreen({ navigation }: Props) {
               </View>
 
               <Ionicons name="chevron-forward" size={20} color={cores.textoSuave} />
-            </View>
-          </Cartao>
-        </Pressable>
+            </Pressable>
+        </Cartao>
       )}
 
       {!!pet && pets.length < 5 && (
@@ -408,6 +436,18 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: cores.superficieAlt,
   },
+  selos: { alignItems: 'flex-end', gap: 6 },
+  seloMoedas: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: raios.pill,
+    backgroundColor: cores.douradoSuave,
+  },
+  seloBloqueado: { backgroundColor: cores.superficieAlt },
+  seloMoedasTexto: { color: cores.dourado, fontSize: 12, fontWeight: '800' },
   seloPontos: {
     flexDirection: 'row',
     alignItems: 'center',

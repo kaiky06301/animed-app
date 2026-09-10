@@ -84,3 +84,16 @@ export interface Consulta {
   idPet: number;
   nomePet: string;
 }
+
+export interface Tutor {
+  id: number;
+  nome: string;
+  email: string;
+  pontosTotais: number;
+  moedas: number;
+  podeGastarMoedas: boolean;
+  nivel: 'BASICO' | 'CUIDADOR' | 'TUTOR_PREMIUM';
+  nivelDescricao: string;
+  descontoPercentual: number;
+  plano: string;
+}

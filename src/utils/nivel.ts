@@ -26,7 +26,7 @@ export const NIVEIS: Nivel[] = [
     emoji: '🥈',
     minimo: 100,
     maximo: 499,
-    descontoPercentual: 5,
+    descontoPercentual: 10,
     cor: '#C0C0C0',
   },
   {
