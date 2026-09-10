@@ -26,12 +26,12 @@ const ROTULO_PLANO: Record<'gratuito' | 'intermediario' | 'premium', string> = {
 };
 
 export function PerfilScreen({ navigation }: Props) {
-  const { pontos, plano, resetarTudo, registrarAcao } = useAnimed();
+  const { pontos, plano, registrarAcao } = useAnimed();
   const nivel = nivelPorPontos(pontos);
 
   // A foto pertence ao pet cadastrado na API; usamos o primeiro da lista
   // como pet principal do perfil.
-  const { usuario } = useAuth();
+  const { usuario, sair } = useAuth();
   const { data: petsDaApi } = usePets(usuario?.idTutor ?? null);
   const petPrincipal = petsDaApi?.[0] ?? null;
   const { uri: fotoUri, escolherFoto } = useFotoPet(petPrincipal?.id ?? null);
@@ -142,12 +142,16 @@ export function PerfilScreen({ navigation }: Props) {
         />
       </Cartao>
 
-      <Botao
-        titulo="Resetar dados (zera tudo)"
-        variante="contorno"
-        onPress={resetarTudo}
-        estilo={{ marginTop: espacamentos.lg }}
-      />
+      <Cartao>
+        <Text style={estilos.secao}>Sessão</Text>
+        <Text style={estilos.emailUsuario}>{usuario?.email}</Text>
+        <Botao
+          titulo="Sair da conta"
+          variante="contorno"
+          onPress={sair}
+          estilo={{ marginTop: espacamentos.md }}
+        />
+      </Cartao>
     </ScrollView>
   );
 }
@@ -256,7 +260,12 @@ function ItemMenu({
 
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
-  conteudo: { padding: espacamentos.lg, paddingBottom: espacamentos.xxl, gap: espacamentos.md },
+  conteudo: {
+    padding: espacamentos.lg,
+    // espaço extra para o conteúdo não ficar sob a barra de abas
+    paddingBottom: espacamentos.xxl * 2,
+    gap: espacamentos.md,
+  },
   titulo: { color: cores.textoPrincipal, fontSize: 24, fontWeight: '700' },
   avatarArea: { alignItems: 'center', justifyContent: 'center' },
   avatarFoto: { width: '100%', height: '100%' },
@@ -292,6 +301,7 @@ const estilos = StyleSheet.create({
   grade: { flexDirection: 'row', gap: espacamentos.sm },
   indicador: { flex: 1, alignItems: 'center', padding: espacamentos.sm },
   indicadorToque: { flex: 1 },
+  emailUsuario: { color: cores.textoSecundario, fontSize: 13 },
   selo: {
     paddingHorizontal: 12,
     paddingVertical: 5,

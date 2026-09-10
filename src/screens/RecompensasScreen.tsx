@@ -31,11 +31,11 @@ export function RecompensasScreen() {
           <View style={estilos.cabecalho}>
             <Text style={estilos.titulo}>Recompensas</Text>
             <Text style={estilos.subtitulo}>
-              Seu nível {nivel.emoji} {nivel.nome} dá{' '}
+              {nivel.emoji} Nível {nivel.nome} •{' '}
               <Text style={{ color: cores.primaria, fontWeight: '700' }}>
                 {nivel.descontoPercentual}% de desconto
               </Text>{' '}
-              nas compras com parceiros.
+              nas compras
             </Text>
           </View>
         }
