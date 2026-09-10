@@ -23,6 +23,9 @@
     },
     "experiments": {
       "baseUrl": "/animed-app"
-    }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }

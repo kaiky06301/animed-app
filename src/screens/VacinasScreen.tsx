@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Botao } from '../components/Botao';
+import { CampoData } from '../components/CampoData';
 import { CampoTexto } from '../components/CampoTexto';
 import { Cartao } from '../components/Cartao';
 import { mensagemDoErro } from '../api/cliente';
@@ -24,6 +25,7 @@ import {
 } from '../hooks/useVacinas';
 import type { RaizParamList } from '../navigation/tipos';
 import type { Vacina } from '../services/tipos';
+import { isoParaBr as formatarData } from '../utils/data';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
 type Props = NativeStackScreenProps<RaizParamList, 'Vacinas'>;
@@ -78,7 +80,9 @@ export function VacinasScreen({ route }: Props) {
   function validar(): boolean {
     const novos: typeof erros = {};
     if (!nomeVacina.trim()) novos.nome = 'Informe o nome da vacina';
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataAplicacao)) novos.data = 'Use o formato AAAA-MM-DD';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataAplicacao)) {
+      novos.data = 'Informe uma data válida no formato DD/MM/AAAA';
+    }
     setErros(novos);
     return Object.keys(novos).length === 0;
   }
@@ -178,18 +182,19 @@ export function VacinasScreen({ route }: Props) {
                   onChangeText={setNomeVacina}
                   erro={erros.nome}
                 />
-                <CampoTexto
+                <CampoData
                   rotulo="Data de aplicação"
-                  placeholder="AAAA-MM-DD"
-                  value={dataAplicacao}
-                  onChangeText={setDataAplicacao}
+                  icone="medkit-outline"
+                  valor={dataAplicacao}
+                  onChange={setDataAplicacao}
                   erro={erros.data}
+                  bloquearFuturo
                 />
-                <CampoTexto
+                <CampoData
                   rotulo="Próxima dose (opcional)"
-                  placeholder="AAAA-MM-DD"
-                  value={proximaDose}
-                  onChangeText={setProximaDose}
+                  icone="alarm-outline"
+                  valor={proximaDose}
+                  onChange={setProximaDose}
                 />
                 <CampoTexto
                   rotulo="Veterinário (opcional)"
@@ -271,12 +276,6 @@ export function VacinasScreen({ route }: Props) {
       )}
     </View>
   );
-}
-
-/** Converte AAAA-MM-DD para o formato brasileiro. */
-function formatarData(iso: string): string {
-  const [ano, mes, dia] = iso.split('-');
-  return `${dia}/${mes}/${ano}`;
 }
 
 const estilos = StyleSheet.create({

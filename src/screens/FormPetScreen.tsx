@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Botao } from '../components/Botao';
+import { CampoData } from '../components/CampoData';
 import { CampoTexto } from '../components/CampoTexto';
 import { mensagemDoErro } from '../api/cliente';
 import { useFotoPet } from '../hooks/useFotoPet';
@@ -65,7 +66,7 @@ export function FormPetScreen({ route, navigation }: Props) {
       novos.peso = 'Peso deve ser um número (ex: 8.5)';
     }
     if (dataNascimento && !/^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
-      novos.data = 'Use o formato AAAA-MM-DD';
+      novos.data = 'Informe uma data válida no formato DD/MM/AAAA';
     }
     setErros(novos);
     return Object.keys(novos).length === 0;
@@ -245,15 +246,13 @@ export function FormPetScreen({ route, navigation }: Props) {
             value={raca}
             onChangeText={setRaca}
           />
-          <CampoTexto
+          <CampoData
             rotulo="Data de nascimento"
-            iconeRotulo="calendar-outline"
             icone="paw"
-            sufixo="calendar-outline"
-            placeholder="AAAA-MM-DD"
-            value={dataNascimento}
-            onChangeText={setDataNascimento}
+            valor={dataNascimento}
+            onChange={setDataNascimento}
             erro={erros.data}
+            bloquearFuturo
           />
           <CampoTexto
             rotulo="Peso (kg)"
