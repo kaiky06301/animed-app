@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 import { cores, raios } from '../theme/cores';
 
@@ -11,6 +12,8 @@ interface Props {
   carregando?: boolean;
   desabilitado?: boolean;
   estilo?: ViewStyle;
+  /** Ícone opcional exibido antes do texto. */
+  icone?: keyof typeof Ionicons.glyphMap;
 }
 
 const fundos: Record<Variante, string> = {
@@ -34,6 +37,7 @@ export function Botao({
   carregando = false,
   desabilitado = false,
   estilo,
+  icone,
 }: Props) {
   const indisponivel = desabilitado || carregando;
   return (
@@ -53,7 +57,10 @@ export function Botao({
       {carregando ? (
         <ActivityIndicator color={textos[variante]} />
       ) : (
-        <Text style={[estilos.titulo, { color: textos[variante] }]}>{titulo}</Text>
+        <>
+          {!!icone && <Ionicons name={icone} size={17} color={textos[variante]} />}
+          <Text style={[estilos.titulo, { color: textos[variante] }]}>{titulo}</Text>
+        </>
       )}
     </Pressable>
   );
@@ -61,6 +68,8 @@ export function Botao({
 
 const estilos = StyleSheet.create({
   base: {
+    flexDirection: 'row',
+    gap: 8,
     paddingVertical: 14,
     paddingHorizontal: 22,
     borderRadius: raios.lg,

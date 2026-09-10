@@ -23,8 +23,8 @@ import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 type Props = NativeStackScreenProps<RaizParamList, 'FormPet'>;
 
 const ESPECIES = [
-  { valor: 'CACHORRO', rotulo: 'Cachorro' },
-  { valor: 'GATO', rotulo: 'Gato' },
+  { valor: 'CACHORRO', rotulo: 'Cachorro', icone: 'paw' },
+  { valor: 'GATO', rotulo: 'Gato', icone: 'logo-octocat' },
 ] as const;
 
 const SEXOS = [
@@ -109,52 +109,80 @@ export function FormPetScreen({ route, navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
-        <Text style={estilos.titulo}>{editando ? 'Editar pet' : 'Cadastrar pet'}</Text>
-        <Text style={estilos.descricao}>
-          {editando
-            ? 'Atualize os dados do seu companheiro.'
-            : 'Quanto mais completo o perfil, melhores os lembretes de cuidado.'}
-        </Text>
+        {editando ? (
+          <View style={estilos.cabecalhoPet}>
+            {/* patas decorativas ao fundo */}
+            <Ionicons name="paw" size={54} color="rgba(255,255,255,0.10)" style={estilos.decor1} />
+            <Ionicons name="paw" size={34} color="rgba(255,255,255,0.10)" style={estilos.decor2} />
+            <Ionicons name="heart-outline" size={44} color="rgba(255,255,255,0.22)" style={estilos.decor3} />
 
-        <View style={estilos.formulario}>
-          {editando ? (
-            <View style={estilos.areaFoto}>
-              <Pressable onPress={escolherFoto} style={estilos.moldura}>
+            <Pressable onPress={escolherFoto} style={estilos.molduraArea}>
+              <View style={estilos.moldura}>
                 {fotoUri ? (
                   <Image source={{ uri: fotoUri }} style={estilos.foto} />
                 ) : (
                   <View style={estilos.fotoVazia}>
-                    <Ionicons name="camera-outline" size={26} color={cores.textoSuave} />
+                    <Ionicons name="paw" size={28} color={cores.laranja} />
                   </View>
                 )}
-              </Pressable>
+              </View>
 
-              <Text style={estilos.dicaFoto}>
-                {pontosGanhos > 0
-                  ? `Foto adicionada! +${pontosGanhos} pontos`
-                  : fotoUri
-                    ? 'Toque na foto para trocar'
-                    : 'Adicione uma foto do pet'}
-              </Text>
-            </View>
-          ) : (
-            <View style={estilos.avisoFoto}>
-              <Ionicons name="camera-outline" size={18} color={cores.textoSecundario} />
-              <Text style={estilos.avisoFotoTexto}>
-                Depois de salvar você poderá adicionar a foto — a primeira foto rende pontos.
-              </Text>
-            </View>
-          )}
+              <View style={estilos.botaoCamera}>
+                <Ionicons name="camera" size={14} color="#3B1A05" />
+              </View>
+            </Pressable>
 
+            <View style={{ flex: 1 }}>
+              <View style={estilos.linhaNome}>
+                <Text style={estilos.nomePet}>{petEmEdicao?.nome}</Text>
+                {!!petEmEdicao?.sexo && (
+                  <Ionicons
+                    name={petEmEdicao.sexo === 'FEMEA' ? 'female' : 'male'}
+                    size={18}
+                    color={petEmEdicao.sexo === 'FEMEA' ? '#F472B6' : '#3B82F6'}
+                  />
+                )}
+              </View>
+
+              <Text style={estilos.subPet}>
+                {[
+                  petEmEdicao?.raca || 'Sem raça definida',
+                  petEmEdicao?.idadeAnos != null ? `${petEmEdicao.idadeAnos} anos` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' • ')}
+              </Text>
+
+              <View style={estilos.seloFamilia}>
+                <Ionicons name="paw" size={13} color={cores.laranja} />
+                <Text style={estilos.seloFamiliaTexto}>
+                  {pontosGanhos > 0 ? `Foto adicionada · +${pontosGanhos} pts` : 'Pet da família'}
+                </Text>
+                <Ionicons name="heart" size={12} color={cores.laranja} />
+              </View>
+            </View>
+          </View>
+        ) : (
+          <>
+            <Text style={estilos.titulo}>Cadastrar pet</Text>
+            <Text style={estilos.descricao}>
+              Quanto mais completo o perfil, melhores os lembretes de cuidado.
+            </Text>
+          </>
+        )}
+
+        <View style={estilos.formulario}>
           <CampoTexto
             rotulo="Nome"
+            iconeRotulo="pricetag-outline"
+            icone="paw"
             placeholder="Como ele se chama?"
             value={nome}
             onChangeText={setNome}
             erro={erros.nome}
           />
 
-          <Text style={estilos.rotulo}>Espécie</Text>
+          <Rotulo icone="paw-outline" texto="Espécie" />
           <View style={estilos.opcoes}>
             {ESPECIES.map((opcao) => {
               const ativa = especie === opcao.valor;
@@ -162,8 +190,13 @@ export function FormPetScreen({ route, navigation }: Props) {
                 <Pressable
                   key={opcao.valor}
                   onPress={() => setEspecie(opcao.valor)}
-                  style={[estilos.opcao, ativa && estilos.opcaoAtiva]}
+                  style={[estilos.opcao, estilos.opcaoComIcone, ativa && estilos.opcaoAtiva]}
                 >
+                  <Ionicons
+                    name={opcao.icone}
+                    size={17}
+                    color={ativa ? cores.primaria : cores.textoSuave}
+                  />
                   <Text style={[estilos.opcaoTexto, ativa && estilos.opcaoTextoAtivo]}>
                     {opcao.rotulo}
                   </Text>
@@ -172,7 +205,7 @@ export function FormPetScreen({ route, navigation }: Props) {
             })}
           </View>
 
-          <Text style={estilos.rotulo}>Sexo</Text>
+          <Rotulo icone="male-female-outline" texto="Sexo" />
           <View style={estilos.opcoes}>
             {SEXOS.map((opcao) => {
               const ativa = sexo === opcao.valor;
@@ -206,12 +239,17 @@ export function FormPetScreen({ route, navigation }: Props) {
 
           <CampoTexto
             rotulo="Raça"
+            iconeRotulo="pricetag-outline"
+            icone="paw"
             placeholder="Ex: Golden Retriever"
             value={raca}
             onChangeText={setRaca}
           />
           <CampoTexto
             rotulo="Data de nascimento"
+            iconeRotulo="calendar-outline"
+            icone="paw"
+            sufixo="calendar-outline"
             placeholder="AAAA-MM-DD"
             value={dataNascimento}
             onChangeText={setDataNascimento}
@@ -219,6 +257,9 @@ export function FormPetScreen({ route, navigation }: Props) {
           />
           <CampoTexto
             rotulo="Peso (kg)"
+            iconeRotulo="barbell-outline"
+            icone="barbell-outline"
+            sufixoTexto="kg"
             placeholder="Ex: 8.5"
             value={peso}
             onChangeText={setPeso}
@@ -227,6 +268,9 @@ export function FormPetScreen({ route, navigation }: Props) {
           />
           <CampoTexto
             rotulo="Observações de saúde"
+            iconeRotulo="pulse-outline"
+            icone="pulse-outline"
+            sufixo="create-outline"
             placeholder="Alergias, tratamentos em curso…"
             value={observacoes}
             onChangeText={setObservacoes}
@@ -234,6 +278,15 @@ export function FormPetScreen({ route, navigation }: Props) {
             numberOfLines={3}
             style={estilos.multilinha}
           />
+
+          {!!observacoes.trim() && (
+            <View style={estilos.atencao}>
+              <View style={estilos.atencaoIcone}>
+                <Ionicons name="paw" size={13} color={cores.laranja} />
+              </View>
+              <Text style={estilos.atencaoTexto}>Atenção especial</Text>
+            </View>
+          )}
 
           {!!erroGeral && (
             <View style={estilos.avisoErro}>
@@ -243,12 +296,23 @@ export function FormPetScreen({ route, navigation }: Props) {
 
           <Botao
             titulo={editando ? 'Salvar alterações' : 'Cadastrar pet'}
+            icone="save-outline"
             onPress={salvar}
             carregando={salvando}
           />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+/** Rótulo de seção com ícone, no mesmo padrão dos campos. */
+function Rotulo({ icone, texto }: { icone: keyof typeof Ionicons.glyphMap; texto: string }) {
+  return (
+    <View style={estilos.linhaRotulo}>
+      <Ionicons name={icone} size={14} color={cores.textoSuave} />
+      <Text style={estilos.rotulo}>{texto}</Text>
+    </View>
   );
 }
 
@@ -293,13 +357,26 @@ const estilos = StyleSheet.create({
     backgroundColor: cores.superficieAlt,
     alignItems: 'center',
   },
-  areaFoto: { alignItems: 'center', gap: espacamentos.xs, marginBottom: espacamentos.md },
+  cabecalhoPet: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.md,
+    backgroundColor: '#7A4110',
+    borderRadius: raios.lg,
+    padding: espacamentos.md,
+    marginBottom: espacamentos.md,
+    overflow: 'hidden',
+  },
+  decor1: { position: 'absolute', right: 10, top: -6 },
+  decor2: { position: 'absolute', right: 74, top: 30 },
+  decor3: { position: 'absolute', right: 16, bottom: 4 },
+  molduraArea: { width: 84, height: 84 },
   moldura: {
-    width: 92,
-    height: 92,
+    width: 84,
+    height: 84,
     borderRadius: raios.pill,
-    borderWidth: 2,
-    borderColor: cores.primaria,
+    borderWidth: 2.5,
+    borderColor: cores.laranja,
     overflow: 'hidden',
   },
   foto: { width: '100%', height: '100%' },
@@ -307,20 +384,65 @@ const estilos = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: cores.superficieAlt,
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
-  dicaFoto: { color: cores.textoSecundario, fontSize: 12 },
-  avisoFoto: {
+  botaoCamera: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 28,
+    height: 28,
+    borderRadius: raios.pill,
+    backgroundColor: cores.laranja,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#7A4110',
+  },
+  linhaNome: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  nomePet: { color: '#FFF6EC', fontSize: 21, fontWeight: '800' },
+  subPet: { color: 'rgba(255,246,236,0.75)', fontSize: 13, marginTop: 1 },
+  seloFamilia: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    marginTop: espacamentos.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: raios.pill,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+  },
+  seloFamiliaTexto: { color: cores.laranja, fontSize: 12, fontWeight: '700' },
+  opcaoComIcone: { flexDirection: 'row', gap: 7 },
+  linhaRotulo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: espacamentos.xs,
+  },
+  atencao: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: espacamentos.sm,
-    backgroundColor: cores.superficieAlt,
-    borderRadius: raios.md,
-    padding: espacamentos.sm + 2,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,138,61,0.12)',
+    borderRadius: raios.pill,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    marginTop: -espacamentos.sm,
     marginBottom: espacamentos.md,
   },
-  avisoFotoTexto: { flex: 1, color: cores.textoSecundario, fontSize: 12 },
-  opcaoComIcone: { flexDirection: 'row', gap: 7 },
+  atencaoIcone: {
+    width: 22,
+    height: 22,
+    borderRadius: raios.pill,
+    borderWidth: 1,
+    borderColor: cores.laranja,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  atencaoTexto: { color: cores.laranja, fontSize: 12, fontWeight: '700' },
   opcaoAtiva: {
     borderColor: cores.primaria,
     backgroundColor: cores.primariaSuave,
