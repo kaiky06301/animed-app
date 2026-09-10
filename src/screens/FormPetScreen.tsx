@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Image,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -110,12 +111,12 @@ export function FormPetScreen({ route, navigation }: Props) {
     >
       <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
         {editando ? (
-          <View style={estilos.cabecalhoPet}>
-            {/* patas decorativas ao fundo */}
-            <Ionicons name="paw" size={54} color="rgba(255,255,255,0.10)" style={estilos.decor1} />
-            <Ionicons name="paw" size={34} color="rgba(255,255,255,0.10)" style={estilos.decor2} />
-            <Ionicons name="heart-outline" size={44} color="rgba(255,255,255,0.22)" style={estilos.decor3} />
-
+          <ImageBackground
+            source={require('../../assets/fundo-cabecalho-pet.png')}
+            style={estilos.cabecalhoPet}
+            imageStyle={estilos.cabecalhoFundo}
+            resizeMode="cover"
+          >
             <Pressable onPress={escolherFoto} style={estilos.molduraArea}>
               <View style={estilos.moldura}>
                 {fotoUri ? (
@@ -161,7 +162,7 @@ export function FormPetScreen({ route, navigation }: Props) {
                 <Ionicons name="heart" size={12} color={cores.laranja} />
               </View>
             </View>
-          </View>
+          </ImageBackground>
         ) : (
           <>
             <Text style={estilos.titulo}>Cadastrar pet</Text>
@@ -361,15 +362,10 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: espacamentos.md,
-    backgroundColor: '#7A4110',
-    borderRadius: raios.lg,
     padding: espacamentos.md,
     marginBottom: espacamentos.md,
-    overflow: 'hidden',
   },
-  decor1: { position: 'absolute', right: 10, top: -6 },
-  decor2: { position: 'absolute', right: 74, top: 30 },
-  decor3: { position: 'absolute', right: 16, bottom: 4 },
+  cabecalhoFundo: { borderRadius: raios.lg },
   molduraArea: { width: 84, height: 84 },
   moldura: {
     width: 84,
