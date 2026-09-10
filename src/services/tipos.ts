@@ -69,3 +69,14 @@ export interface Pagina<T> {
   totalPages: number;
   number: number;
 }
+
+export interface Consulta {
+  id: number;
+  dataHora: string;
+  motivo: string;
+  diagnostico: string | null;
+  status: 'AGENDADA' | 'REALIZADA' | 'CANCELADA' | 'NAO_COMPARECEU';
+  veterinario: string | null;
+  idPet: number;
+  nomePet: string;
+}

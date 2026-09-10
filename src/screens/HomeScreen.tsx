@@ -3,10 +3,12 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
+import { useFotoPet } from '../hooks/useFotoPet';
 import { usePets } from '../hooks/usePets';
+import { useSaudeDoPet } from '../hooks/useSaudeDoPet';
 import { useAnimed } from '../state/AnimedContext';
 import { useAuth } from '../state/AuthContext';
 import { cores, espacamentos, raios } from '../theme/cores';
@@ -25,6 +27,8 @@ export function HomeScreen({ navigation }: Props) {
   const { usuario } = useAuth();
   const { data: pets } = usePets(usuario?.idTutor ?? null);
   const pet = pets?.[0] ?? null;
+  const { uri: fotoPet } = useFotoPet(pet?.id ?? null);
+  const { data: saude } = useSaudeDoPet(pet?.id ?? null);
   const nivel = nivelPorPontos(pontos);
   const proximo = proximoNivel(pontos);
   const progresso = progressoNivel(pontos);
@@ -82,29 +86,86 @@ export function HomeScreen({ navigation }: Props) {
           />
         </Cartao>
       ) : (
-        <Cartao>
-          <View style={estilos.linhaPet}>
-            <View style={estilos.avatarPet}>
-              <Ionicons
-                name={pet.especie === 'GATO' ? 'logo-octocat' : 'paw'}
-                size={28}
-                color={cores.primaria}
-              />
+        <Pressable
+          onPress={() => navigation.navigate('Vacinas', { idPet: pet.id, nomePet: pet.nome })}
+          style={({ pressed }) => pressed && { opacity: 0.8 }}
+        >
+          <Cartao style={estilos.cartaoPet}>
+            <View style={estilos.linhaPet}>
+              <View style={estilos.molduraFoto}>
+                {fotoPet ? (
+                  <Image source={{ uri: fotoPet }} style={estilos.fotoPet} />
+                ) : (
+                  <View style={estilos.fotoVazia}>
+                    <Ionicons name="paw" size={26} color={cores.primaria} />
+                  </View>
+                )}
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={estilos.nomePet}>{pet.nome}</Text>
+                <Text style={estilos.descPet}>
+                  {[
+                    pet.raca || 'Sem raça definida',
+                    pet.idadeAnos != null ? `${pet.idadeAnos} anos` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' • ')}
+                </Text>
+
+                {/* Progresso de pontos até o próximo nível */}
+                <View style={estilos.barraFundo}>
+                  <View
+                    style={[
+                      estilos.barraProgresso,
+                      { width: `${Math.round(progresso * 100)}%` },
+                    ]}
+                  />
+                </View>
+              </View>
+
+              <View style={estilos.seloPontos}>
+                <Ionicons name="paw" size={13} color={cores.laranja} />
+                <Text style={estilos.seloPontosTexto}>
+                  {pontos.toLocaleString('pt-BR')} pts
+                </Text>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={estilos.nomePet}>{pet.nome}</Text>
-              <Text style={estilos.descPet}>
-                {[
-                  pet.raca || 'Sem raça definida',
-                  pet.idadeAnos != null ? `${pet.idadeAnos} ano(s)` : null,
-                  pet.pesoKg != null ? `${pet.pesoKg} kg` : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </Text>
+
+            <View style={estilos.rodapePet}>
+              <View
+                style={[
+                  estilos.iconeSaude,
+                  { backgroundColor: saude?.emDia === false ? cores.alerta : cores.primaria },
+                ]}
+              >
+                <Ionicons
+                  name={saude?.emDia === false ? 'alert' : 'paw'}
+                  size={16}
+                  color="#04261C"
+                />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={[
+                    estilos.situacaoSaude,
+                    { color: saude?.emDia === false ? cores.alerta : cores.primaria },
+                  ]}
+                >
+                  {saude?.situacao ?? 'Carregando situação…'}
+                </Text>
+                <Text style={estilos.ultimaConsulta}>
+                  {saude?.ultimaConsulta
+                    ? `Última consulta: ${formatarData(saude.ultimaConsulta)}`
+                    : 'Nenhuma consulta registrada'}
+                </Text>
+              </View>
+
+              <Ionicons name="chevron-forward" size={20} color={cores.textoSuave} />
             </View>
-          </View>
-        </Cartao>
+          </Cartao>
+        </Pressable>
       )}
 
       <Text style={estilos.secao}>Atalhos</Text>
@@ -149,6 +210,12 @@ const CORES_ATALHO = {
   comunidade: '#3B82F6',
   planos: '#FFC857',
 } as const;
+
+/** Converte a data vinda da API para o formato brasileiro. */
+function formatarData(iso: string): string {
+  const [ano, mes, dia] = iso.slice(0, 10).split('-');
+  return `${dia}/${mes}/${ano}`;
+}
 
 function AtalhoBotao({
   icone,
@@ -233,6 +300,50 @@ const estilos = StyleSheet.create({
     marginTop: espacamentos.sm,
   },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.md },
+  cartaoPet: { gap: espacamentos.md },
+  molduraFoto: {
+    width: 62,
+    height: 62,
+    borderRadius: raios.pill,
+    borderWidth: 2,
+    borderColor: cores.primaria,
+    overflow: 'hidden',
+  },
+  fotoPet: { width: '100%', height: '100%' },
+  fotoVazia: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: cores.superficieAlt,
+  },
+  seloPontos: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: raios.pill,
+    backgroundColor: cores.laranjaSuave,
+  },
+  seloPontosTexto: { color: cores.laranja, fontSize: 12, fontWeight: '800' },
+  rodapePet: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    borderTopWidth: 1,
+    borderTopColor: cores.borda,
+    paddingTop: espacamentos.md,
+  },
+  iconeSaude: {
+    width: 30,
+    height: 30,
+    borderRadius: raios.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  situacaoSaude: { fontSize: 14, fontWeight: '700' },
+  ultimaConsulta: { color: cores.textoSecundario, fontSize: 12, marginTop: 1 },
   atalhoArea: { width: '47%' },
   atalho: { gap: 2, paddingVertical: espacamentos.md },
   atalhoLinhaTitulo: {
