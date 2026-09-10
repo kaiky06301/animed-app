@@ -364,8 +364,11 @@ const estilos = StyleSheet.create({
     gap: espacamentos.md,
     padding: espacamentos.md,
     marginBottom: espacamentos.md,
+    // recorta a arte de fundo no limite do cartão
+    borderRadius: raios.lg,
+    overflow: 'hidden',
   },
-  cabecalhoFundo: { borderRadius: raios.lg },
+  cabecalhoFundo: { borderRadius: raios.lg, resizeMode: 'cover' },
   molduraArea: { width: 84, height: 84 },
   moldura: {
     width: 84,
