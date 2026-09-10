@@ -44,11 +44,20 @@ export function HomeScreen({ navigation }: Props) {
       showsVerticalScrollIndicator={false}
     >
       <View style={estilos.cabecalho}>
-        <View>
-          <Text style={estilos.saudacao}>Olá, tutor!</Text>
+        <View style={{ flex: 1 }}>
+          <View style={estilos.linhaSaudacao}>
+            <Ionicons name="paw" size={15} color={cores.laranja} />
+            <Text style={estilos.saudacao}>Olá, tutor!</Text>
+          </View>
+
           <Text style={estilos.titulo}>
-            Bem-vindo ao <Text style={{ color: cores.primaria }}>Animed</Text>
+            Bem-vindo ao <Text style={{ color: cores.laranja }}>Animed</Text>
           </Text>
+
+          <View style={estilos.linhaLema}>
+            <Text style={estilos.lema}>Mais saúde, mais momentos juntos</Text>
+            <Ionicons name="heart" size={13} color={cores.laranja} />
+          </View>
         </View>
         <View style={estilos.distintivoNivel}>
           <Text style={estilos.emoji}>{nivel.emoji}</Text>
@@ -273,8 +282,16 @@ function AtalhoBotao({
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: { padding: espacamentos.lg, paddingBottom: espacamentos.xxl, gap: espacamentos.md },
-  cabecalho: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  saudacao: { color: cores.textoSecundario, fontSize: 13 },
+  cabecalho: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: espacamentos.md,
+  },
+  linhaSaudacao: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  saudacao: { color: cores.laranja, fontSize: 13, fontWeight: '700' },
+  linhaLema: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
+  lema: { color: cores.textoSecundario, fontSize: 13 },
   titulo: { color: cores.textoPrincipal, fontSize: 24, fontWeight: '700' },
   distintivoNivel: {
     width: 52,
