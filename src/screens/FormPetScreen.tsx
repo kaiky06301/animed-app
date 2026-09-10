@@ -410,7 +410,13 @@ const estilos = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.28)',
   },
   seloFamiliaTexto: { color: cores.laranja, fontSize: 12, fontWeight: '700' },
-  opcaoComIcone: { flexDirection: 'row', gap: 7 },
+  opcaoComIcone: {
+    flexDirection: 'row',
+    // com direção em linha, o conteúdo precisa ser centrado no eixo horizontal
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: espacamentos.md,
+  },
   linhaRotulo: {
     flexDirection: 'row',
     alignItems: 'center',
