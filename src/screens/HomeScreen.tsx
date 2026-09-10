@@ -15,7 +15,7 @@ import { useTutor } from '../hooks/useTutor';
 import { useAnimed } from '../state/AnimedContext';
 import { usePetAtivo } from '../state/PetAtivoContext';
 import { cores, espacamentos, raios } from '../theme/cores';
-import { nivelPorPontos, progressoNivel, proximoNivel } from '../utils/nivel';
+import { NIVEIS, nivelPorPontos, progressoNivel, proximoNivel } from '../utils/nivel';
 import type { AbasParamList, RaizParamList } from '../navigation/tipos';
 
 type Props = CompositeScreenProps<
@@ -263,7 +263,7 @@ export function HomeScreen({ navigation }: Props) {
         nivelAtual={nivel.nome}
         descontoAtual={nivel.descontoPercentual}
         moedasLiberadas={moedasLiberadas}
-        pontosParaPremium={Math.max(0, 500 - pontos)}
+        pontosParaPremium={Math.max(0, NIVEIS[2].minimo - pontos)}
         onFechar={() => setExplicacao(null)}
       />
 
