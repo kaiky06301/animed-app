@@ -219,7 +219,7 @@ export function HomeScreen({ navigation }: Props) {
             style={({ pressed }) => [estilos.bannerBotao, pressed && { opacity: 0.85 }]}
           >
             <Text style={estilos.bannerBotaoTexto}>Cadastrar pet</Text>
-            <Ionicons name="arrow-forward" size={16} color="#3B1A05" />
+            <Ionicons name="arrow-forward" size={13} color="#3B1A05" />
           </Pressable>
         </View>
       )}
@@ -392,24 +392,24 @@ const estilos = StyleSheet.create({
   contadorPetsTexto: { color: '#3B1A05', fontSize: 11, fontWeight: '800' },
   bannerContainer: {
     width: '100%',
-    aspectRatio: 1200 / 401,
+    aspectRatio: 1200 / 343,
     borderRadius: raios.lg,
     overflow: 'hidden',
   },
   bannerImagem: { width: '100%', height: '100%' },
   bannerBotao: {
     position: 'absolute',
-    left: '5%',
-    bottom: '12%',
+    left: '4%',
+    bottom: '10%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: espacamentos.md,
-    paddingVertical: espacamentos.sm + 2,
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: raios.pill,
     backgroundColor: '#FFA24C',
   },
-  bannerBotaoTexto: { color: '#3B1A05', fontSize: 13, fontWeight: '800' },
+  bannerBotaoTexto: { color: '#3B1A05', fontSize: 11, fontWeight: '800' },
   nivelNoPet: { fontSize: 12, fontWeight: '700', marginTop: 4 },
   dicaProgressoPet: { color: cores.textoSecundario, fontSize: 11, marginTop: 5 },
   barraPet: { height: 9, marginTop: espacamentos.sm + 2 },
