@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RaizNavigator } from './src/navigation/RaizNavigator';
 import { AnimedProvider } from './src/state/AnimedContext';
 import { AuthProvider } from './src/state/AuthContext';
+import { PetAtivoProvider } from './src/state/PetAtivoContext';
 import { cores } from './src/theme/cores';
 
 const TemaAnimed = {
@@ -36,12 +37,14 @@ export default function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <AnimedProvider>
+          <PetAtivoProvider>
+            <AnimedProvider>
             <NavigationContainer theme={TemaAnimed}>
               <StatusBar style="light" />
               <RaizNavigator />
             </NavigationContainer>
-          </AnimedProvider>
+            </AnimedProvider>
+          </PetAtivoProvider>
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

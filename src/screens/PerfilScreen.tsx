@@ -7,7 +7,7 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { useFotoPet } from '../hooks/useFotoPet';
-import { usePets } from '../hooks/usePets';
+import { usePetAtivo } from '../state/PetAtivoContext';
 import { useAnimed } from '../state/AnimedContext';
 import { useAuth } from '../state/AuthContext';
 import { cores, espacamentos, raios } from '../theme/cores';
@@ -29,11 +29,9 @@ export function PerfilScreen({ navigation }: Props) {
   const { pontos, plano, registrarAcao } = useAnimed();
   const nivel = nivelPorPontos(pontos);
 
-  // A foto pertence ao pet cadastrado na API; usamos o primeiro da lista
-  // como pet principal do perfil.
+  // A foto e os dados exibidos são do pet selecionado no app
   const { usuario, sair } = useAuth();
-  const { data: petsDaApi } = usePets(usuario?.idTutor ?? null);
-  const petPrincipal = petsDaApi?.[0] ?? null;
+  const { petAtivo: petPrincipal } = usePetAtivo();
   const { uri: fotoUri, escolherFoto } = useFotoPet(petPrincipal?.id ?? null);
 
   async function aoTocarNoAvatar() {

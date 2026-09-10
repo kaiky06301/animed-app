@@ -2,15 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { useFotoPet } from '../hooks/useFotoPet';
-import { usePets } from '../hooks/usePets';
+import { SeletorPet } from '../components/SeletorPet';
 import { useSaudeDoPet } from '../hooks/useSaudeDoPet';
 import { useAnimed } from '../state/AnimedContext';
-import { useAuth } from '../state/AuthContext';
+import { usePetAtivo } from '../state/PetAtivoContext';
 import { cores, espacamentos, raios } from '../theme/cores';
 import { nivelPorPontos, progressoNivel, proximoNivel } from '../utils/nivel';
 import type { AbasParamList, RaizParamList } from '../navigation/tipos';
@@ -23,10 +23,9 @@ type Props = CompositeScreenProps<
 export function HomeScreen({ navigation }: Props) {
   const { pontos, registrarAcao } = useAnimed();
 
-  // O pet exibido vem da API, mesma fonte da aba "Meus pets"
-  const { usuario } = useAuth();
-  const { data: pets } = usePets(usuario?.idTutor ?? null);
-  const pet = pets?.[0] ?? null;
+  // O pet exibido é o selecionado no seletor; o app inteiro segue essa escolha
+  const { petAtivo: pet, pets, selecionarPet } = usePetAtivo();
+  const [seletorAberto, setSeletorAberto] = useState(false);
   const { uri: fotoPet } = useFotoPet(pet?.id ?? null);
   const { data: saude } = useSaudeDoPet(pet?.id ?? null);
   const nivel = nivelPorPontos(pontos);
@@ -59,9 +58,17 @@ export function HomeScreen({ navigation }: Props) {
             <Ionicons name="heart" size={13} color={cores.laranja} />
           </View>
         </View>
-        <View style={estilos.distintivoNivel}>
-          <Text style={estilos.emoji}>{nivel.emoji}</Text>
-        </View>
+        <Pressable
+          onPress={() => setSeletorAberto(true)}
+          style={({ pressed }) => [estilos.distintivoNivel, pressed && { opacity: 0.7 }]}
+        >
+          <Ionicons name="paw" size={22} color={cores.laranja} />
+          {pets.length > 0 && (
+            <View style={estilos.contadorPets}>
+              <Text style={estilos.contadorPetsTexto}>{pets.length}</Text>
+            </View>
+          )}
+        </Pressable>
       </View>
 
       {!pet && (
@@ -197,6 +204,33 @@ export function HomeScreen({ navigation }: Props) {
           </Cartao>
         </Pressable>
       )}
+
+      {!!pet && pets.length < 5 && (
+        <Pressable
+          onPress={() => navigation.navigate('FormPet', { pet: undefined })}
+          style={({ pressed }) => pressed && { opacity: 0.85 }}
+        >
+          <View style={estilos.bannerNovoPet}>
+            <Ionicons name="paw" size={26} color="#FFF3E6" />
+            <View style={{ flex: 1 }}>
+              <Text style={estilos.bannerTitulo}>Cadastre outro pet</Text>
+              <Text style={estilos.bannerTexto}>
+                Cada pet tem sua própria carteira de vacinas e consultas.
+              </Text>
+            </View>
+            <Ionicons name="arrow-forward" size={20} color="#FFF3E6" />
+          </View>
+        </Pressable>
+      )}
+
+      <SeletorPet
+        visivel={seletorAberto}
+        pets={pets}
+        idAtivo={pet?.id ?? null}
+        onSelecionar={selecionarPet}
+        onFechar={() => setSeletorAberto(false)}
+        onCadastrar={() => navigation.navigate('FormPet', { pet: undefined })}
+      />
 
       <Text style={estilos.secao}>Atalhos</Text>
       <View style={estilos.grade}>
@@ -340,6 +374,31 @@ const estilos = StyleSheet.create({
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.md },
   cartaoPet: { gap: espacamentos.md },
   linhaNome: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  contadorPets: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 5,
+    borderRadius: raios.pill,
+    backgroundColor: cores.laranja,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: cores.fundo,
+  },
+  contadorPetsTexto: { color: '#3B1A05', fontSize: 11, fontWeight: '800' },
+  bannerNovoPet: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.md,
+    backgroundColor: cores.laranja,
+    borderRadius: raios.lg,
+    padding: espacamentos.md,
+  },
+  bannerTitulo: { color: '#3B1A05', fontSize: 16, fontWeight: '800' },
+  bannerTexto: { color: '#5C2E0C', fontSize: 12, marginTop: 2 },
   nivelNoPet: { fontSize: 12, fontWeight: '700', marginTop: 4 },
   dicaProgressoPet: { color: cores.textoSecundario, fontSize: 11, marginTop: 5 },
   barraPet: { height: 9, marginTop: espacamentos.sm + 2 },
