@@ -7,6 +7,8 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { useFotoPet } from '../hooks/useFotoPet';
+import { ExplicacaoRecompensa, type TipoRecompensa } from '../components/ExplicacaoRecompensa';
+import { MoedaAnimed } from '../components/MoedaAnimed';
 import { SeletorPet } from '../components/SeletorPet';
 import { useSaudeDoPet } from '../hooks/useSaudeDoPet';
 import { useTutor } from '../hooks/useTutor';
@@ -33,6 +35,7 @@ export function HomeScreen({ navigation }: Props) {
   // O pet exibido é o selecionado no seletor; o app inteiro segue essa escolha
   const { petAtivo: pet, pets, selecionarPet } = usePetAtivo();
   const [seletorAberto, setSeletorAberto] = useState(false);
+  const [explicacao, setExplicacao] = useState<TipoRecompensa | null>(null);
   const { uri: fotoPet } = useFotoPet(pet?.id ?? null);
   const { data: saude } = useSaudeDoPet(pet?.id ?? null);
   const nivel = nivelPorPontos(pontos);
@@ -159,34 +162,40 @@ export function HomeScreen({ navigation }: Props) {
               </View>
 
               <View style={estilos.selos}>
-                <View style={estilos.seloPontos}>
+                <Pressable
+                  onPress={() => setExplicacao('pontos')}
+                  style={({ pressed }) => [estilos.seloPontos, pressed && { opacity: 0.7 }]}
+                >
                   <Ionicons name="paw" size={14} color={cores.laranja} />
                   <Text style={estilos.seloPontosTexto}>
                     {pontos.toLocaleString('pt-BR')} pts
                   </Text>
                   <Ionicons name="star" size={13} color={cores.dourado} />
-                </View>
+                </Pressable>
 
-                {/* Moedas ficam visíveis mesmo bloqueadas, para o tutor
-                    acompanhar o saldo que vai poder gastar no Premium. */}
-                <View style={[estilos.seloMoedas, !moedasLiberadas && estilos.seloBloqueado]}>
-                  <Ionicons
-                    name="logo-bitcoin"
-                    size={13}
-                    color={moedasLiberadas ? cores.dourado : cores.textoSuave}
-                  />
+                {/* Enquanto bloqueadas, o disponível para gastar é zero;
+                    o saldo acumulado aparece na explicação. */}
+                <Pressable
+                  onPress={() => setExplicacao('moedas')}
+                  style={({ pressed }) => [
+                    estilos.seloMoedas,
+                    !moedasLiberadas && estilos.seloBloqueado,
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
+                  <MoedaAnimed tamanho={15} ativa={moedasLiberadas} />
                   <Text
                     style={[
                       estilos.seloMoedasTexto,
-                      !moedasLiberadas && { color: cores.textoSecundario },
+                      !moedasLiberadas && { color: cores.textoSuave },
                     ]}
                   >
-                    {moedas.toLocaleString('pt-BR')}
+                    {moedasLiberadas ? moedas.toLocaleString('pt-BR') : '0'}
                   </Text>
                   {!moedasLiberadas && (
                     <Ionicons name="lock-closed" size={11} color={cores.textoSuave} />
                   )}
-                </View>
+                </Pressable>
               </View>
             </View>
 
@@ -246,6 +255,17 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
       )}
+
+      <ExplicacaoRecompensa
+        tipo={explicacao}
+        pontos={pontos}
+        moedas={moedas}
+        nivelAtual={nivel.nome}
+        descontoAtual={nivel.descontoPercentual}
+        moedasLiberadas={moedasLiberadas}
+        pontosParaPremium={Math.max(0, 500 - pontos)}
+        onFechar={() => setExplicacao(null)}
+      />
 
       <SeletorPet
         visivel={seletorAberto}
