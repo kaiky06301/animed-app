@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Image,
-  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -111,12 +110,12 @@ export function FormPetScreen({ route, navigation }: Props) {
     >
       <ScrollView contentContainerStyle={estilos.conteudo} keyboardShouldPersistTaps="handled">
         {editando ? (
-          <ImageBackground
-            source={require('../../assets/fundo-cabecalho-pet.png')}
-            style={estilos.cabecalhoPet}
-            imageStyle={estilos.cabecalhoFundo}
-            resizeMode="cover"
-          >
+          <View style={estilos.cabecalhoPet}>
+            <Image
+              source={require('../../assets/fundo-cabecalho-pet.png')}
+              style={estilos.cabecalhoFundo}
+              resizeMode="cover"
+            />
             <Pressable onPress={escolherFoto} style={estilos.molduraArea}>
               <View style={estilos.moldura}>
                 {fotoUri ? (
@@ -162,7 +161,7 @@ export function FormPetScreen({ route, navigation }: Props) {
                 <Ionicons name="heart" size={12} color={cores.laranja} />
               </View>
             </View>
-          </ImageBackground>
+          </View>
         ) : (
           <>
             <Text style={estilos.titulo}>Cadastrar pet</Text>
@@ -368,7 +367,13 @@ const estilos = StyleSheet.create({
     borderRadius: raios.lg,
     overflow: 'hidden',
   },
-  cabecalhoFundo: { borderRadius: raios.lg, resizeMode: 'cover' },
+  cabecalhoFundo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  },
   molduraArea: { width: 84, height: 84 },
   moldura: {
     width: 84,
