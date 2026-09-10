@@ -90,19 +90,19 @@ export function HomeScreen({ navigation }: Props) {
       )}
 
       {!pet ? (
-        <Cartao style={estilos.cartaoVazio}>
-          <Ionicons name="paw" size={32} color={cores.laranja} />
-          <Text style={estilos.tituloCard}>Cadastre seu pet</Text>
-          <Text style={estilos.subtituloCard}>
-            Comece sua jornada. Cada dado preenchido gera pontos.
-          </Text>
-          <Botao
-            titulo="Cadastrar pet"
-            variante="laranja"
-            onPress={() => navigation.navigate('FormPet', { pet: undefined })}
-            estilo={{ marginTop: espacamentos.md }}
-          />
-        </Cartao>
+        <Pressable
+          onPress={() => navigation.navigate('FormPet', { pet: undefined })}
+          style={({ pressed }) => pressed && { opacity: 0.85 }}
+        >
+          <View style={estilos.bannerContainer}>
+            <Image
+              source={require('../../assets/banner-cadastre-pet.png')}
+              style={estilos.bannerImagem}
+              resizeMode="cover"
+              accessibilityLabel="Cadastre seu pet. Comece sua jornada, cada dado preenchido gera pontos."
+            />
+          </View>
+        </Pressable>
       ) : (
         <Pressable
           onPress={() => navigation.navigate('Vacinas', { idPet: pet.id, nomePet: pet.nome })}
@@ -210,15 +210,13 @@ export function HomeScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('FormPet', { pet: undefined })}
           style={({ pressed }) => pressed && { opacity: 0.85 }}
         >
-          <View style={estilos.bannerNovoPet}>
-            <Ionicons name="paw" size={26} color="#FFF3E6" />
-            <View style={{ flex: 1 }}>
-              <Text style={estilos.bannerTitulo}>Cadastre outro pet</Text>
-              <Text style={estilos.bannerTexto}>
-                Cada pet tem sua própria carteira de vacinas e consultas.
-              </Text>
-            </View>
-            <Ionicons name="arrow-forward" size={20} color="#FFF3E6" />
+          <View style={estilos.bannerContainer}>
+            <Image
+              source={require('../../assets/banner-cadastre-pet.png')}
+              style={estilos.bannerImagem}
+              resizeMode="cover"
+              accessibilityLabel="Cadastre seu pet. Comece sua jornada, cada dado preenchido gera pontos."
+            />
           </View>
         </Pressable>
       )}
@@ -389,16 +387,13 @@ const estilos = StyleSheet.create({
     borderColor: cores.fundo,
   },
   contadorPetsTexto: { color: '#3B1A05', fontSize: 11, fontWeight: '800' },
-  bannerNovoPet: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: espacamentos.md,
-    backgroundColor: cores.laranja,
+  bannerContainer: {
+    width: '100%',
+    aspectRatio: 1200 / 401,
     borderRadius: raios.lg,
-    padding: espacamentos.md,
+    overflow: 'hidden',
   },
-  bannerTitulo: { color: '#3B1A05', fontSize: 16, fontWeight: '800' },
-  bannerTexto: { color: '#5C2E0C', fontSize: 12, marginTop: 2 },
+  bannerImagem: { width: '100%', height: '100%' },
   nivelNoPet: { fontSize: 12, fontWeight: '700', marginTop: 4 },
   dicaProgressoPet: { color: cores.textoSecundario, fontSize: 11, marginTop: 5 },
   barraPet: { height: 9, marginTop: espacamentos.sm + 2 },
