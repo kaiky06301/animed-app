@@ -55,6 +55,7 @@ export function HomeScreen({ navigation }: Props) {
         </View>
       </View>
 
+      {!pet && (
       <Cartao realce style={estilos.cartaoPontos}>
         <Text style={estilos.legenda}>Sua pontuação</Text>
         <Text style={estilos.pontos}>{pontos}</Text>
@@ -70,6 +71,7 @@ export function HomeScreen({ navigation }: Props) {
             : 'Você está no nível máximo!'}
         </Text>
       </Cartao>
+      )}
 
       {!pet ? (
         <Cartao style={estilos.cartaoVazio}>
@@ -122,7 +124,11 @@ export function HomeScreen({ navigation }: Props) {
                     .join(' • ')}
                 </Text>
 
-                {/* Progresso de pontos até o próximo nível */}
+                <Text style={[estilos.nivelNoPet, { color: nivel.cor }]}>
+                  {nivel.emoji} {nivel.nome} · {nivel.descontoPercentual}% de desconto
+                </Text>
+
+                {/* Progresso de pontos do tutor até o próximo nível */}
                 <View style={[estilos.barraFundo, estilos.barraPet]}>
                   <View
                     style={[
@@ -131,6 +137,11 @@ export function HomeScreen({ navigation }: Props) {
                     ]}
                   />
                 </View>
+                <Text style={estilos.dicaProgressoPet}>
+                  {proximo
+                    ? `Faltam ${proximo.minimo - pontos} pts para virar ${proximo.nome}`
+                    : 'Você está no nível máximo!'}
+                </Text>
               </View>
 
               <View style={estilos.seloPontos}>
@@ -292,7 +303,7 @@ const estilos = StyleSheet.create({
   cartaoVazio: { gap: 6, alignItems: 'flex-start' },
   tituloCard: { color: cores.textoPrincipal, fontSize: 18, fontWeight: '700' },
   subtituloCard: { color: cores.textoSecundario, fontSize: 13 },
-  linhaPet: { flexDirection: 'row', alignItems: 'center', gap: espacamentos.md },
+  linhaPet: { flexDirection: 'row', alignItems: 'flex-start', gap: espacamentos.md },
   avatarPet: {
     width: 56,
     height: 56,
@@ -312,6 +323,8 @@ const estilos = StyleSheet.create({
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.md },
   cartaoPet: { gap: espacamentos.md },
   linhaNome: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  nivelNoPet: { fontSize: 12, fontWeight: '700', marginTop: 4 },
+  dicaProgressoPet: { color: cores.textoSecundario, fontSize: 11, marginTop: 5 },
   barraPet: { height: 9, marginTop: espacamentos.sm + 2 },
   molduraFoto: {
     width: 62,
