@@ -22,6 +22,11 @@ interface Props {
   pet: Pet | null;
   /** Motivo sugerido: check-up preventivo ou consulta. */
   motivoInicial?: string;
+  /**
+   * Motivo já definido, sem escolha — é o caso da vacinação, que parte de
+   * uma dose específica da carteira e não de uma queixa do tutor.
+   */
+  motivoFixo?: string;
   onFechar: () => void;
   onConfirmado: (confirmacao: AgendamentoConfirmado) => void;
 }
@@ -73,6 +78,7 @@ export function AgendarAtendimento({
   visivel,
   pet,
   motivoInicial = 'Check-up preventivo',
+  motivoFixo,
   onFechar,
   onConfirmado,
 }: Props) {
@@ -81,7 +87,7 @@ export function AgendarAtendimento({
   const [mesVisivel, setMesVisivel] = useState(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
   const [dataEscolhida, setDataEscolhida] = useState(paraIso(hoje));
   const [horario, setHorario] = useState<string | null>(null);
-  const [motivo, setMotivo] = useState(motivoInicial);
+  const [motivo, setMotivo] = useState(motivoFixo ?? motivoInicial);
   const ajuda = MOTIVOS.find((m) => m.nome === motivo)?.ajuda;
   const [erro, setErro] = useState<string | null>(null);
 
@@ -126,11 +132,11 @@ export function AgendarAtendimento({
 
   useEffect(() => {
     if (visivel) {
-      setMotivo(motivoInicial);
+      setMotivo(motivoFixo ?? motivoInicial);
       setHorario(null);
       setErro(null);
     }
-  }, [visivel, motivoInicial]);
+  }, [visivel, motivoInicial, motivoFixo]);
 
   function mudarMes(passo: number) {
     setMesVisivel(new Date(ano, mes + passo, 1));
@@ -189,6 +195,15 @@ export function AgendarAtendimento({
 
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text style={estilos.rotulo}>Motivo do atendimento</Text>
+
+            {motivoFixo ? (
+              <View style={[estilos.motivo, estilos.motivoAtivo, estilos.motivoUnico]}>
+                <Ionicons name="checkmark-circle" size={16} color={cores.laranja} />
+                <Text style={[estilos.motivoTexto, estilos.motivoTextoAtivo]}>
+                  {motivoFixo}
+                </Text>
+              </View>
+            ) : (
             <View style={estilos.motivos}>
               {MOTIVOS.map((opcao) => {
                 const ativo = motivo === opcao.nome;
@@ -208,8 +223,9 @@ export function AgendarAtendimento({
                 );
               })}
             </View>
+            )}
 
-            {!!ajuda && <Text style={estilos.ajuda}>{ajuda}</Text>}
+            {!motivoFixo && !!ajuda && <Text style={estilos.ajuda}>{ajuda}</Text>}
 
             <View style={estilos.colunas}>
               {/* Calendário do mês */}
@@ -438,6 +454,7 @@ const estilos = StyleSheet.create({
     backgroundColor: cores.superficie,
   },
   motivoAtivo: { borderColor: cores.laranja, backgroundColor: cores.laranjaSuave },
+  motivoUnico: { alignSelf: 'flex-start' },
   motivoTexto: { color: cores.textoSecundario, fontSize: 12, fontWeight: '600' },
   motivoTextoAtivo: { color: cores.laranja, fontWeight: '700' },
   ajuda: { fontSize: 11, color: cores.textoSuave, marginTop: espacamentos.xs },

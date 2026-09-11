@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AgendarAtendimento } from '../components/AgendarAtendimento';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useMemo, useState } from 'react';
 import {
@@ -113,6 +114,13 @@ export function VacinasScreen({ route }: Props) {
 
   const emDia = situacao === 'em-dia';
   const alerta = situacao === 'atrasado';
+
+  /**
+   * Dose que motiva o agendamento: a vencida tem prioridade sobre a
+   * prevista, porque é a que já deveria ter sido aplicada.
+   */
+  const doseAAgendar = atrasadas[0] ?? proximaDose;
+  const [agendandoVacina, setAgendandoVacina] = useState(false);
 
   if (isLoading) {
     return (
@@ -309,7 +317,33 @@ export function VacinasScreen({ route }: Props) {
           )
         }
         ListFooterComponent={
-          proximaDose ? (
+          <>
+          {!!doseAAgendar && (
+            <Pressable
+              onPress={() => setAgendandoVacina(true)}
+              style={({ pressed }) => [
+                estilos.agendar,
+                alerta && estilos.agendarUrgente,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="needle"
+                size={17}
+                color={alerta ? cores.erro : cores.laranja}
+              />
+              <Text style={[estilos.agendarTexto, alerta && { color: cores.erro }]}>
+                Agendar {doseAAgendar.nomeVacina}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={alerta ? cores.erro : cores.laranja}
+              />
+            </Pressable>
+          )}
+
+          {proximaDose ? (
             <View style={estilos.proxima}>
               <Ionicons name="paw" size={26} color={cores.laranja} />
 
@@ -328,8 +362,18 @@ export function VacinasScreen({ route }: Props) {
                 )}
               </View>
             </View>
-          ) : null
+          ) : null}
+          </>
         }
+      />
+
+      {/* A vacinação é marcada como atendimento, com a dose no motivo */}
+      <AgendarAtendimento
+        visivel={agendandoVacina}
+        pet={pet ?? null}
+        motivoFixo={`Vacinação - ${doseAAgendar?.nomeVacina ?? ''}`}
+        onFechar={() => setAgendandoVacina(false)}
+        onConfirmado={() => setAgendandoVacina(false)}
       />
     </View>
   );
@@ -561,6 +605,19 @@ const estilos = StyleSheet.create({
     padding: espacamentos.md,
     marginTop: espacamentos.md,
   },
+  agendar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    borderWidth: 1,
+    borderColor: cores.laranja,
+    borderRadius: raios.md,
+    paddingVertical: espacamentos.sm + 4,
+    paddingHorizontal: espacamentos.md,
+    marginBottom: espacamentos.sm,
+  },
+  agendarUrgente: { borderColor: cores.erro, backgroundColor: 'rgba(255,107,107,0.08)' },
+  agendarTexto: { flex: 1, fontSize: 14, fontWeight: '700', color: cores.laranja },
   proximaTitulo: { color: cores.laranja, fontSize: 15, fontWeight: '800' },
   proximaTexto: { color: cores.textoSecundario, fontSize: 13, marginTop: 2, lineHeight: 18 },
   proximaData: { color: cores.laranja, fontWeight: '800' },
