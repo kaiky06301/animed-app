@@ -157,6 +157,13 @@ export interface DetalheAtendimento {
   orientacao: string | null;
 }
 
+export interface AtendimentoCancelado {
+  idConsulta: number;
+  dataHora: string;
+  motivo: string;
+  pontosEstornados: number;
+}
+
 export interface AgendaDoDia {
   data: string;
   veterinario: string;

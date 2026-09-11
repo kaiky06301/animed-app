@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 import { cores, raios } from '../theme/cores';
 
-type Variante = 'primaria' | 'laranja' | 'contorno' | 'sutil';
+type Variante = 'primaria' | 'laranja' | 'contorno' | 'sutil' | 'perigo';
 
 interface Props {
   titulo: string;
@@ -21,6 +21,7 @@ const fundos: Record<Variante, string> = {
   laranja: cores.laranja,
   contorno: 'transparent',
   sutil: cores.superficieAlt,
+  perigo: 'transparent',
 };
 
 const textos: Record<Variante, string> = {
@@ -28,6 +29,7 @@ const textos: Record<Variante, string> = {
   laranja: '#3B1A05',
   contorno: cores.primaria,
   sutil: cores.textoPrincipal,
+  perigo: cores.erro,
 };
 
 export function Botao({
@@ -48,7 +50,12 @@ export function Botao({
         estilos.base,
         {
           backgroundColor: fundos[variante],
-          borderColor: variante === 'contorno' ? cores.primaria : 'transparent',
+          borderColor:
+            variante === 'contorno'
+              ? cores.primaria
+              : variante === 'perigo'
+                ? cores.erro
+                : 'transparent',
           opacity: indisponivel ? 0.5 : pressed ? 0.85 : 1,
         },
         estilo,

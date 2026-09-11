@@ -2,6 +2,7 @@ import { api } from '../api/cliente';
 import {
   AgendaDoDia,
   AgendamentoConfirmado,
+  AtendimentoCancelado,
   AtendimentoConcluido,
   DetalheAtendimento,
   DisponibilidadeAgenda,
@@ -66,6 +67,14 @@ export async function concluir(pedido: {
 export async function detalhe(idConsulta: number): Promise<DetalheAtendimento> {
   const { data } = await api.get<DetalheAtendimento>(
     `/api/agenda/atendimentos/${idConsulta}`,
+  );
+  return data;
+}
+
+/** Desmarca o atendimento e devolve os pontos ganhos ao reservá-lo. */
+export async function cancelar(idConsulta: number): Promise<AtendimentoCancelado> {
+  const { data } = await api.patch<AtendimentoCancelado>(
+    `/api/agenda/atendimentos/${idConsulta}/cancelar`,
   );
   return data;
 }

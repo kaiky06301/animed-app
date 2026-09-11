@@ -63,3 +63,19 @@ export function useConcluirAtendimento() {
     },
   });
 }
+
+/** Cancelamento do atendimento pelo tutor. */
+export function useCancelarAtendimento() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: agendaService.cancelar,
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ['tutor'] });
+      client.invalidateQueries({ queryKey: ['agenda'] });
+      client.invalidateQueries({ queryKey: ['consultas'] });
+      client.invalidateQueries({ queryKey: ['atendimento'] });
+      client.invalidateQueries({ queryKey: ['saude-pet'] });
+    },
+  });
+}

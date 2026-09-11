@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -9,9 +9,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useDetalheAtendimento } from '../hooks/useAgenda';
+import { mensagemDoErro } from '../api/cliente';
+import { useCancelarAtendimento, useDetalheAtendimento } from '../hooks/useAgenda';
 import type { DetalheAtendimento as Detalhe } from '../services/tipos';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { Botao } from './Botao';
 
 interface Props {
   idConsulta: number | null;
@@ -94,6 +96,33 @@ function Linha({
  */
 export function DetalheAtendimento({ idConsulta, onFechar }: Props) {
   const { data: atendimento, isLoading } = useDetalheAtendimento(idConsulta);
+  const cancelar = useCancelarAtendimento();
+
+  const [confirmando, setConfirmando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    setConfirmando(false);
+    setErro(null);
+  }, [idConsulta]);
+
+  /** Só faz sentido desmarcar o que ainda vai acontecer. */
+  const podeCancelar =
+    atendimento?.status === 'AGENDADA' && new Date(atendimento.dataHora) > new Date();
+
+  async function desmarcar() {
+    if (!atendimento) return;
+    setErro(null);
+
+    try {
+      await cancelar.mutateAsync(atendimento.idConsulta);
+      // A tela continua aberta de propósito: o tutor vê o status virar
+      // "Cancelado" e confirma que o pedido foi para frente.
+      setConfirmando(false);
+    } catch (e) {
+      setErro(mensagemDoErro(e, 'Não foi possível cancelar o atendimento'));
+    }
+  }
 
   return (
     <Modal
@@ -198,6 +227,48 @@ export function DetalheAtendimento({ idConsulta, onFechar }: Props) {
                   </View>
                 )}
               </ScrollView>
+
+              {podeCancelar && !confirmando && (
+                <Pressable
+                  onPress={() => setConfirmando(true)}
+                  style={({ pressed }) => [estilos.cancelar, pressed && { opacity: 0.7 }]}
+                >
+                  <Ionicons name="close-circle-outline" size={16} color={cores.erro} />
+                  <Text style={estilos.cancelarTexto}>Cancelar atendimento (−30 pts)</Text>
+                </Pressable>
+              )}
+
+              {podeCancelar && confirmando && (
+                <View style={estilos.confirmacao}>
+                  <View style={estilos.penalidade}>
+                    <Ionicons name="remove-circle" size={15} color={cores.erro} />
+                    <Text style={estilos.penalidadeTexto}>−30 pontos</Text>
+                  </View>
+
+                  <Text style={estilos.confirmacaoTexto}>
+                    O horário volta a ficar disponível para outro paciente e os 30 pontos
+                    saem do seu saldo. Confirma?
+                  </Text>
+
+                  {!!erro && <Text style={estilos.erro}>{erro}</Text>}
+
+                  <View style={estilos.confirmacaoBotoes}>
+                    <Botao
+                      titulo="Manter"
+                      variante="sutil"
+                      onPress={() => setConfirmando(false)}
+                      estilo={{ flex: 1 }}
+                    />
+                    <Botao
+                      titulo="Cancelar mesmo assim"
+                      variante="perigo"
+                      onPress={desmarcar}
+                      carregando={cancelar.isPending}
+                      estilo={{ flex: 1 }}
+                    />
+                  </View>
+                </View>
+              )}
             </>
           )}
         </Pressable>
@@ -283,4 +354,36 @@ const estilos = StyleSheet.create({
   blocoTopo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
   blocoTitulo: { color: cores.laranja, fontSize: 12, fontWeight: '800' },
   blocoItem: { color: cores.textoSecundario, fontSize: 12, lineHeight: 17 },
+
+  cancelar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: espacamentos.md,
+    paddingVertical: espacamentos.sm,
+  },
+  cancelarTexto: { color: cores.erro, fontSize: 13, fontWeight: '600' },
+
+  confirmacao: {
+    backgroundColor: 'rgba(255,107,107,0.10)',
+    borderRadius: raios.md,
+    padding: espacamentos.sm + 2,
+    marginTop: espacamentos.md,
+    gap: espacamentos.sm,
+  },
+  confirmacaoTexto: { color: cores.textoSecundario, fontSize: 12, lineHeight: 17 },
+  penalidade: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,107,107,0.16)',
+    paddingHorizontal: espacamentos.sm,
+    paddingVertical: 4,
+    borderRadius: raios.pill,
+  },
+  penalidadeTexto: { color: cores.erro, fontSize: 12, fontWeight: '800' },
+  confirmacaoBotoes: { flexDirection: 'row', gap: espacamentos.sm },
+  erro: { color: cores.erro, fontSize: 12 },
 });
