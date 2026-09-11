@@ -243,3 +243,14 @@ export interface DoseRegistrada {
   /** Por que a dose não pontuou, quando for o caso. */
   aviso: string | null;
 }
+
+export interface LancamentoPontos {
+  id: number;
+  tipoAcao: string;
+  tipoAcaoDescricao: string;
+  /** Negativo quando a ação foi desfeita, como no cancelamento. */
+  pontosGanhos: number;
+  descricao: string;
+  dataHora: string;
+  idTutor: number;
+}

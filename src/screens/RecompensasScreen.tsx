@@ -3,21 +3,28 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { PRODUTOS_PARCEIROS, type Produto } from '../data/parceiros';
-import { useAnimed } from '../state/AnimedContext';
+import { useTutor } from '../hooks/useTutor';
 import { cores, espacamentos, raios } from '../theme/cores';
-import { aplicarDesconto, nivelPorPontos } from '../utils/nivel';
 
 function formatarReais(valor: number): string {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+/** Medalha do nível, conforme a faixa de pontuação. */
+const EMOJI_NIVEL: Record<string, string> = {
+  BASICO: '🥉',
+  CUIDADOR: '🥈',
+  TUTOR_PREMIUM: '🥇',
+};
+
 export function RecompensasScreen() {
-  const { pontos, registrarAcao } = useAnimed();
-  const nivel = nivelPorPontos(pontos);
+  // O nível e o desconto vêm da API: é lá que a pontuação é apurada
+  const { data: tutor } = useTutor();
+
+  const desconto = tutor?.descontoPercentual ?? 0;
   const [comprado, setComprado] = useState<string | null>(null);
 
   function comprar(produto: Produto) {
-    registrarAcao('compraParceiro');
     setComprado(produto.id);
     setTimeout(() => setComprado(null), 2500);
   }
@@ -31,17 +38,18 @@ export function RecompensasScreen() {
           <View style={estilos.cabecalho}>
             <Text style={estilos.titulo}>Recompensas</Text>
             <Text style={estilos.subtitulo}>
-              {nivel.emoji} Nível {nivel.nome} •{' '}
+              {EMOJI_NIVEL[tutor?.nivel ?? 'BASICO']} Nível{' '}
+              {tutor?.nivelDescricao ?? 'Básico'} •{' '}
               <Text style={{ color: cores.primaria, fontWeight: '700' }}>
-                {nivel.descontoPercentual}% de desconto
+                {desconto}% de desconto
               </Text>{' '}
               nas compras
             </Text>
           </View>
         }
         renderItem={({ item }) => {
-          const precoFinal = aplicarDesconto(item.preco, pontos);
-          const teveDesconto = nivel.descontoPercentual > 0;
+          const precoFinal = item.preco - item.preco * (desconto / 100);
+          const teveDesconto = desconto > 0;
           return (
             <Cartao>
               <View style={estilos.linha}>
@@ -62,7 +70,7 @@ export function RecompensasScreen() {
                 )}
                 <Text style={estilos.precoFinal}>{formatarReais(precoFinal)}</Text>
                 {teveDesconto && (
-                  <Text style={estilos.tagDesc}>-{nivel.descontoPercentual}%</Text>
+                  <Text style={estilos.tagDesc}>-{desconto}%</Text>
                 )}
               </View>
               <Botao

@@ -1,7 +1,9 @@
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Cartao } from '../components/Cartao';
-import { useAnimed } from '../state/AnimedContext';
+import { useHistoricoPontos } from '../hooks/useHistoricoPontos';
+import { useTutor } from '../hooks/useTutor';
+import { useAuth } from '../state/AuthContext';
 import { cores, espacamentos } from '../theme/cores';
 
 function formatarData(iso: string): string {
@@ -15,19 +17,32 @@ function formatarData(iso: string): string {
 }
 
 export function HistoricoScreen() {
-  const { historico, pontos } = useAnimed();
+  // A pontuação é apurada na API: o histórico é o extrato dela
+  const { usuario } = useAuth();
+  const { data: tutor } = useTutor();
+  const { data: lancamentos, isLoading } = useHistoricoPontos(usuario?.idTutor ?? null);
+
+  if (isLoading) {
+    return (
+      <View style={[estilos.container, estilos.centro]}>
+        <ActivityIndicator color={cores.primaria} size="large" />
+      </View>
+    );
+  }
 
   return (
     <View style={estilos.container}>
       <FlatList
-        data={historico}
-        keyExtractor={(item) => item.id}
+        data={lancamentos ?? []}
+        keyExtractor={(item) => String(item.id)}
         ListHeaderComponent={
           <View style={estilos.cabecalho}>
             <Text style={estilos.titulo}>Histórico de pontos</Text>
             <Text style={estilos.subtitulo}>
               Saldo atual:{' '}
-              <Text style={{ color: cores.primaria, fontWeight: '700' }}>{pontos} pts</Text>
+              <Text style={{ color: cores.primaria, fontWeight: '700' }}>
+                {(tutor?.pontosTotais ?? 0).toLocaleString('pt-BR')} pts
+              </Text>
             </Text>
           </View>
         }
@@ -38,17 +53,27 @@ export function HistoricoScreen() {
             </Text>
           </Cartao>
         }
-        renderItem={({ item }) => (
-          <Cartao>
-            <View style={estilos.linha}>
-              <View style={{ flex: 1 }}>
-                <Text style={estilos.acao}>{item.rotulo}</Text>
-                <Text style={estilos.data}>{formatarData(item.data)}</Text>
+        renderItem={({ item }) => {
+          // Estornos entram como lançamento negativo e precisam se distinguir
+          const estorno = item.pontosGanhos < 0;
+
+          return (
+            <Cartao>
+              <View style={estilos.linha}>
+                <View style={{ flex: 1 }}>
+                  <Text style={estilos.acao}>{item.tipoAcaoDescricao}</Text>
+                  <Text style={estilos.descricao}>{item.descricao}</Text>
+                  <Text style={estilos.data}>{formatarData(item.dataHora)}</Text>
+                </View>
+
+                <Text style={[estilos.pontos, estorno && { color: cores.erro }]}>
+                  {estorno ? '' : '+'}
+                  {item.pontosGanhos}
+                </Text>
               </View>
-              <Text style={estilos.pontos}>+{item.pontos}</Text>
-            </View>
-          </Cartao>
-        )}
+            </Cartao>
+          );
+        }}
         contentContainerStyle={estilos.lista}
         showsVerticalScrollIndicator={false}
       />
@@ -58,6 +83,8 @@ export function HistoricoScreen() {
 
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
+  centro: { alignItems: 'center', justifyContent: 'center' },
+  descricao: { color: cores.textoSecundario, fontSize: 12, marginTop: 1 },
   lista: { padding: espacamentos.lg, paddingBottom: espacamentos.xxl, gap: espacamentos.md },
   cabecalho: { marginBottom: espacamentos.md },
   titulo: { color: cores.textoPrincipal, fontSize: 24, fontWeight: '700' },

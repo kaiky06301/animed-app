@@ -8,6 +8,7 @@ import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { usePetAtivo } from '../state/PetAtivoContext';
+import { useTutor } from '../hooks/useTutor';
 import { useAnimed } from '../state/AnimedContext';
 import { useAuth } from '../state/AuthContext';
 import { cores, espacamentos, raios } from '../theme/cores';
@@ -26,7 +27,11 @@ const ROTULO_PLANO: Record<'gratuito' | 'intermediario' | 'premium', string> = {
 };
 
 export function PerfilScreen({ navigation }: Props) {
-  const { pontos, plano, registrarAcao } = useAnimed();
+  // Pontuação e nível são apurados na API; o plano segue local por ora
+  const { data: tutor } = useTutor();
+  const { plano, registrarAcao } = useAnimed();
+
+  const pontos = tutor?.pontosTotais ?? 0;
   const nivel = nivelPorPontos(pontos);
 
   // A foto e os dados exibidos são do pet selecionado no app
