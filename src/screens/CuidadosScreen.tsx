@@ -112,6 +112,15 @@ export function CuidadosScreen() {
   const [agendamento, setAgendamento] = useState<AcaoCuidado | null>(null);
   const [confirmacao, setConfirmacao] = useState<AgendamentoConfirmado | null>(null);
 
+  /**
+   * Fecha a confirmação e leva o tutor à agenda dele, onde o compromisso
+   * recém-marcado já aparece entre os próximos.
+   */
+  function fecharConfirmacao() {
+    setConfirmacao(null);
+    navigation.navigate('Abas', { screen: 'Atendimentos' });
+  }
+
   function abrir(acao: AcaoCuidado) {
     if (acao.pedeAgendamento) {
       setAgendamento(acao);
@@ -277,9 +286,9 @@ export function CuidadosScreen() {
         visible={!!confirmacao}
         transparent
         animationType="fade"
-        onRequestClose={() => setConfirmacao(null)}
+        onRequestClose={fecharConfirmacao}
       >
-        <Pressable style={estilos.fundoModal} onPress={() => setConfirmacao(null)}>
+        <Pressable style={estilos.fundoModal} onPress={fecharConfirmacao}>
           <Pressable style={estilos.painel} onPress={(e) => e.stopPropagation()}>
             <View style={estilos.selado}>
               <Ionicons name="checkmark-circle" size={34} color={cores.primaria} />
@@ -306,9 +315,9 @@ export function CuidadosScreen() {
             ))}
 
             <Botao
-              titulo="Entendi"
-              icone="checkmark-outline"
-              onPress={() => setConfirmacao(null)}
+              titulo="Ver meus atendimentos"
+              icone="calendar-outline"
+              onPress={fecharConfirmacao}
             />
           </Pressable>
         </Pressable>

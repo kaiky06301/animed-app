@@ -27,6 +27,9 @@ export function useAgendar() {
       client.invalidateQueries({ queryKey: ['tutor'] });
       client.invalidateQueries({ queryKey: ['agenda'] });
       client.invalidateQueries({ queryKey: ['saude-pet'] });
+      // Sem isto a lista de atendimentos do tutor continua com a versão
+      // anterior e o horário recém-marcado não aparece.
+      client.invalidateQueries({ queryKey: ['consultas'] });
     },
   });
 }
