@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFotoPet } from '../hooks/useFotoPet';
+import { IconePet } from './IconePet';
 import type { Pet } from '../services/tipos';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
@@ -72,7 +73,7 @@ function ItemPet({ pet, ativo, onPress }: { pet: Pet; ativo: boolean; onPress: (
           <Image source={{ uri }} style={estilos.foto} />
         ) : (
           <View style={estilos.fotoVazia}>
-            <Ionicons name="paw" size={18} color={cores.primaria} />
+            <IconePet especie={pet.especie} tamanho={20} />
           </View>
         )}
       </View>

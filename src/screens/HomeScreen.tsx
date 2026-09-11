@@ -9,6 +9,7 @@ import { Cartao } from '../components/Cartao';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { ExplicacaoRecompensa, type TipoRecompensa } from '../components/ExplicacaoRecompensa';
 import { MoedaAnimed } from '../components/MoedaAnimed';
+import { IconePet } from '../components/IconePet';
 import { SeletorPet } from '../components/SeletorPet';
 import { useSaudeDoPet } from '../hooks/useSaudeDoPet';
 import { useTutor } from '../hooks/useTutor';
@@ -116,7 +117,7 @@ export function HomeScreen({ navigation }: Props) {
                   <Image source={{ uri: fotoPet }} style={estilos.fotoPet} />
                 ) : (
                   <View style={estilos.fotoVazia}>
-                    <Ionicons name="paw" size={26} color={cores.primaria} />
+                    <IconePet especie={pet.especie} tamanho={28} />
                   </View>
                 )}
               </View>

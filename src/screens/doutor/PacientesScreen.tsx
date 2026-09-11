@@ -15,6 +15,7 @@ import {
 import { mensagemDoErro } from '../../api/cliente';
 import { Botao } from '../../components/Botao';
 import { Cartao } from '../../components/Cartao';
+import { IconePet } from '../../components/IconePet';
 import { CampoTexto } from '../../components/CampoTexto';
 import { useFotoPet } from '../../hooks/useFotoPet';
 import { usePacientes } from '../../hooks/usePacientes';
@@ -134,11 +135,7 @@ function ItemPaciente({ pet, onPress }: { pet: Pet; onPress: () => void }) {
           {uri ? (
             <Image source={{ uri }} style={estilos.avatarFoto} />
           ) : (
-            <Ionicons
-              name={pet.especie === 'GATO' ? 'logo-octocat' : 'paw'}
-              size={22}
-              color={cores.primaria}
-            />
+            <IconePet especie={pet.especie} tamanho={24} />
           )}
         </View>
 

@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
+import { IconePet } from '../components/IconePet';
 import { mensagemDoErro } from '../api/cliente';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { useExcluirPet, usePets } from '../hooks/usePets';
@@ -183,11 +184,7 @@ function AvatarPet({ idPet, especie }: { idPet: number; especie: string }) {
       {uri ? (
         <Image source={{ uri }} style={estilos.avatarFoto} />
       ) : (
-        <Ionicons
-          name={especie === 'GATO' ? 'logo-octocat' : 'paw'}
-          size={22}
-          color={cores.primaria}
-        />
+        <IconePet especie={especie} tamanho={24} />
       )}
     </View>
   );

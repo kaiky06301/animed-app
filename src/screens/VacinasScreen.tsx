@@ -14,6 +14,7 @@ import {
 import { mensagemDoErro } from '../api/cliente';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
+import { IconePet } from '../components/IconePet';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { usePet } from '../hooks/usePet';
 import { useTutor } from '../hooks/useTutor';
@@ -155,7 +156,7 @@ export function VacinasScreen({ route }: Props) {
                   <Image source={{ uri: fotoPet }} style={estilos.foto} />
                 ) : (
                   <View style={estilos.fotoVazia}>
-                    <Ionicons name="paw" size={24} color={cores.laranja} />
+                    <IconePet especie={pet?.especie} tamanho={26} cor={cores.laranja} />
                   </View>
                 )}
               </View>

@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Botao } from '../components/Botao';
 import { CampoData } from '../components/CampoData';
 import { CampoTexto } from '../components/CampoTexto';
+import { IconePet } from '../components/IconePet';
 import { mensagemDoErro } from '../api/cliente';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { useAtualizarPet, useCriarPet } from '../hooks/usePets';
@@ -24,8 +25,8 @@ import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 type Props = NativeStackScreenProps<RaizParamList, 'FormPet'>;
 
 const ESPECIES = [
-  { valor: 'CACHORRO', rotulo: 'Cachorro', icone: 'paw' },
-  { valor: 'GATO', rotulo: 'Gato', icone: 'logo-octocat' },
+  { valor: 'CACHORRO', rotulo: 'Cachorro' },
+  { valor: 'GATO', rotulo: 'Gato' },
 ] as const;
 
 const SEXOS = [
@@ -128,7 +129,7 @@ export function FormPetScreen({ route, navigation }: Props) {
                   <Image source={{ uri: fotoUri }} style={estilos.foto} />
                 ) : (
                   <View style={estilos.fotoVazia}>
-                    <Ionicons name="paw" size={28} color={cores.laranja} />
+                    <IconePet especie={especie} tamanho={30} cor={cores.laranja} />
                   </View>
                 )}
               </View>
@@ -198,10 +199,10 @@ export function FormPetScreen({ route, navigation }: Props) {
                   onPress={() => setEspecie(opcao.valor)}
                   style={[estilos.opcao, estilos.opcaoComIcone, ativa && estilos.opcaoAtiva]}
                 >
-                  <Ionicons
-                    name={opcao.icone}
-                    size={17}
-                    color={ativa ? cores.primaria : cores.textoSuave}
+                  <IconePet
+                    especie={opcao.valor}
+                    tamanho={19}
+                    cor={ativa ? cores.primaria : cores.textoSuave}
                   />
                   <Text style={[estilos.opcaoTexto, ativa && estilos.opcaoTextoAtivo]}>
                     {opcao.rotulo}
@@ -286,9 +287,9 @@ export function FormPetScreen({ route, navigation }: Props) {
             rodape={
               observacoes.trim() ? (
                 <View style={estilos.atencao}>
-                  <Ionicons name="alert-circle" size={15} color={cores.laranja} />
+                  <Ionicons name="information-circle" size={15} color={cores.laranja} />
                   <Text style={estilos.atencaoTexto}>
-                    Este pet precisa de atenção especial
+                    Observação registrada na ficha do pet
                   </Text>
                 </View>
               ) : null
