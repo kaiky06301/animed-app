@@ -95,13 +95,18 @@ export function AgendamentosScreen() {
 
   const agora = new Date();
 
+  // Atendimento desmarcado não é histórico de cuidado do pet: some da
+  // lista do tutor e fica só na agenda da clínica, que precisa saber que
+  // aquele horário abriu.
+  const doPet = (consultas ?? []).filter((c) => c.status !== 'CANCELADA');
+
   // Os próximos vêm do mais perto para o mais distante; o histórico, ao
   // contrário, do mais recente para o mais antigo (ordem que a API já usa).
-  const proximos = (consultas ?? [])
+  const proximos = doPet
     .filter((c) => c.status === 'AGENDADA' && new Date(c.dataHora) >= agora)
     .sort((a, b) => (a.dataHora > b.dataHora ? 1 : -1));
 
-  const anteriores = (consultas ?? []).filter((c) => !proximos.includes(c));
+  const anteriores = doPet.filter((c) => !proximos.includes(c));
 
   return (
     <ScrollView style={estilos.container} contentContainerStyle={estilos.conteudo}>
@@ -117,7 +122,7 @@ export function AgendamentosScreen() {
 
       {isLoading ? (
         <ActivityIndicator color={cores.primaria} style={{ marginTop: espacamentos.lg }} />
-      ) : (consultas ?? []).length === 0 ? (
+      ) : doPet.length === 0 ? (
         <View style={estilos.vazio}>
           <MaterialCommunityIcons name="calendar-blank" size={34} color={cores.textoSuave} />
           <Text style={estilos.vazioTexto}>
@@ -161,7 +166,8 @@ export function AgendamentosScreen() {
 
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
-  conteudo: { padding: espacamentos.md, paddingBottom: espacamentos.xxl },
+  // flexGrow permite que o estado vazio ocupe a altura toda e se centre
+  conteudo: { padding: espacamentos.md, paddingBottom: espacamentos.xxl, flexGrow: 1 },
 
   cabecalho: {
     flexDirection: 'row',
@@ -226,7 +232,12 @@ const estilos = StyleSheet.create({
   },
   statusTexto: { fontSize: 11, fontWeight: '700' },
 
-  vazio: { alignItems: 'center', gap: espacamentos.sm, paddingVertical: espacamentos.xl },
+  vazio: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: espacamentos.sm,
+  },
   vazioTexto: {
     color: cores.textoSecundario,
     fontSize: 13,
