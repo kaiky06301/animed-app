@@ -260,7 +260,7 @@ export function DetalheAtendimento({ idConsulta, onFechar }: Props) {
                       estilo={{ flex: 1 }}
                     />
                     <Botao
-                      titulo="Cancelar mesmo assim"
+                      titulo="Cancelar"
                       variante="perigo"
                       onPress={desmarcar}
                       carregando={cancelar.isPending}
