@@ -34,7 +34,9 @@ const CORES_MARCADOR = ['#3B82F6', '#FF8A3D', '#7C5CFF', '#22D3A0', '#F472B6'];
 
 type LinhaLista =
   | { tipo: 'ano'; ano: string }
-  | { tipo: 'vacina'; vacina: Vacina; cor: string };
+  | { tipo: 'vacina'; vacina: Vacina; cor: string }
+  /** Aplicação ainda por acontecer, já marcada na agenda da clínica. */
+  | { tipo: 'agendada'; vacina: Vacina; cor: string; dataHora: string };
 
 /**
  * Carteira de vacinas do pet, na visão do tutor.
@@ -60,17 +62,51 @@ export function VacinasScreen({ route }: Props) {
     return Array.from(encontrados).sort((a, b) => Number(b) - Number(a));
   }, [vacinas]);
 
-  /** Vacinas da mais recente para a mais antiga, com separador de ano. */
+  const { data: atendimentos } = useQuery({
+    queryKey: ['consultas', idPet],
+    queryFn: () => consultaService.listarConsultasDoPet(idPet),
+  });
+
+  /** Vacinações já marcadas, pelo nome da vacina. */
+  const jaMarcadas = useMemo(() => {
+    const mapa = new Map<string, string>();
+
+    (atendimentos ?? [])
+      .filter((c) => c.status === 'AGENDADA' && new Date(c.dataHora) >= hoje)
+      .forEach((c) => mapa.set(c.motivo, c.dataHora));
+
+    return mapa;
+  }, [atendimentos]);
+
+  /**
+   * A lista reúne o que já foi aplicado e o que está marcado, cada um no
+   * ano em que acontece — uma aplicação marcada para o ano que vem não
+   * pertence ao ano da dose anterior.
+   */
   const linhas = useMemo<LinhaLista[]>(() => {
-    const ordenadas = [...(vacinas ?? [])]
-      .filter((v) => !anoFiltro || v.dataAplicacao.startsWith(anoFiltro))
-      .sort((a, b) => (a.dataAplicacao < b.dataAplicacao ? 1 : -1));
+    const aplicacoes = (vacinas ?? []).map((vacina) => ({
+      vacina,
+      data: vacina.dataAplicacao,
+      agendada: undefined as string | undefined,
+    }));
+
+    const marcadas = (vacinas ?? [])
+      .map((vacina) => ({
+        vacina,
+        agendada: jaMarcadas.get(motivoVacinacao(vacina.nomeVacina)),
+      }))
+      .filter((e) => !!e.agendada)
+      .map((e) => ({ vacina: e.vacina, data: e.agendada!.slice(0, 10), agendada: e.agendada }));
+
+    const eventos = [...marcadas, ...aplicacoes]
+      .filter((e) => !anoFiltro || e.data.startsWith(anoFiltro))
+      .sort((a, b) => (a.data < b.data ? 1 : -1));
 
     const resultado: LinhaLista[] = [];
     let anoAnterior: string | null = null;
 
-    ordenadas.forEach((vacina, indice) => {
-      const ano = vacina.dataAplicacao.slice(0, 4);
+    eventos.forEach((evento, indice) => {
+      const ano = evento.data.slice(0, 4);
 
       // O ano aparece como separador a partir da segunda faixa exibida
       if (anoAnterior !== null && ano !== anoAnterior) {
@@ -78,15 +114,17 @@ export function VacinasScreen({ route }: Props) {
       }
       anoAnterior = ano;
 
-      resultado.push({
-        tipo: 'vacina',
-        vacina,
-        cor: CORES_MARCADOR[indice % CORES_MARCADOR.length],
-      });
+      const cor = CORES_MARCADOR[indice % CORES_MARCADOR.length];
+
+      resultado.push(
+        evento.agendada
+          ? { tipo: 'agendada', vacina: evento.vacina, cor, dataHora: evento.agendada }
+          : { tipo: 'vacina', vacina: evento.vacina, cor },
+      );
     });
 
     return resultado;
-  }, [vacinas, anoFiltro]);
+  }, [vacinas, anoFiltro, jaMarcadas]);
 
   /** Aplicação futura mais próxima, considerando as próximas doses. */
   const proximaDose = useMemo(() => {
@@ -123,21 +161,6 @@ export function VacinasScreen({ route }: Props) {
    */
   const [agendandoVacina, setAgendandoVacina] = useState<Vacina | null>(null);
 
-  const { data: atendimentos } = useQuery({
-    queryKey: ['consultas', idPet],
-    queryFn: () => consultaService.listarConsultasDoPet(idPet),
-  });
-
-  /** Vacinações já marcadas, pelo nome da vacina. */
-  const jaMarcadas = useMemo(() => {
-    const mapa = new Map<string, string>();
-
-    (atendimentos ?? [])
-      .filter((c) => c.status === 'AGENDADA' && new Date(c.dataHora) >= hoje)
-      .forEach((c) => mapa.set(c.motivo, c.dataHora));
-
-    return mapa;
-  }, [atendimentos]);
 
   if (isLoading) {
     return (
@@ -384,11 +407,15 @@ export function VacinasScreen({ route }: Props) {
               <View style={estilos.separadorLinha} />
             </View>
           ) : (
-            <ItemVacina
-              vacina={item.vacina}
-              cor={item.cor}
-              agendadaPara={jaMarcadas.get(motivoVacinacao(item.vacina.nomeVacina))}
-            />
+            item.tipo === 'agendada' ? (
+              <ItemVacina vacina={item.vacina} cor={item.cor} agendadaPara={item.dataHora} />
+            ) : (
+              <ItemVacina
+                vacina={item.vacina}
+                cor={item.cor}
+                reforcoMarcado={jaMarcadas.has(motivoVacinacao(item.vacina.nomeVacina))}
+              />
+            )
           )
         }
         ListFooterComponent={
@@ -498,13 +525,19 @@ function ItemVacina({
   vacina,
   cor,
   agendadaPara,
+  reforcoMarcado,
 }: {
   vacina: Vacina;
   cor: string;
+  /** Quando preenchido, a linha é a aplicação marcada, não a já feita. */
   agendadaPara?: string;
+  /** O reforço desta dose já tem atendimento marcado. */
+  reforcoMarcado?: boolean;
 }) {
+  // Com o reforço já marcado, a aplicação antiga não cobra mais nada
   const vencida =
     !agendadaPara
+    && !reforcoMarcado
     && !!vacina.dataProximaDose
     && new Date(vacina.dataProximaDose) < new Date();
 
@@ -520,7 +553,11 @@ function ItemVacina({
 
         <View style={estilos.itemLinha}>
           <Ionicons name="calendar-outline" size={13} color={cores.textoSuave} />
-          <Text style={estilos.itemDetalhe}>Aplicada em {isoParaBr(vacina.dataAplicacao)}</Text>
+          <Text style={estilos.itemDetalhe}>
+            {agendadaPara
+              ? `Marcada para ${dataHoraCurta(agendadaPara)}`
+              : `Aplicada em ${isoParaBr(vacina.dataAplicacao)}`}
+          </Text>
         </View>
 
         {!!vacina.veterinarioResponsavel && (
