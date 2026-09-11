@@ -5,6 +5,8 @@ import { cores, espacamentos, raios } from '../theme/cores';
 
 interface Props {
   onIrParaCuidados: () => void;
+  titulo?: string;
+  texto?: string;
 }
 
 /**
@@ -13,7 +15,11 @@ interface Props {
  * Em vez de uma lista em branco, convida a marcar o primeiro atendimento
  * e leva direto para onde isso é feito.
  */
-export function SemAtendimentos({ onIrParaCuidados }: Props) {
+export function SemAtendimentos({
+  onIrParaCuidados,
+  titulo = 'Nenhum atendimento\npor aqui ainda.',
+  texto = 'Marque o primeiro na aba Cuidados\ne comece a cuidar ainda melhor\ndo seu melhor amigo!',
+}: Props) {
   return (
     <View style={estilos.container}>
       {/* Patinhas de fundo, bem discretas */}
@@ -42,12 +48,9 @@ export function SemAtendimentos({ onIrParaCuidados }: Props) {
         <View style={[estilos.risco, estilos.riscoD]} />
       </View>
 
-      <Text style={estilos.titulo}>Nenhum atendimento{'\n'}por aqui ainda.</Text>
+      <Text style={estilos.titulo}>{titulo}</Text>
 
-      <Text style={estilos.texto}>
-        Marque o primeiro na aba Cuidados{'\n'}e comece a cuidar ainda melhor{'\n'}do seu
-        melhor amigo!
-      </Text>
+      <Text style={estilos.texto}>{texto}</Text>
 
       <Pressable
         onPress={onIrParaCuidados}

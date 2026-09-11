@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -32,6 +32,17 @@ function partesDaData(iso: string) {
   };
 }
 
+/** O ícone conta que tipo de atendimento é, sem precisar ler o motivo. */
+function iconeDoMotivo(motivo: string): keyof typeof MaterialCommunityIcons.glyphMap {
+  const texto = motivo.toLowerCase();
+
+  if (texto.startsWith('vacinação')) return 'needle';
+  if (texto.startsWith('retorno')) return 'calendar-refresh';
+  if (texto.includes('sintoma')) return 'stethoscope';
+
+  return 'heart-pulse';
+}
+
 const ROTULOS: Record<Consulta['status'], string> = {
   AGENDADA: 'Agendado',
   REALIZADA: 'Realizado',
@@ -57,6 +68,14 @@ function Cartao({ consulta, onPress }: { consulta: Consulta; onPress: () => void
       <View style={estilos.data}>
         <Text style={estilos.dataDia}>{dia}</Text>
         <Text style={estilos.dataMes}>{mes}</Text>
+      </View>
+
+      <View style={estilos.icone}>
+        <MaterialCommunityIcons
+          name={iconeDoMotivo(consulta.motivo)}
+          size={19}
+          color={CORES[consulta.status]}
+        />
       </View>
 
       <View style={{ flex: 1 }}>
@@ -152,7 +171,14 @@ export function AgendamentosScreen() {
           </View>
 
           {anteriores.length === 0 ? (
-            <Text style={estilos.semItens}>Nada registrado até agora.</Text>
+            <SemAtendimentos
+              onIrParaCuidados={() => navigation.navigate('Cuidados')}
+              titulo={'Nenhum atendimento\nrealizado ainda.'}
+              texto={
+                'Quando a clínica concluir o atendimento,\nele fica guardado aqui no histórico\n'
+                + 'do seu melhor amigo!'
+              }
+            />
           ) : (
             anteriores.map((c) => (
               <Cartao key={c.id} consulta={c} onPress={() => setAberto(c.id)} />
@@ -223,6 +249,14 @@ const estilos = StyleSheet.create({
   },
   dataDia: { fontSize: 17, fontWeight: '800', color: cores.textoPrincipal },
   dataMes: { fontSize: 11, color: cores.textoSuave },
+  icone: {
+    width: 34,
+    height: 34,
+    borderRadius: raios.pill,
+    backgroundColor: cores.superficieAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   motivo: { fontSize: 14, fontWeight: '700', color: cores.textoPrincipal },
   detalhe: { fontSize: 12, color: cores.textoSecundario, marginTop: 1 },
   diagnostico: { fontSize: 11, color: cores.textoSuave, marginTop: 3, lineHeight: 15 },
