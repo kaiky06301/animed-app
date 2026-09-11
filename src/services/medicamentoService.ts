@@ -25,6 +25,14 @@ export async function registrarDose(
   return data;
 }
 
+/** O tutor confirma que o tratamento acabou; o medicamento sai da lista. */
+export async function confirmarFim(idMedicamento: number): Promise<Medicamento> {
+  const { data } = await api.patch<Medicamento>(
+    `/api/medicamentos/${idMedicamento}/concluir`,
+  );
+  return data;
+}
+
 /** Encerra o tratamento na data de hoje. */
 export async function encerrar(idMedicamento: number): Promise<void> {
   await api.delete(`/api/medicamentos/${idMedicamento}`);

@@ -10,7 +10,11 @@ import {
   View,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
-import { useMedicamentos, useRegistrarDose } from '../hooks/useMedicamentos';
+import {
+  useConfirmarFimTratamento,
+  useMedicamentos,
+  useRegistrarDose,
+} from '../hooks/useMedicamentos';
 import type { Medicamento } from '../services/tipos';
 import { Botao } from '../components/Botao';
 import { usePetAtivo } from '../state/PetAtivoContext';
@@ -48,13 +52,17 @@ function dataCurta(iso: string): string {
 function Cartao({
   medicamento,
   onRegistrar,
+  onConfirmarFim,
   registrando,
+  confirmando,
 }: {
   medicamento: Medicamento;
   onRegistrar: () => void;
+  onConfirmarFim: () => void;
   registrando: boolean;
+  confirmando: boolean;
 }) {
-  const { emCurso, doseLiberada } = medicamento;
+  const { emCurso, doseLiberada, aguardandoConfirmacao } = medicamento;
 
   return (
     <View style={[estilos.cartao, !emCurso && estilos.cartaoEncerrado]}>
@@ -108,7 +116,29 @@ function Cartao({
         <Text style={estilos.observacao}>{medicamento.observacao}</Text>
       )}
 
-      {emCurso && (
+      {aguardandoConfirmacao && (
+        <View style={estilos.fim}>
+          <View style={estilos.fimTopo}>
+            <Ionicons name="checkmark-done-circle" size={17} color={cores.primaria} />
+            <Text style={estilos.fimTitulo}>Tratamento concluído</Text>
+          </View>
+
+          <Text style={estilos.fimTexto}>
+            Os dias receitados terminaram em {dataCurta(medicamento.dataFim!)}. Se o
+            tratamento acabou mesmo, confirme e este remédio sai da sua lista.
+          </Text>
+
+          <Pressable
+            onPress={onConfirmarFim}
+            disabled={confirmando}
+            style={({ pressed }) => [estilos.fimBotao, pressed && { opacity: 0.7 }]}
+          >
+            <Text style={estilos.fimBotaoTexto}>Confirmar e arquivar</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {emCurso && !aguardandoConfirmacao && (
         <>
           <View style={estilos.rodape}>
             <Text style={estilos.doses}>
@@ -127,6 +157,14 @@ function Cartao({
               </Text>
             )}
           </View>
+
+          {/* Sem a hora da última dose, o tutor não percebe que o registro
+              entrou nem que o próximo horário se moveu junto. */}
+          {!!medicamento.ultimaDose && (
+            <Text style={estilos.ultima}>
+              Última dose {quando(medicamento.ultimaDose)}
+            </Text>
+          )}
 
           <Pressable
             onPress={onRegistrar}
@@ -165,8 +203,10 @@ export function MedicamentosScreen() {
   const { petAtivo } = usePetAtivo();
   const { data: medicamentos, isLoading } = useMedicamentos(petAtivo?.id ?? null);
   const registrarDose = useRegistrarDose();
+  const confirmarFimTratamento = useConfirmarFimTratamento();
 
   const [aviso, setAviso] = useState<string | null>(null);
+  const [avisoPontuou, setAvisoPontuou] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
   /** Dose pedida, à espera de confirmação. */
@@ -180,12 +220,14 @@ export function MedicamentosScreen() {
     try {
       const dose = await registrarDose.mutateAsync({ idMedicamento: medicamento.id });
 
+      setAvisoPontuou(dose.pontosGanhos > 0);
       setAviso(
         dose.pontosGanhos > 0
           ? `${dose.medicamento}: +${dose.pontosGanhos} pontos. Próxima dose ${quando(
               dose.proximaDose,
             )}.`
-          : `Dose registrada fora do intervalo da receita, por isso não rendeu pontos.`,
+          : `Dose registrada às ${quando(dose.dataHora)}, fora do intervalo da receita: `
+            + `não rendeu pontos. Próxima dose ${quando(dose.proximaDose)}.`,
       );
     } catch (e) {
       setErro(mensagemDoErro(e, 'Não foi possível registrar a dose'));
@@ -194,6 +236,18 @@ export function MedicamentosScreen() {
 
   const emCurso = (medicamentos ?? []).filter((m) => m.emCurso);
   const encerrados = (medicamentos ?? []).filter((m) => !m.emCurso);
+
+  async function confirmarFim(medicamento: Medicamento) {
+    setErro(null);
+
+    try {
+      await confirmarFimTratamento.mutateAsync(medicamento.id);
+      setAvisoPontuou(true);
+      setAviso(`${medicamento.nome} foi arquivado. Tratamento concluído!`);
+    } catch (e) {
+      setErro(mensagemDoErro(e, 'Não foi possível concluir o tratamento'));
+    }
+  }
 
   return (
     <ScrollView style={estilos.container} contentContainerStyle={estilos.conteudo}>
@@ -204,8 +258,12 @@ export function MedicamentosScreen() {
       </Text>
 
       {!!aviso && (
-        <View style={estilos.faixa}>
-          <Ionicons name="checkmark-circle" size={17} color={cores.primaria} />
+        <View style={[estilos.faixa, !avisoPontuou && estilos.faixaAtencao]}>
+          <Ionicons
+            name={avisoPontuou ? 'checkmark-circle' : 'information-circle'}
+            size={17}
+            color={avisoPontuou ? cores.primaria : cores.alerta}
+          />
           <Text style={estilos.faixaTexto}>{aviso}</Text>
           <Pressable onPress={() => setAviso(null)} hitSlop={10}>
             <Ionicons name="close" size={15} color={cores.textoSecundario} />
@@ -232,7 +290,9 @@ export function MedicamentosScreen() {
               key={m.id}
               medicamento={m}
               registrando={registrarDose.isPending}
+              confirmando={confirmarFimTratamento.isPending}
               onRegistrar={() => setAConfirmar(m)}
+              onConfirmarFim={() => confirmarFim(m)}
             />
           ))}
 
@@ -244,7 +304,9 @@ export function MedicamentosScreen() {
                   key={m.id}
                   medicamento={m}
                   registrando={false}
+                  confirmando={confirmarFimTratamento.isPending}
                   onRegistrar={() => undefined}
+                  onConfirmarFim={() => confirmarFim(m)}
                 />
               ))}
             </>
@@ -325,6 +387,7 @@ const estilos = StyleSheet.create({
     padding: espacamentos.sm + 2,
     marginBottom: espacamentos.sm,
   },
+  faixaAtencao: { backgroundColor: 'rgba(255,180,84,0.12)' },
   faixaTexto: { flex: 1, fontSize: 12, color: cores.textoPrincipal, lineHeight: 17 },
   erro: { color: cores.erro, fontSize: 12, marginBottom: espacamentos.sm },
 
@@ -375,6 +438,27 @@ const estilos = StyleSheet.create({
   },
   doses: { fontSize: 12, color: cores.textoSecundario },
   proxima: { fontSize: 12, color: cores.textoSuave, fontWeight: '600' },
+  ultima: { fontSize: 11, color: cores.textoSuave, marginTop: 3 },
+
+  fim: {
+    backgroundColor: cores.primariaSuave,
+    borderRadius: raios.md,
+    padding: espacamentos.sm + 2,
+    marginTop: espacamentos.sm,
+    gap: 4,
+  },
+  fimTopo: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  fimTitulo: { fontSize: 13, fontWeight: '800', color: cores.primaria },
+  fimTexto: { fontSize: 12, color: cores.textoSecundario, lineHeight: 17 },
+  fimBotao: {
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: cores.primaria,
+    borderRadius: raios.md,
+    paddingVertical: espacamentos.sm,
+    marginTop: espacamentos.xs,
+  },
+  fimBotaoTexto: { fontSize: 13, fontWeight: '700', color: cores.primaria },
 
   botao: {
     flexDirection: 'row',

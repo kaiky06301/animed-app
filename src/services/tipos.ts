@@ -214,6 +214,9 @@ export interface Medicamento {
   proximaDose: string | null;
   /** true quando já passou a hora da próxima dose. */
   doseLiberada: boolean;
+  /** Os dias da receita acabaram e o tutor ainda não confirmou. */
+  aguardandoConfirmacao: boolean;
+  confirmadoEm: string | null;
 }
 
 export interface MedicamentoRequisicao {

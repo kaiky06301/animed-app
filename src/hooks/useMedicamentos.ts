@@ -26,6 +26,16 @@ export function useRegistrarDose() {
   });
 }
 
+/** Confirmação do fim do tratamento pelo tutor. */
+export function useConfirmarFimTratamento() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: medicamentoService.confirmarFim,
+    onSuccess: () => client.invalidateQueries({ queryKey: ['medicamentos'] }),
+  });
+}
+
 /** Prescrição pelo veterinário. */
 export function usePrescrever() {
   const client = useQueryClient();
