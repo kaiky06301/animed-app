@@ -333,6 +333,13 @@ export function HomeScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('Cuidados')}
         />
         <AtalhoBotao
+          icone="calendar"
+          cor={CORES_ATALHO.atendimentos}
+          titulo="Atendimentos"
+          subtitulo="Marcados e feitos"
+          onPress={() => navigation.navigate('Atendimentos')}
+        />
+        <AtalhoBotao
           icone="gift"
           cor={CORES_ATALHO.recompensas}
           titulo="Recompensas"
@@ -354,6 +361,7 @@ export function HomeScreen({ navigation }: Props) {
 /** Cada atalho tem a própria cor, para diferenciar as áreas do app. */
 const CORES_ATALHO = {
   cuidados: '#3DDC97',
+  atendimentos: '#FF8A3D',
   recompensas: '#A78BFA',
   planos: '#FFC857',
 } as const;
