@@ -184,7 +184,7 @@ function AvatarPet({ idPet, especie }: { idPet: number; especie: string }) {
       {uri ? (
         <Image source={{ uri }} style={estilos.avatarFoto} />
       ) : (
-        <IconePet especie={especie} tamanho={24} />
+        <IconePet especie={especie} tamanho={27} />
       )}
     </View>
   );

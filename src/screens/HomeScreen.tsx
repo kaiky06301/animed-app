@@ -117,7 +117,7 @@ export function HomeScreen({ navigation }: Props) {
                   <Image source={{ uri: fotoPet }} style={estilos.fotoPet} />
                 ) : (
                   <View style={estilos.fotoVazia}>
-                    <IconePet especie={pet.especie} tamanho={28} />
+                    <IconePet especie={pet.especie} tamanho={34} />
                   </View>
                 )}
               </View>

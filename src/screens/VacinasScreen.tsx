@@ -156,7 +156,7 @@ export function VacinasScreen({ route }: Props) {
                   <Image source={{ uri: fotoPet }} style={estilos.foto} />
                 ) : (
                   <View style={estilos.fotoVazia}>
-                    <IconePet especie={pet?.especie} tamanho={26} cor={cores.laranja} />
+                    <IconePet especie={pet?.especie} tamanho={32} cor={cores.laranja} />
                   </View>
                 )}
               </View>

@@ -73,7 +73,7 @@ function ItemPet({ pet, ativo, onPress }: { pet: Pet; ativo: boolean; onPress: (
           <Image source={{ uri }} style={estilos.foto} />
         ) : (
           <View style={estilos.fotoVazia}>
-            <IconePet especie={pet.especie} tamanho={20} />
+            <IconePet especie={pet.especie} tamanho={24} />
           </View>
         )}
       </View>

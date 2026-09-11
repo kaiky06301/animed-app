@@ -135,7 +135,7 @@ function ItemPaciente({ pet, onPress }: { pet: Pet; onPress: () => void }) {
           {uri ? (
             <Image source={{ uri }} style={estilos.avatarFoto} />
           ) : (
-            <IconePet especie={pet.especie} tamanho={24} />
+            <IconePet especie={pet.especie} tamanho={27} />
           )}
         </View>
 
