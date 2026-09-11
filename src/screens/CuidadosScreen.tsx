@@ -363,7 +363,9 @@ export function CuidadosScreen() {
                 <Text style={[estilos.regra, !pesagemPontua && { color: cores.alerta }]}>
                   {pesagemPontua
                     ? 'A pesagem rende pontos uma vez por semana.'
-                    : `Os pontos voltam a valer em ${formatarDia(pesagemLiberadaEm!)}.`}
+                    : `Os pontos para pesagem voltam a valer em ${formatarDia(
+                        pesagemLiberadaEm!,
+                      )}.`}
                 </Text>
               </View>
             )}

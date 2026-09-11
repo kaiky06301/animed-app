@@ -285,7 +285,7 @@ export function FormPetScreen({ route, navigation }: Props) {
               <Text style={estilos.avisoPeso}>
                 {pesagemPontua
                   ? 'Atualizar o peso conta como pesagem e rende 5 pontos, uma vez por semana.'
-                  : `Pesagem registrada há pouco: os pontos voltam a valer em ${formatarDia(
+                  : `Os pontos para pesagem voltam a valer em ${formatarDia(
                       pesagemLiberadaEm!,
                     )}.`}
               </Text>
