@@ -98,7 +98,12 @@ export interface Tutor {
   plano: string;
 }
 
-export type TipoCuidado = 'MEDICACAO' | 'VERMIFUGACAO' | 'PESAGEM' | 'AGENDAMENTO';
+export type TipoCuidado =
+  | 'MEDICACAO'
+  | 'VERMIFUGACAO'
+  | 'PESAGEM'
+  | 'AGENDAMENTO'
+  | 'SOLICITACAO_CHECKUP';
 
 export interface CuidadoRegistrado {
   tipo: TipoCuidado;

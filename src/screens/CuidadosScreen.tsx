@@ -68,6 +68,14 @@ const ACOES_TUTOR: AcaoCuidado[] = [
     cor: '#EAB308',
     icone: 'calendar-check',
   },
+  {
+    tipo: 'SOLICITACAO_CHECKUP',
+    titulo: 'Check-up preventivo',
+    descricao: 'Peça o check-up à clínica e previna problemas de saúde.',
+    pontos: 10,
+    cor: '#A78BFA',
+    icone: 'heart-pulse',
+  },
 ];
 
 /** Registros clínicos: acontecem na clínica e são lançados pelo veterinário. */
@@ -87,8 +95,8 @@ const ACOES_CLINICAS = [
     icone: 'stethoscope' as const,
   },
   {
-    titulo: 'Check-up preventivo',
-    descricao: 'Registrado pela clínica ao concluir a avaliação.',
+    titulo: 'Check-up realizado',
+    descricao: 'Lançado pela clínica ao concluir a avaliação que você pediu.',
     pontos: 30,
     cor: '#A78BFA',
     icone: 'heart-pulse' as const,
@@ -210,7 +218,13 @@ export function CuidadosScreen() {
               (pressed || !petAtivo) && { opacity: 0.6 },
             ]}
           >
-            <Text style={[estilos.botaoTexto, { color: acao.cor }]}>Registrar</Text>
+            <Text style={[estilos.botaoTexto, { color: acao.cor }]}>
+              {acao.tipo === 'SOLICITACAO_CHECKUP'
+                ? 'Solicitar'
+                : acao.tipo === 'AGENDAMENTO'
+                  ? 'Agendar'
+                  : 'Registrar'}
+            </Text>
             <Ionicons name="chevron-forward" size={15} color={acao.cor} />
           </Pressable>
         </View>
@@ -218,8 +232,9 @@ export function CuidadosScreen() {
 
       <Text style={estilos.secao}>Registrado pelo veterinário</Text>
       <Text style={estilos.secaoTexto}>
-        Estes cuidados são lançados pela clínica no atendimento, e os pontos entram
-        automaticamente para você.
+        O resultado clínico é lançado pela clínica no atendimento, e os pontos entram
+        automaticamente para você. A vacinação, por norma do conselho, só pode ser
+        registrada pelo médico-veterinário que aplicou.
       </Text>
 
       {ACOES_CLINICAS.map((acao) => (
@@ -263,8 +278,11 @@ export function CuidadosScreen() {
             </View>
 
             <Text style={estilos.painelTexto}>
-              Registrando para <Text style={estilos.destaque}>{petAtivo?.nome}</Text>. Você
-              ganha {acaoAberta?.pontos} pontos.
+              {acaoAberta?.tipo === 'SOLICITACAO_CHECKUP'
+                ? 'A clínica recebe o pedido e registra o resultado após a avaliação. '
+                : ''}
+              Para <Text style={estilos.destaque}>{petAtivo?.nome}</Text>. Você ganha{' '}
+              {acaoAberta?.pontos} pontos.
             </Text>
 
             {acaoAberta?.pedeValor && (
