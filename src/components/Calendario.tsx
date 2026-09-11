@@ -21,6 +21,16 @@ const MESES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
+const MESES_CURTOS = [
+  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+];
+
+/** Quantidade de anos exibidos por página na seleção de ano. */
+const ANOS_POR_PAGINA = 12;
+
+type Modo = 'dias' | 'meses' | 'anos';
+
 /**
  * Calendário próprio do aplicativo, igual em todas as plataformas.
  * Evita o seletor nativo do navegador, que abre fora do contexto da tela
@@ -40,12 +50,14 @@ export function Calendario({
   const [mesExibido, setMesExibido] = useState(
     () => new Date((selecionada ?? hoje).getFullYear(), (selecionada ?? hoje).getMonth(), 1),
   );
+  const [modo, setModo] = useState<Modo>('dias');
 
   // Reposiciona no mês da data sempre que o calendário é reaberto
   React.useEffect(() => {
     if (visivel) {
       const base = valor ? new Date(`${valor}T12:00:00`) : new Date();
       setMesExibido(new Date(base.getFullYear(), base.getMonth(), 1));
+      setModo('dias');
     }
   }, [visivel, valor]);
 
@@ -63,8 +75,32 @@ export function Calendario({
     return celulas;
   }, [mesExibido]);
 
-  function mudarMes(passo: number) {
-    setMesExibido((atual) => new Date(atual.getFullYear(), atual.getMonth() + passo, 1));
+  /** O passo das setas muda conforme o que está sendo escolhido. */
+  function navegar(passo: number) {
+    setMesExibido((atual) => {
+      if (modo === 'dias') return new Date(atual.getFullYear(), atual.getMonth() + passo, 1);
+      if (modo === 'meses') return new Date(atual.getFullYear() + passo, atual.getMonth(), 1);
+      return new Date(atual.getFullYear() + passo * ANOS_POR_PAGINA, atual.getMonth(), 1);
+    });
+  }
+
+  /** Primeiro ano da página atual de anos. */
+  const anoInicial =
+    Math.floor(mesExibido.getFullYear() / ANOS_POR_PAGINA) * ANOS_POR_PAGINA;
+
+  const anosDaPagina = Array.from(
+    { length: ANOS_POR_PAGINA },
+    (_, i) => anoInicial + i,
+  );
+
+  function tituloCabecalho(): string {
+    if (modo === 'dias') return `${MESES[mesExibido.getMonth()]} de ${mesExibido.getFullYear()}`;
+    if (modo === 'meses') return String(mesExibido.getFullYear());
+    return `${anoInicial} — ${anoInicial + ANOS_POR_PAGINA - 1}`;
+  }
+
+  function aoTocarTitulo() {
+    setModo((atual) => (atual === 'dias' ? 'meses' : atual === 'meses' ? 'anos' : 'dias'));
   }
 
   function escolher(dia: number, mes = mesExibido.getMonth(), ano = mesExibido.getFullYear()) {
@@ -102,19 +138,92 @@ export function Calendario({
       <Pressable style={estilos.fundo} onPress={onFechar}>
         <Pressable style={estilos.painel} onPress={(e) => e.stopPropagation()}>
           <View style={estilos.cabecalho}>
-            <Pressable onPress={() => mudarMes(-1)} hitSlop={10} style={estilos.seta}>
+            <Pressable onPress={() => navegar(-1)} hitSlop={10} style={estilos.seta}>
               <Ionicons name="chevron-back" size={20} color={cores.primaria} />
             </Pressable>
 
-            <Text style={estilos.mesAno}>
-              {MESES[mesExibido.getMonth()]} de {mesExibido.getFullYear()}
-            </Text>
+            {/* Tocar no título alterna entre dias, meses e anos */}
+            <Pressable onPress={aoTocarTitulo} hitSlop={8} style={estilos.tituloArea}>
+              <Text style={estilos.mesAno}>{tituloCabecalho()}</Text>
+              <Ionicons
+                name={modo === 'anos' ? 'chevron-up' : 'chevron-down'}
+                size={15}
+                color={cores.textoSecundario}
+              />
+            </Pressable>
 
-            <Pressable onPress={() => mudarMes(1)} hitSlop={10} style={estilos.seta}>
+            <Pressable onPress={() => navegar(1)} hitSlop={10} style={estilos.seta}>
               <Ionicons name="chevron-forward" size={20} color={cores.primaria} />
             </Pressable>
           </View>
 
+          {modo === 'meses' && (
+            <View style={estilos.gradeBlocos}>
+              {MESES_CURTOS.map((nome, indice) => {
+                const atual =
+                  indice === mesExibido.getMonth() ||
+                  (!!selecionada &&
+                    selecionada.getMonth() === indice &&
+                    selecionada.getFullYear() === mesExibido.getFullYear());
+
+                return (
+                  <Pressable
+                    key={nome}
+                    onPress={() => {
+                      setMesExibido(new Date(mesExibido.getFullYear(), indice, 1));
+                      setModo('dias');
+                    }}
+                    style={({ pressed }) => [
+                      estilos.bloco,
+                      atual && estilos.blocoAtivo,
+                      pressed && { opacity: 0.7 },
+                    ]}
+                  >
+                    <Text style={[estilos.blocoTexto, atual && estilos.blocoTextoAtivo]}>
+                      {nome}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+
+          {modo === 'anos' && (
+            <View style={estilos.gradeBlocos}>
+              {anosDaPagina.map((ano) => {
+                const atual = ano === mesExibido.getFullYear();
+                const indisponivel = bloquearFuturo && ano > hoje.getFullYear();
+
+                return (
+                  <Pressable
+                    key={ano}
+                    disabled={indisponivel}
+                    onPress={() => {
+                      setMesExibido(new Date(ano, mesExibido.getMonth(), 1));
+                      setModo('meses');
+                    }}
+                    style={({ pressed }) => [
+                      estilos.bloco,
+                      atual && estilos.blocoAtivo,
+                      pressed && !indisponivel && { opacity: 0.7 },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        estilos.blocoTexto,
+                        atual && estilos.blocoTextoAtivo,
+                        indisponivel && estilos.diaTextoIndisponivel,
+                      ]}
+                    >
+                      {ano}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+
+          {modo === 'dias' && (
           <View style={estilos.semana}>
             {DIAS_SEMANA.map((letra, i) => (
               <Text key={`${letra}-${i}`} style={estilos.diaSemana}>
@@ -122,7 +231,9 @@ export function Calendario({
               </Text>
             ))}
           </View>
+          )}
 
+          {modo === 'dias' && (
           <View style={estilos.grade}>
             {dias.map((dia, indice) => {
               if (dia === null) {
@@ -157,6 +268,7 @@ export function Calendario({
               );
             })}
           </View>
+          )}
 
           <View style={estilos.rodape}>
             <Pressable onPress={onFechar} hitSlop={8}>
@@ -212,7 +324,23 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  tituloArea: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   mesAno: { ...tipografia.subtitulo, color: cores.textoPrincipal, fontSize: 15 },
+  gradeBlocos: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingVertical: espacamentos.xs,
+  },
+  bloco: {
+    width: `${100 / 3}%`,
+    paddingVertical: espacamentos.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: raios.md,
+  },
+  blocoAtivo: { backgroundColor: cores.primariaSuave },
+  blocoTexto: { color: cores.textoPrincipal, fontSize: 14, fontWeight: '600' },
+  blocoTextoAtivo: { color: cores.primaria, fontWeight: '800' },
   semana: { flexDirection: 'row', marginBottom: 4 },
   diaSemana: {
     flex: 1,
