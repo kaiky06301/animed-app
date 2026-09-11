@@ -67,8 +67,9 @@ const ACOES_TUTOR: AcaoCuidado[] = [
     titulo: 'Atendimento na clínica',
     descricao: 'Peça uma consulta ou um check-up preventivo e planeje o cuidado.',
     pontos: 10,
-    cor: '#EAB308',
-    icone: 'calendar-check',
+    // roxo do check-up preventivo, que é o atendimento que o produto incentiva
+    cor: '#A78BFA',
+    icone: 'calendar-heart',
     pedeMotivo: true,
   },
 ];
