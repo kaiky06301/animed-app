@@ -118,6 +118,21 @@ export interface DisponibilidadeAgenda {
   atende: boolean;
   observacao: string;
   horarios: string[];
+  duracaoMinutos: number;
+  clinica: string;
+  endereco: string;
+}
+
+export interface DiaDoMes {
+  data: string;
+  disponivel: boolean;
+  horariosLivres: number;
+}
+
+export interface MesDaAgenda {
+  ano: number;
+  mes: number;
+  dias: DiaDoMes[];
 }
 
 export interface AgendamentoConfirmado {

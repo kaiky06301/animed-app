@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -8,9 +8,10 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
-import { useAgendar, useDisponibilidade } from '../hooks/useAgenda';
+import { useAgendar, useDisponibilidade, useMesDaAgenda } from '../hooks/useAgenda';
 import type { AgendamentoConfirmado, Pet } from '../services/tipos';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 import { Botao } from './Botao';
@@ -26,21 +27,11 @@ interface Props {
 
 const MOTIVOS = ['Check-up preventivo', 'Consulta de rotina', 'Retorno', 'Avaliação de sintoma'];
 
-const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const DIAS_SEMANA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 const MESES = [
-  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
-  'jul', 'ago', 'set', 'out', 'nov', 'dez',
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
-
-/** Próximos dias oferecidos ao tutor para escolher o atendimento. */
-function proximosDias(quantidade: number): Date[] {
-  const hoje = new Date();
-  return Array.from({ length: quantidade }, (_, i) => {
-    const dia = new Date(hoje);
-    dia.setDate(hoje.getDate() + i);
-    return dia;
-  });
-}
 
 function paraIso(data: Date): string {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(
@@ -48,11 +39,23 @@ function paraIso(data: Date): string {
   ).padStart(2, '0')}`;
 }
 
+/** Células do mês, com os espaços em branco antes do primeiro dia. */
+function celulasDoMes(ano: number, mes: number): (number | null)[] {
+  const primeiro = new Date(ano, mes, 1);
+  const totalDeDias = new Date(ano, mes + 1, 0).getDate();
+
+  return [
+    ...Array.from({ length: primeiro.getDay() }, () => null),
+    ...Array.from({ length: totalDeDias }, (_, i) => i + 1),
+  ];
+}
+
 /**
  * Marcação de atendimento na clínica.
  *
- * Os horários vêm da agenda real: respeitam o expediente, o intervalo de
- * almoço e os horários já ocupados por outros pacientes.
+ * O calendário destaca os dias em que ainda há vaga e, ao escolher um deles,
+ * a coluna ao lado traz os horários livres — já descontados o intervalo de
+ * almoço, os atendimentos marcados e a antecedência mínima.
  */
 export function AgendarAtendimento({
   visivel,
@@ -61,23 +64,50 @@ export function AgendarAtendimento({
   onFechar,
   onConfirmado,
 }: Props) {
-  const dias = useMemo(() => proximosDias(14), []);
+  const { width } = useWindowDimensions();
+  const largo = width >= 760;
 
-  const [dataEscolhida, setDataEscolhida] = useState(paraIso(dias[0]));
+  const hoje = useMemo(() => new Date(), []);
+
+  const [mesVisivel, setMesVisivel] = useState(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+  const [dataEscolhida, setDataEscolhida] = useState(paraIso(hoje));
   const [horario, setHorario] = useState<string | null>(null);
   const [motivo, setMotivo] = useState(motivoInicial);
   const [erro, setErro] = useState<string | null>(null);
 
+  const ano = mesVisivel.getFullYear();
+  const mes = mesVisivel.getMonth();
+
+  const { data: calendario } = useMesDaAgenda(ano, mes + 1);
   const { data: agenda, isLoading } = useDisponibilidade(visivel ? dataEscolhida : null);
   const agendar = useAgendar();
 
-  React.useEffect(() => {
+  /** Dias com vaga, indexados pelo número do dia. */
+  const vagasPorDia = useMemo(() => {
+    const mapa = new Map<number, number>();
+    calendario?.dias.forEach((dia) => {
+      mapa.set(Number(dia.data.slice(8)), dia.horariosLivres);
+    });
+    return mapa;
+  }, [calendario]);
+
+  useEffect(() => {
     if (visivel) {
       setMotivo(motivoInicial);
       setHorario(null);
       setErro(null);
     }
   }, [visivel, motivoInicial]);
+
+  function mudarMes(passo: number) {
+    setMesVisivel(new Date(ano, mes + passo, 1));
+  }
+
+  function escolherDia(dia: number) {
+    setDataEscolhida(paraIso(new Date(ano, mes, dia)));
+    setHorario(null);
+    setErro(null);
+  }
 
   async function confirmar() {
     if (!pet || !horario) {
@@ -100,24 +130,35 @@ export function AgendarAtendimento({
     }
   }
 
+  const diaSelecionado = Number(dataEscolhida.slice(8));
+  const mesSelecionado = dataEscolhida.slice(0, 7) === `${ano}-${String(mes + 1).padStart(2, '0')}`;
+
   return (
     <Modal visible={visivel} transparent animationType="fade" onRequestClose={onFechar}>
       <Pressable style={estilos.fundo} onPress={onFechar}>
-        <Pressable style={estilos.painel} onPress={(e) => e.stopPropagation()}>
+        <Pressable
+          style={[estilos.painel, largo && { maxWidth: 900 }]}
+          onPress={(e) => e.stopPropagation()}
+        >
           <View style={estilos.cabecalho}>
+            <View style={estilos.selo}>
+              <MaterialCommunityIcons name="calendar-month" size={26} color={cores.laranja} />
+            </View>
+
             <View style={{ flex: 1 }}>
               <Text style={estilos.titulo}>Agendar atendimento</Text>
               <Text style={estilos.subtitulo}>
-                Para {pet?.nome} · Dra. Helena Prado
+                Para {pet?.nome} <Text style={estilos.ponto}>•</Text> Dra. Helena Prado
               </Text>
             </View>
-            <Pressable onPress={onFechar} hitSlop={10}>
-              <Ionicons name="close" size={22} color={cores.textoSecundario} />
+
+            <Pressable onPress={onFechar} hitSlop={10} style={estilos.fechar}>
+              <Ionicons name="close" size={20} color={cores.textoSecundario} />
             </Pressable>
           </View>
 
-          <ScrollView style={estilos.corpo} showsVerticalScrollIndicator={false}>
-            <Text style={estilos.rotulo}>Motivo</Text>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={estilos.rotulo}>Motivo do atendimento</Text>
             <View style={estilos.motivos}>
               {MOTIVOS.map((opcao) => {
                 const ativo = motivo === opcao;
@@ -127,7 +168,10 @@ export function AgendarAtendimento({
                     onPress={() => setMotivo(opcao)}
                     style={[estilos.motivo, ativo && estilos.motivoAtivo]}
                   >
-                    <Text style={[estilos.motivoTexto, ativo && { color: cores.primaria }]}>
+                    {ativo && (
+                      <Ionicons name="checkmark-circle" size={16} color={cores.laranja} />
+                    )}
+                    <Text style={[estilos.motivoTexto, ativo && estilos.motivoTextoAtivo]}>
                       {opcao}
                     </Text>
                   </Pressable>
@@ -135,106 +179,158 @@ export function AgendarAtendimento({
               })}
             </View>
 
-            <Text style={estilos.rotulo}>Data</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={estilos.dias}
-              contentContainerStyle={{ gap: espacamentos.xs }}
-            >
-              {dias.map((dia) => {
-                const iso = paraIso(dia);
-                const ativo = dataEscolhida === iso;
-                const domingo = dia.getDay() === 0;
-
-                return (
-                  <Pressable
-                    key={iso}
-                    onPress={() => {
-                      setDataEscolhida(iso);
-                      setHorario(null);
-                    }}
-                    style={[
-                      estilos.dia,
-                      ativo && estilos.diaAtivo,
-                      domingo && estilos.diaFechado,
-                    ]}
-                  >
-                    <Text style={[estilos.diaSemana, ativo && { color: cores.primaria }]}>
-                      {DIAS_SEMANA[dia.getDay()]}
-                    </Text>
-                    <Text style={[estilos.diaNumero, ativo && { color: cores.primaria }]}>
-                      {dia.getDate()}
-                    </Text>
-                    <Text style={estilos.diaMes}>{MESES[dia.getMonth()]}</Text>
+            <View style={[estilos.colunas, largo && estilos.colunasLado]}>
+              {/* Calendário do mês */}
+              <View style={[estilos.bloco, largo && { flex: 1 }]}>
+                <View style={estilos.navegacaoMes}>
+                  <Pressable onPress={() => mudarMes(-1)} hitSlop={10} style={estilos.seta}>
+                    <Ionicons name="chevron-back" size={20} color={cores.textoSecundario} />
                   </Pressable>
-                );
-              })}
-            </ScrollView>
 
-            <View style={estilos.linhaRotulo}>
-              <Text style={estilos.rotulo}>Horário</Text>
-              {!!agenda?.observacao && (
-                <Text style={estilos.observacao}>{agenda.observacao}</Text>
-              )}
-            </View>
+                  <Text style={estilos.mesTitulo}>
+                    {MESES[mes]} {ano}
+                  </Text>
 
-            {isLoading ? (
-              <View style={estilos.carregando}>
-                <ActivityIndicator color={cores.primaria} />
-                <Text style={estilos.textoSuave}>Consultando a agenda…</Text>
+                  <Pressable onPress={() => mudarMes(1)} hitSlop={10} style={estilos.seta}>
+                    <Ionicons name="chevron-forward" size={20} color={cores.textoSecundario} />
+                  </Pressable>
+                </View>
+
+                <View style={estilos.semana}>
+                  {DIAS_SEMANA.map((dia) => (
+                    <Text key={dia} style={estilos.semanaTexto}>
+                      {dia}
+                    </Text>
+                  ))}
+                </View>
+
+                <View style={estilos.grade}>
+                  {celulasDoMes(ano, mes).map((dia, indice) => {
+                    if (dia === null) {
+                      return <View key={`vazio-${indice}`} style={estilos.celula} />;
+                    }
+
+                    const vagas = vagasPorDia.get(dia) ?? 0;
+                    const disponivel = vagas > 0;
+                    const selecionado = mesSelecionado && dia === diaSelecionado;
+
+                    return (
+                      <Pressable
+                        key={dia}
+                        disabled={!disponivel}
+                        onPress={() => escolherDia(dia)}
+                        style={[
+                          estilos.celula,
+                          disponivel && estilos.celulaLivre,
+                          selecionado && estilos.celulaEscolhida,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            estilos.celulaTexto,
+                            disponivel && estilos.celulaTextoLivre,
+                            selecionado && estilos.celulaTextoEscolhido,
+                          ]}
+                        >
+                          {dia}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                <View style={estilos.legenda}>
+                  <View style={estilos.legendaItem}>
+                    <View style={[estilos.bolinha, { backgroundColor: cores.primaria }]} />
+                    <Text style={estilos.legendaTexto}>Dias disponíveis</Text>
+                  </View>
+                  <View style={estilos.legendaItem}>
+                    <View style={[estilos.bolinha, { backgroundColor: cores.superficieAlt }]} />
+                    <Text style={estilos.legendaTexto}>Indisponível</Text>
+                  </View>
+                </View>
               </View>
-            ) : !agenda?.atende || agenda.horarios.length === 0 ? (
-              <View style={estilos.semHorario}>
-                <MaterialCommunityIcons
-                  name="calendar-remove"
-                  size={22}
-                  color={cores.textoSuave}
-                />
-                <Text style={estilos.textoSuave}>
-                  {agenda?.observacao ?? 'Sem horários disponíveis'}
-                </Text>
-              </View>
-            ) : (
-              <View style={estilos.horarios}>
-                {agenda.horarios.map((h) => {
-                  const ativo = horario === h;
-                  return (
-                    <Pressable
-                      key={h}
-                      onPress={() => setHorario(h)}
-                      style={[estilos.horario, ativo && estilos.horarioAtivo]}
-                    >
-                      <Text style={[estilos.horarioTexto, ativo && { color: '#04261C' }]}>
-                        {h.slice(0, 5)}
+
+              {/* Horários do dia escolhido */}
+              <View style={[estilos.bloco, largo && { flex: 1 }]}>
+                <View style={estilos.tituloBloco}>
+                  <Ionicons name="time" size={22} color={cores.laranja} />
+                  <Text style={estilos.tituloBlocoTexto}>Horários disponíveis</Text>
+                </View>
+
+                {isLoading ? (
+                  <View style={estilos.vazio}>
+                    <ActivityIndicator color={cores.primaria} />
+                  </View>
+                ) : !agenda?.atende || agenda.horarios.length === 0 ? (
+                  <View style={estilos.vazio}>
+                    <MaterialCommunityIcons
+                      name="calendar-remove"
+                      size={24}
+                      color={cores.textoSuave}
+                    />
+                    <Text style={estilos.vazioTexto}>
+                      {agenda?.observacao ?? 'Sem horários neste dia'}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={estilos.horarios}>
+                    {agenda.horarios.map((h) => {
+                      const ativo = horario === h;
+                      return (
+                        <Pressable
+                          key={h}
+                          onPress={() => setHorario(h)}
+                          style={[estilos.horario, ativo && estilos.horarioAtivo]}
+                        >
+                          <Text
+                            style={[estilos.horarioTexto, ativo && estilos.horarioTextoAtivo]}
+                          >
+                            {h.slice(0, 5)}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                )}
+
+                <View style={estilos.info}>
+                  <View style={estilos.infoLinha}>
+                    <Ionicons name="information-circle" size={18} color={cores.laranja} />
+                    <Text style={estilos.infoTexto}>
+                      O atendimento dura{' '}
+                      <Text style={estilos.infoDestaque}>
+                        aproximadamente {agenda?.duracaoMinutos ?? 30} minutos
                       </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
+                      .
+                    </Text>
+                  </View>
 
-            <View style={estilos.preparo}>
-              <View style={estilos.preparoTopo}>
-                <Ionicons name="information-circle" size={17} color={cores.laranja} />
-                <Text style={estilos.preparoTitulo}>Como preparar o pet</Text>
+                  <View style={estilos.divisor} />
+
+                  <View style={estilos.infoLinha}>
+                    <Ionicons name="location" size={18} color={cores.laranja} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={estilos.infoTitulo}>{agenda?.clinica ?? 'Clínica'}</Text>
+                      <Text style={estilos.infoEndereco}>{agenda?.endereco}</Text>
+                    </View>
+                  </View>
+                </View>
               </View>
-              <Text style={estilos.preparoItem}>
-                • Jejum de 8 a 12 horas, salvo orientação do veterinário
-              </Text>
-              <Text style={estilos.preparoItem}>• Leve a carteira de vacinação</Text>
-              <Text style={estilos.preparoItem}>• Traga caixa de transporte ou guia</Text>
             </View>
 
-            {!!erro && <Text style={estilos.erro}>{erro}</Text>}
           </ScrollView>
 
+          {!!erro && <Text style={estilos.erro}>{erro}</Text>}
+
           <Botao
-            titulo={horario ? `Agendar às ${horario.slice(0, 5)}` : 'Escolha um horário'}
-            icone="calendar-outline"
+            titulo="Confirmar agendamento"
+            variante="laranja"
+            icone="calendar"
             onPress={confirmar}
             desabilitado={!horario}
             carregando={agendar.isPending}
+            estilo={estilos.confirmar}
           />
         </Pressable>
       </Pressable>
@@ -251,85 +347,163 @@ const estilos = StyleSheet.create({
   },
   painel: {
     backgroundColor: cores.fundoElevado,
-    borderRadius: raios.lg,
+    borderRadius: raios.xl,
     borderWidth: 1,
     borderColor: cores.borda,
     padding: espacamentos.md,
     maxWidth: 460,
-    maxHeight: '88%',
+    maxHeight: '92%',
     width: '100%',
     alignSelf: 'center',
     gap: espacamentos.sm,
   },
-  cabecalho: { flexDirection: 'row', alignItems: 'flex-start', gap: espacamentos.sm },
-  titulo: { ...tipografia.subtitulo, color: cores.textoPrincipal },
-  subtitulo: { ...tipografia.legenda, color: cores.primaria, marginTop: 1 },
-  corpo: { maxHeight: 420 },
-  rotulo: {
-    ...tipografia.legenda,
-    color: cores.textoSuave,
-    textTransform: 'uppercase',
-    marginBottom: espacamentos.xs,
-    marginTop: espacamentos.sm,
+
+  cabecalho: { flexDirection: 'row', alignItems: 'center', gap: espacamentos.sm },
+  selo: {
+    width: 44,
+    height: 44,
+    borderRadius: raios.md,
+    backgroundColor: cores.laranjaSuave,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  linhaRotulo: { flexDirection: 'row', alignItems: 'baseline', gap: espacamentos.sm },
-  observacao: { color: cores.textoSuave, fontSize: 11, flex: 1 },
-  motivos: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.xs },
+  titulo: { ...tipografia.titulo, fontSize: 21, color: cores.textoPrincipal },
+  subtitulo: { fontSize: 13, color: cores.textoSecundario, marginTop: 1 },
+  ponto: { color: cores.laranja },
+  fechar: {
+    width: 34,
+    height: 34,
+    borderRadius: raios.sm,
+    backgroundColor: cores.superficieAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  rotulo: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: cores.textoSecundario,
+    marginTop: espacamentos.sm,
+    marginBottom: espacamentos.sm,
+  },
+  motivos: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.sm },
   motivo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: espacamentos.md,
-    paddingVertical: espacamentos.sm,
+    paddingVertical: espacamentos.sm + 2,
     borderRadius: raios.pill,
     borderWidth: 1,
     borderColor: cores.borda,
-    backgroundColor: cores.superficieAlt,
+    backgroundColor: cores.superficie,
   },
-  motivoAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
-  motivoTexto: { color: cores.textoSecundario, fontSize: 12, fontWeight: '600' },
-  dias: { marginBottom: espacamentos.xs },
-  dia: {
-    width: 58,
-    paddingVertical: espacamentos.sm,
-    borderRadius: raios.md,
+  motivoAtivo: { borderColor: cores.laranja, backgroundColor: cores.laranjaSuave },
+  motivoTexto: { color: cores.textoSecundario, fontSize: 13, fontWeight: '600' },
+  motivoTextoAtivo: { color: cores.laranja, fontWeight: '700' },
+
+  colunas: { gap: espacamentos.sm, marginTop: espacamentos.md },
+  colunasLado: { flexDirection: 'row', alignItems: 'flex-start' },
+  bloco: {
+    backgroundColor: cores.superficie,
+    borderRadius: raios.lg,
     borderWidth: 1,
     borderColor: cores.borda,
-    backgroundColor: cores.superficieAlt,
+    padding: espacamentos.md,
+  },
+
+  navegacaoMes: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: espacamentos.sm,
   },
-  diaAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
-  diaFechado: { opacity: 0.45 },
-  diaSemana: { color: cores.textoSuave, fontSize: 11, fontWeight: '700' },
-  diaNumero: { color: cores.textoPrincipal, fontSize: 17, fontWeight: '800' },
-  diaMes: { color: cores.textoSuave, fontSize: 10 },
-  horarios: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.xs },
-  horario: {
-    paddingHorizontal: espacamentos.md,
-    paddingVertical: espacamentos.sm,
-    borderRadius: raios.md,
+  seta: {
+    width: 30,
+    height: 30,
+    borderRadius: raios.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mesTitulo: { fontSize: 16, fontWeight: '700', color: cores.textoPrincipal },
+
+  semana: { flexDirection: 'row' },
+  semanaTexto: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: '700',
+    color: cores.textoSuave,
+    marginBottom: espacamentos.xs,
+  },
+  grade: { flexDirection: 'row', flexWrap: 'wrap' },
+  celula: {
+    width: `${100 / 7}%`,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: raios.sm,
     borderWidth: 1,
-    borderColor: cores.borda,
-    backgroundColor: cores.superficieAlt,
+    borderColor: 'transparent',
   },
-  horarioAtivo: { backgroundColor: cores.primaria, borderColor: cores.primaria },
-  horarioTexto: { color: cores.textoPrincipal, fontSize: 13, fontWeight: '700' },
-  carregando: { alignItems: 'center', gap: espacamentos.xs, paddingVertical: espacamentos.md },
-  semHorario: {
+  celulaLivre: { borderColor: 'rgba(34, 211, 160, 0.45)' },
+  celulaEscolhida: { backgroundColor: cores.primaria, borderColor: cores.primaria },
+  celulaTexto: { fontSize: 14, color: cores.textoSuave },
+  celulaTextoLivre: { color: cores.textoPrincipal, fontWeight: '700' },
+  celulaTextoEscolhido: { color: '#04261C', fontWeight: '800' },
+
+  legenda: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: cores.borda,
+    marginTop: espacamentos.sm,
+    paddingTop: espacamentos.sm,
+  },
+  legendaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  bolinha: { width: 10, height: 10, borderRadius: raios.pill },
+  legendaTexto: { fontSize: 12, color: cores.textoSecundario },
+
+  tituloBloco: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: espacamentos.sm,
+    marginBottom: espacamentos.md,
+  },
+  tituloBlocoTexto: { fontSize: 16, fontWeight: '700', color: cores.textoPrincipal },
+
+  horarios: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.sm },
+  horario: {
+    flexGrow: 1,
+    flexBasis: '28%',
+    alignItems: 'center',
+    paddingVertical: espacamentos.sm + 4,
+    borderRadius: raios.md,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    backgroundColor: cores.superficieAlt,
+  },
+  horarioAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
+  horarioTexto: { fontSize: 14, fontWeight: '700', color: cores.textoPrincipal },
+  horarioTextoAtivo: { color: cores.primaria },
+
+  vazio: { alignItems: 'center', gap: espacamentos.sm, paddingVertical: espacamentos.lg },
+  vazioTexto: { color: cores.textoSecundario, fontSize: 12, textAlign: 'center' },
+
+  info: {
     backgroundColor: cores.superficieAlt,
     borderRadius: raios.md,
     padding: espacamentos.md,
-  },
-  textoSuave: { color: cores.textoSecundario, fontSize: 12 },
-  preparo: {
-    backgroundColor: 'rgba(255,138,61,0.10)',
-    borderRadius: raios.md,
-    padding: espacamentos.sm + 2,
     marginTop: espacamentos.md,
-    gap: 2,
+    gap: espacamentos.sm,
   },
-  preparoTopo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
-  preparoTitulo: { color: cores.laranja, fontSize: 12, fontWeight: '800' },
-  preparoItem: { color: cores.textoSecundario, fontSize: 11, lineHeight: 16 },
+  infoLinha: { flexDirection: 'row', alignItems: 'flex-start', gap: espacamentos.sm },
+  infoTexto: { flex: 1, fontSize: 13, color: cores.textoSecundario, lineHeight: 19 },
+  infoDestaque: { color: cores.laranja, fontWeight: '700' },
+  infoTitulo: { fontSize: 13, fontWeight: '700', color: cores.textoPrincipal },
+  infoEndereco: { fontSize: 12, color: cores.textoSecundario, marginTop: 1 },
+  divisor: { height: 1, backgroundColor: cores.borda },
+
+  confirmar: { borderRadius: raios.pill, marginTop: espacamentos.sm },
   erro: { color: cores.erro, fontSize: 12, marginTop: espacamentos.sm },
 });

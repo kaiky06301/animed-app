@@ -10,6 +10,14 @@ export function useDisponibilidade(data: string | null) {
   });
 }
 
+/** Calendário do mês: quais dias ainda têm vaga. */
+export function useMesDaAgenda(ano: number, mes: number) {
+  return useQuery({
+    queryKey: ['agenda', 'mes', ano, mes],
+    queryFn: () => agendaService.mes(ano, mes),
+  });
+}
+
 export function useAgendar() {
   const client = useQueryClient();
 
