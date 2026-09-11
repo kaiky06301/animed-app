@@ -79,27 +79,48 @@ export function RecompensasScreen() {
               <View style={estilos.painelNivel}>
                 <View style={estilos.linhaNivel}>
                   <Text style={estilos.medalha}>{EMOJI_NIVEL[tutor?.nivel ?? 'BASICO']}</Text>
-
-                  <View style={{ flex: 1 }}>
-                    <Text style={estilos.nivelNome}>
-                      Nível {tutor?.nivelDescricao ?? 'Básico'}
-                    </Text>
-                    <Text style={estilos.painelRotulo}>
-                      {proximo
-                        ? `Próximo nível: ${proximo.minimo.toLocaleString('pt-BR')} pts`
-                        : `${desconto}% de desconto em tudo`}
-                    </Text>
-                  </View>
+                  <Text style={estilos.nivelNome}>
+                    Nível {tutor?.nivelDescricao ?? 'Básico'}
+                  </Text>
                 </View>
 
-                <View style={estilos.barraLinha}>
-                  <View style={estilos.barra}>
-                    <View style={[estilos.barraCheia, { width: `${progresso}%` }]} />
-                  </View>
-                  <Text style={estilos.progresso}>{progresso}%</Text>
+                {/* O desconto conquistado é o que os pontos valem hoje */}
+                <View style={[estilos.selo, desconto === 0 && estilos.seloVazio]}>
+                  <Ionicons
+                    name="pricetag"
+                    size={13}
+                    color={desconto > 0 ? cores.primaria : cores.textoSuave}
+                  />
+                  <Text
+                    style={[estilos.seloTexto, desconto === 0 && { color: cores.textoSuave }]}
+                  >
+                    {desconto > 0
+                      ? `${desconto}% de desconto em tudo`
+                      : 'Ainda sem desconto'}
+                  </Text>
                 </View>
               </View>
             </View>
+
+            {/* Quanto falta para o desconto aumentar */}
+            {!!proximo && (
+              <View style={estilos.proximo}>
+                <View style={estilos.barra}>
+                  <View style={[estilos.barraCheia, { width: `${progresso}%` }]} />
+                </View>
+
+                <Text style={estilos.proximoTexto}>
+                  Faltam{' '}
+                  <Text style={estilos.proximoDestaque}>
+                    {(proximo.minimo - pontos).toLocaleString('pt-BR')} pts
+                  </Text>{' '}
+                  para {proximo.nome} e{' '}
+                  <Text style={estilos.proximoDestaque}>
+                    {proximo.descontoPercentual}% de desconto
+                  </Text>
+                </Text>
+              </View>
+            )}
 
             {/* Filtro por categoria */}
             <FlatList
@@ -254,16 +275,39 @@ const estilos = StyleSheet.create({
   linhaNivel: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   medalha: { fontSize: 17 },
   nivelNome: { color: cores.textoPrincipal, fontSize: 14, fontWeight: '700' },
-  barraLinha: { flexDirection: 'row', alignItems: 'center', gap: espacamentos.sm },
+
+  selo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    backgroundColor: cores.primariaSuave,
+    borderRadius: raios.pill,
+    paddingHorizontal: espacamentos.sm,
+    paddingVertical: 4,
+  },
+  seloVazio: { backgroundColor: cores.superficieAlt },
+  seloTexto: { color: cores.primaria, fontSize: 12, fontWeight: '800' },
+
+  proximo: {
+    backgroundColor: cores.superficie,
+    borderRadius: raios.md,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    padding: espacamentos.sm + 2,
+    marginTop: espacamentos.sm,
+    gap: 6,
+  },
+  proximoTexto: { color: cores.textoSecundario, fontSize: 12, lineHeight: 17 },
+  proximoDestaque: { color: cores.laranja, fontWeight: '800' },
+
   barra: {
-    flex: 1,
     height: 7,
     borderRadius: raios.pill,
     backgroundColor: cores.superficieAlt,
     overflow: 'hidden',
   },
   barraCheia: { height: '100%', backgroundColor: cores.laranja, borderRadius: raios.pill },
-  progresso: { color: cores.textoSecundario, fontSize: 11, fontWeight: '700' },
 
   filtros: { gap: espacamentos.sm, paddingVertical: espacamentos.md },
   filtro: {
