@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { ComunidadeScreen } from '../screens/ComunidadeScreen';
+import { AgendamentosScreen } from '../screens/AgendamentosScreen';
 import { CuidadosScreen } from '../screens/CuidadosScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { MeusPetsScreen } from '../screens/MeusPetsScreen';
@@ -16,7 +16,7 @@ const ICONES: Record<keyof AbasParamList, keyof typeof Ionicons.glyphMap> = {
   Inicio: 'home',
   Pets: 'paw',
   Cuidados: 'medkit',
-  Comunidade: 'people',
+  Atendimentos: 'calendar',
   Recompensas: 'gift',
   Perfil: 'person-circle',
 };
@@ -49,7 +49,7 @@ export function AbasNavigator() {
       <Abas.Screen name="Inicio" component={HomeScreen} options={{ title: 'Início' }} />
       <Abas.Screen name="Pets" component={MeusPetsScreen} options={{ title: 'Meus pets' }} />
       <Abas.Screen name="Cuidados" component={CuidadosScreen} />
-      <Abas.Screen name="Comunidade" component={ComunidadeScreen} />
+      <Abas.Screen name="Atendimentos" component={AgendamentosScreen} />
       <Abas.Screen name="Recompensas" component={RecompensasScreen} />
       <Abas.Screen name="Perfil" component={PerfilScreen} />
     </Abas.Navigator>

@@ -259,7 +259,7 @@ export function HomeScreen({ navigation }: Props) {
             </Pressable>
 
             <Pressable
-              onPress={() => navigation.navigate('Agendamentos')}
+              onPress={() => navigation.navigate('Atendimentos')}
               style={({ pressed }) => [estilos.rodapePet, pressed && { opacity: 0.7 }]}
             >
               <View style={[estilos.iconeSaude, { backgroundColor: cores.laranjaSuave }]}>
@@ -333,25 +333,11 @@ export function HomeScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('Cuidados')}
         />
         <AtalhoBotao
-          icone="calendar"
-          cor={CORES_ATALHO.agenda}
-          titulo="Atendimentos"
-          subtitulo="Marcados e feitos"
-          onPress={() => navigation.navigate('Agendamentos')}
-        />
-        <AtalhoBotao
           icone="gift"
           cor={CORES_ATALHO.recompensas}
           titulo="Recompensas"
           subtitulo="Use seus pontos"
           onPress={() => navigation.navigate('Recompensas')}
-        />
-        <AtalhoBotao
-          icone="people"
-          cor={CORES_ATALHO.comunidade}
-          titulo="Comunidade"
-          subtitulo="Dicas de tutores"
-          onPress={() => navigation.navigate('Comunidade')}
         />
         <AtalhoBotao
           icone="diamond"
@@ -368,9 +354,7 @@ export function HomeScreen({ navigation }: Props) {
 /** Cada atalho tem a própria cor, para diferenciar as áreas do app. */
 const CORES_ATALHO = {
   cuidados: '#3DDC97',
-  agenda: '#FF8A3D',
   recompensas: '#A78BFA',
-  comunidade: '#3B82F6',
   planos: '#FFC857',
 } as const;
 

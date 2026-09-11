@@ -5,7 +5,7 @@ export type AbasParamList = {
   Inicio: undefined;
   Pets: undefined;
   Cuidados: undefined;
-  Comunidade: undefined;
+  Atendimentos: undefined;
   Recompensas: undefined;
   Perfil: undefined;
 };
@@ -33,5 +33,4 @@ export type RaizParamList = {
   CadastroPet: undefined;
   Planos: undefined;
   Historico: undefined;
-  Agendamentos: undefined;
 };

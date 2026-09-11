@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { AgendamentosScreen } from '../screens/AgendamentosScreen';
 import { CadastroPetScreen } from '../screens/CadastroPetScreen';
 import { CriarContaScreen } from '../screens/CriarContaScreen';
 import { FormPetScreen } from '../screens/FormPetScreen';
@@ -88,11 +87,6 @@ export function RaizNavigator() {
             name="Historico"
             component={HistoricoScreen}
             options={{ title: 'Histórico' }}
-          />
-          <Stack.Screen
-            name="Agendamentos"
-            component={AgendamentosScreen}
-            options={{ title: 'Atendimentos' }}
           />
         </Stack.Group>
       ) : (
