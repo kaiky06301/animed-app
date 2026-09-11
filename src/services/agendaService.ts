@@ -55,10 +55,17 @@ export async function concluir(pedido: {
   idConsulta: number;
   retorno?: string | null;
   orientacao?: string | null;
+  diagnostico?: string | null;
+  prescricao?: string | null;
 }): Promise<AtendimentoConcluido> {
   const { data } = await api.patch<AtendimentoConcluido>(
     `/api/agenda/atendimentos/${pedido.idConsulta}/concluir`,
-    { retorno: pedido.retorno ?? null, orientacao: pedido.orientacao ?? null },
+    {
+      retorno: pedido.retorno ?? null,
+      orientacao: pedido.orientacao ?? null,
+      diagnostico: pedido.diagnostico ?? null,
+      prescricao: pedido.prescricao ?? null,
+    },
   );
   return data;
 }

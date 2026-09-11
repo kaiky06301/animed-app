@@ -15,6 +15,7 @@ import {
 import { mensagemDoErro } from '../../api/cliente';
 import { Botao } from '../../components/Botao';
 import { PrescreverMedicamento } from '../../components/PrescreverMedicamento';
+import { useEncerrarMedicamento, useMedicamentos } from '../../hooks/useMedicamentos';
 import { CampoData } from '../../components/CampoData';
 import { CampoSugestao } from '../../components/CampoSugestao';
 import { CampoTexto } from '../../components/CampoTexto';
@@ -63,6 +64,10 @@ export function FichaPacienteScreen({ route }: Props) {
   const [pontosCreditados, setPontosCreditados] = useState(false);
   const [prescrevendo, setPrescrevendo] = useState(false);
   const [avisoReceita, setAvisoReceita] = useState<string | null>(null);
+
+  const { data: medicamentos } = useMedicamentos(idPet);
+  const encerrarMedicamento = useEncerrarMedicamento();
+  const tratamentos = (medicamentos ?? []).filter((m) => m.emCurso);
 
   const salvando = criar.isPending || atualizar.isPending;
 
@@ -274,6 +279,72 @@ export function FichaPacienteScreen({ route }: Props) {
             )}
           </View>
         }
+        ListFooterComponent={
+          <View style={estilos.tratamentos}>
+            <Text style={estilos.secaoTitulo}>Tratamentos em curso</Text>
+
+            {tratamentos.length === 0 ? (
+              <Text style={estilos.textoSuave}>
+                Nenhum medicamento prescrito para este paciente.
+              </Text>
+            ) : (
+              tratamentos.map((m) => (
+                <Cartao key={m.id} style={estilos.tratamento}>
+                  <View style={estilos.tratamentoTopo}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={estilos.itemNome}>{m.nome}</Text>
+                      <Text style={estilos.textoSuaveEsq}>
+                        {m.dosagem ? `${m.dosagem}, ` : ''}
+                        {m.posologia}
+                        {m.dataFim ? ` · até ${isoParaBr(m.dataFim)}` : ' · uso contínuo'}
+                      </Text>
+                    </View>
+
+                    {/* Aderência: é o que diz se o tratamento está sendo cumprido */}
+                    <View
+                      style={[
+                        estilos.aderencia,
+                        m.minutosDeAtraso > 0 && estilos.aderenciaAtrasada,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          estilos.aderenciaTexto,
+                          m.minutosDeAtraso > 0 && { color: cores.erro },
+                        ]}
+                      >
+                        {m.dosesRegistradas} {m.dosesRegistradas === 1 ? 'dose' : 'doses'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text
+                    style={[
+                      estilos.textoSuaveEsq,
+                      m.minutosDeAtraso > 0 && { color: cores.erro },
+                    ]}
+                  >
+                    {m.dosesRegistradas === 0
+                      ? 'O tutor ainda não registrou nenhuma dose'
+                      : m.minutosDeAtraso > 0
+                        ? `Última dose ${isoParaBr((m.ultimaDose ?? '').slice(0, 10))} · dose atrasada`
+                        : `Última dose ${isoParaBr((m.ultimaDose ?? '').slice(0, 10))}`}
+                  </Text>
+
+                  <Pressable
+                    onPress={() => encerrarMedicamento.mutate(m.id)}
+                    style={({ pressed }) => [estilos.acao, pressed && { opacity: 0.7 }]}
+                  >
+                    <Ionicons name="stop-circle-outline" size={16} color={cores.erro} />
+                    <Text style={[estilos.acaoTexto, { color: cores.erro }]}>
+                      Encerrar tratamento
+                    </Text>
+                  </Pressable>
+                </Cartao>
+              ))
+            )}
+          </View>
+        }
         ListEmptyComponent={
           !formularioAberto ? (
             <Cartao style={estilos.vazio}>
@@ -359,6 +430,24 @@ const estilos = StyleSheet.create({
     marginBottom: espacamentos.sm,
   },
   avisoReceitaTexto: { flex: 1, fontSize: 12, color: cores.textoPrincipal },
+
+  tratamentos: { marginTop: espacamentos.lg, gap: espacamentos.sm },
+  secaoTitulo: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: cores.textoSuave,
+    textTransform: 'uppercase',
+  },
+  tratamento: { gap: 4 },
+  tratamentoTopo: { flexDirection: 'row', alignItems: 'flex-start', gap: espacamentos.sm },
+  aderencia: {
+    backgroundColor: cores.primariaSuave,
+    paddingHorizontal: espacamentos.sm,
+    paddingVertical: 3,
+    borderRadius: raios.pill,
+  },
+  aderenciaAtrasada: { backgroundColor: 'rgba(255,107,107,0.16)' },
+  aderenciaTexto: { fontSize: 11, fontWeight: '700', color: cores.primaria },
   centro: {
     flex: 1,
     backgroundColor: cores.fundo,

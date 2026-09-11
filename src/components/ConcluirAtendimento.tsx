@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
 import { useConcluirAtendimento, useDisponibilidade } from '../hooks/useAgenda';
+import { useMedicamentos } from '../hooks/useMedicamentos';
 import type { Atendimento } from '../services/tipos';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 import { Botao } from './Botao';
+import { PrescreverMedicamento } from './PrescreverMedicamento';
 
 interface Props {
   atendimento: Atendimento | null;
@@ -60,7 +62,15 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
   const [dataRetorno, setDataRetorno] = useState(paraIso(dias[0]));
   const [horario, setHorario] = useState<string | null>(null);
   const [orientacao, setOrientacao] = useState('');
+  const [diagnostico, setDiagnostico] = useState('');
+  const [prescricao, setPrescricao] = useState('');
+  const [prescrevendo, setPrescrevendo] = useState(false);
+  const [receitados, setReceitados] = useState<string[]>([]);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Mostra o que já está em curso, para o profissional não receitar duplicado
+  const { data: medicamentos } = useMedicamentos(atendimento?.idPet ?? null);
+  const emCurso = (medicamentos ?? []).filter((m) => m.emCurso);
 
   const { data: agenda, isLoading } = useDisponibilidade(querRetorno ? dataRetorno : null);
   const concluir = useConcluirAtendimento();
@@ -70,6 +80,9 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
       setQuerRetorno(false);
       setHorario(null);
       setOrientacao('');
+      setDiagnostico('');
+      setPrescricao('');
+      setReceitados([]);
       setErro(null);
     }
   }, [atendimento]);
@@ -89,6 +102,8 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
         idConsulta: atendimento.idConsulta,
         retorno: querRetorno ? `${dataRetorno}T${horario}:00` : null,
         orientacao: querRetorno ? orientacao.trim() || null : null,
+        diagnostico: diagnostico.trim() || null,
+        prescricao: prescricao.trim() || null,
       });
 
       const [ano, mes, dia] = dataRetorno.split('-');
@@ -129,6 +144,54 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={estilos.rotulo}>Diagnóstico</Text>
+            <TextInput
+              value={diagnostico}
+              onChangeText={setDiagnostico}
+              placeholder="O que foi encontrado no atendimento"
+              placeholderTextColor={cores.textoSuave}
+              multiline
+              style={estilos.campo}
+            />
+
+            <Text style={estilos.rotulo}>Conduta</Text>
+            <TextInput
+              value={prescricao}
+              onChangeText={setPrescricao}
+              placeholder="Exames pedidos, cuidados indicados, encaminhamentos"
+              placeholderTextColor={cores.textoSuave}
+              multiline
+              style={estilos.campo}
+            />
+
+            <Text style={estilos.rotulo}>Medicamentos</Text>
+
+            {emCurso.length > 0 && (
+              <View style={estilos.emCurso}>
+                <Text style={estilos.emCursoTitulo}>Já em uso</Text>
+                {emCurso.map((m) => (
+                  <Text key={m.id} style={estilos.emCursoItem}>
+                    • {m.nome} — {m.posologia}
+                  </Text>
+                ))}
+              </View>
+            )}
+
+            {receitados.map((nome) => (
+              <View key={nome} style={estilos.receitado}>
+                <Ionicons name="checkmark-circle" size={15} color={cores.primaria} />
+                <Text style={estilos.receitadoTexto}>{nome} receitado agora</Text>
+              </View>
+            ))}
+
+            <Pressable
+              onPress={() => setPrescrevendo(true)}
+              style={({ pressed }) => [estilos.receitar, pressed && { opacity: 0.75 }]}
+            >
+              <Ionicons name="add-circle-outline" size={16} color={cores.laranja} />
+              <Text style={estilos.receitarTexto}>Receitar medicamento</Text>
+            </Pressable>
+
             <Text style={estilos.rotulo}>Este caso precisa de retorno?</Text>
 
             <View style={estilos.escolhas}>
@@ -241,6 +304,16 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
 
           {!!erro && <Text style={estilos.erro}>{erro}</Text>}
 
+          <PrescreverMedicamento
+            visivel={prescrevendo}
+            idPet={atendimento?.idPet ?? 0}
+            nomePet={atendimento?.nomePet ?? ''}
+            onFechar={() => setPrescrevendo(false)}
+            onPrescrito={(mensagem) =>
+              setReceitados((atuais) => [...atuais, mensagem.split(' receitado')[0]])
+            }
+          />
+
           <Botao
             titulo={querRetorno ? 'Concluir e marcar retorno' : 'Concluir atendimento'}
             icone="checkmark-circle-outline"
@@ -348,6 +421,45 @@ const estilos = StyleSheet.create({
     textAlignVertical: 'top',
   },
   ajuda: { fontSize: 11, color: cores.textoSuave, marginTop: espacamentos.xs },
+
+  emCurso: {
+    backgroundColor: cores.superficie,
+    borderRadius: raios.md,
+    padding: espacamentos.sm,
+    marginBottom: espacamentos.xs,
+    gap: 2,
+  },
+  emCursoTitulo: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: cores.textoSuave,
+    textTransform: 'uppercase',
+  },
+  emCursoItem: { fontSize: 12, color: cores.textoSecundario, lineHeight: 17 },
+
+  receitado: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: cores.primariaSuave,
+    borderRadius: raios.sm,
+    paddingHorizontal: espacamentos.sm,
+    paddingVertical: 6,
+    marginBottom: espacamentos.xs,
+  },
+  receitadoTexto: { fontSize: 12, color: cores.primaria, fontWeight: '600' },
+
+  receitar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: cores.laranja,
+    borderRadius: raios.md,
+    paddingVertical: espacamentos.sm,
+  },
+  receitarTexto: { fontSize: 13, fontWeight: '700', color: cores.laranja },
 
   erro: { color: cores.erro, fontSize: 12, marginTop: espacamentos.sm },
 });
