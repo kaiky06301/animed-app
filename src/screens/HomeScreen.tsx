@@ -206,13 +206,28 @@ export function HomeScreen({ navigation }: Props) {
               <View
                 style={[
                   estilos.iconeSaude,
-                  { backgroundColor: saude?.emDia === false ? cores.alerta : cores.primaria },
+                  {
+                    backgroundColor:
+                      saude?.estado === 'atrasado'
+                        ? cores.alerta
+                        : saude?.estado === 'em-dia'
+                          ? cores.primaria
+                          : cores.superficieAlt,
+                  },
                 ]}
               >
                 <Ionicons
-                  name={saude?.emDia === false ? 'alert' : 'paw'}
+                  name={
+                    saude?.estado === 'atrasado'
+                      ? 'alert'
+                      : saude?.estado === 'em-dia'
+                        ? 'shield-checkmark'
+                        : 'shield-outline'
+                  }
                   size={16}
-                  color="#04261C"
+                  color={saude?.estado === 'sem-historico' || saude?.estado === 'sem-previsao'
+                    ? cores.textoSuave
+                    : '#04261C'}
                 />
               </View>
 
@@ -220,7 +235,14 @@ export function HomeScreen({ navigation }: Props) {
                 <Text
                   style={[
                     estilos.situacaoSaude,
-                    { color: saude?.emDia === false ? cores.alerta : cores.primaria },
+                    {
+                      color:
+                        saude?.estado === 'atrasado'
+                          ? cores.alerta
+                          : saude?.estado === 'em-dia'
+                            ? cores.primaria
+                            : cores.textoSecundario,
+                    },
                   ]}
                 >
                   {saude?.situacao ?? 'Carregando situação…'}

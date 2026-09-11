@@ -98,7 +98,20 @@ export function VacinasScreen({ route }: Props) {
     [vacinas],
   );
 
-  const emDia = atrasadas.length === 0;
+  /**
+   * Situação do calendário. Só afirma que está em dia quando existe ao
+   * menos uma vacina com próxima dose acompanhada e nenhuma vencida —
+   * sem histórico, ou sem reforço previsto, não há o que garantir.
+   */
+  const situacao: 'em-dia' | 'atrasado' | 'sem-historico' | 'sem-previsao' = useMemo(() => {
+    if (!vacinas?.length) return 'sem-historico';
+    if (atrasadas.length > 0) return 'atrasado';
+    if (!vacinas.some((v) => v.dataProximaDose)) return 'sem-previsao';
+    return 'em-dia';
+  }, [vacinas, atrasadas]);
+
+  const emDia = situacao === 'em-dia';
+  const alerta = situacao === 'atrasado';
 
   if (isLoading) {
     return (
@@ -179,27 +192,56 @@ export function VacinasScreen({ route }: Props) {
             </View>
 
             {/* Situação do calendário de vacinação */}
-            <View style={[estilos.faixaStatus, !emDia && estilos.faixaStatusAlerta]}>
+            <View
+              style={[
+                estilos.faixaStatus,
+                alerta && estilos.faixaStatusAlerta,
+                !emDia && !alerta && estilos.faixaStatusNeutra,
+              ]}
+            >
               <Ionicons
-                name={emDia ? 'shield-checkmark' : 'alert-circle'}
+                name={
+                  emDia ? 'shield-checkmark' : alerta ? 'alert-circle' : 'shield-outline'
+                }
                 size={30}
-                color={emDia ? cores.primaria : cores.alerta}
+                color={emDia ? cores.primaria : alerta ? cores.alerta : cores.textoSuave}
               />
 
               <View style={{ flex: 1 }}>
-                <Text style={[estilos.statusTitulo, !emDia && { color: cores.alerta }]}>
-                  {emDia ? 'Calendário em dia!' : 'Vacinas atrasadas'}
+                <Text
+                  style={[
+                    estilos.statusTitulo,
+                    alerta && { color: cores.alerta },
+                    !emDia && !alerta && { color: cores.textoSecundario },
+                  ]}
+                >
+                  {emDia
+                    ? 'Calendário em dia!'
+                    : alerta
+                      ? 'Vacinas atrasadas'
+                      : situacao === 'sem-historico'
+                        ? 'Sem histórico de vacinas'
+                        : 'Sem reforço previsto'}
                 </Text>
+
                 <Text style={estilos.statusTexto}>
                   {emDia
                     ? `O ${pet?.nome ?? nomePet} está com todas as vacinas em dia.`
-                    : `${atrasadas.length} ${
-                        atrasadas.length === 1 ? 'vacina precisa' : 'vacinas precisam'
-                      } de reforço.`}
+                    : alerta
+                      ? `${atrasadas.length} ${
+                          atrasadas.length === 1 ? 'vacina precisa' : 'vacinas precisam'
+                        } de reforço.`
+                      : situacao === 'sem-historico'
+                        ? 'Nenhuma aplicação foi registrada pelo veterinário ainda.'
+                        : 'As vacinas aplicadas não têm data de reforço informada.'}
                 </Text>
               </View>
 
-              <Ionicons name="paw" size={22} color={emDia ? cores.primaria : cores.alerta} />
+              <Ionicons
+                name="paw"
+                size={22}
+                color={emDia ? cores.primaria : alerta ? cores.alerta : cores.textoSuave}
+              />
             </View>
 
             {/* Título da lista e filtro por ano */}
@@ -277,6 +319,12 @@ export function VacinasScreen({ route }: Props) {
                   <Text style={estilos.proximaData}>{isoParaBr(proximaDose.dataProximaDose)}</Text>{' '}
                   ({proximaDose.nomeVacina}).
                 </Text>
+
+                {!!proximaDose.veterinarioResponsavel && (
+                  <Text style={estilos.proximaOrigem}>
+                    Indicada por {proximaDose.veterinarioResponsavel} na última aplicação.
+                  </Text>
+                )}
               </View>
             </View>
           ) : null
@@ -421,6 +469,10 @@ const estilos = StyleSheet.create({
     backgroundColor: 'rgba(255,180,84,0.10)',
     borderColor: 'rgba(255,180,84,0.45)',
   },
+  faixaStatusNeutra: {
+    backgroundColor: cores.superficie,
+    borderColor: cores.borda,
+  },
   statusTitulo: { color: cores.primaria, fontSize: 16, fontWeight: '800' },
   statusTexto: { color: cores.textoSecundario, fontSize: 13, marginTop: 1 },
   cabecalhoLista: {
@@ -510,4 +562,5 @@ const estilos = StyleSheet.create({
   proximaTitulo: { color: cores.laranja, fontSize: 15, fontWeight: '800' },
   proximaTexto: { color: cores.textoSecundario, fontSize: 13, marginTop: 2, lineHeight: 18 },
   proximaData: { color: cores.laranja, fontWeight: '800' },
+  proximaOrigem: { color: cores.textoSuave, fontSize: 11, marginTop: 4, fontStyle: 'italic' },
 });
