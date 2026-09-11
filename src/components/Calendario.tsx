@@ -93,14 +93,9 @@ export function Calendario({
     (_, i) => anoInicial + i,
   );
 
-  function tituloCabecalho(): string {
-    if (modo === 'dias') return `${MESES[mesExibido.getMonth()]} de ${mesExibido.getFullYear()}`;
-    if (modo === 'meses') return String(mesExibido.getFullYear());
-    return `${anoInicial} — ${anoInicial + ANOS_POR_PAGINA - 1}`;
-  }
-
-  function aoTocarTitulo() {
-    setModo((atual) => (atual === 'dias' ? 'meses' : atual === 'meses' ? 'anos' : 'dias'));
+  /** Alterna um nível: tocar de novo no mesmo seletor volta para os dias. */
+  function alternar(destino: Modo) {
+    setModo((atual) => (atual === destino ? 'dias' : destino));
   }
 
   function escolher(dia: number, mes = mesExibido.getMonth(), ano = mesExibido.getFullYear()) {
@@ -142,15 +137,42 @@ export function Calendario({
               <Ionicons name="chevron-back" size={20} color={cores.primaria} />
             </Pressable>
 
-            {/* Tocar no título alterna entre dias, meses e anos */}
-            <Pressable onPress={aoTocarTitulo} hitSlop={8} style={estilos.tituloArea}>
-              <Text style={estilos.mesAno}>{tituloCabecalho()}</Text>
-              <Ionicons
-                name={modo === 'anos' ? 'chevron-up' : 'chevron-down'}
-                size={15}
-                color={cores.textoSecundario}
-              />
-            </Pressable>
+            {/* Mês e ano são seletores independentes */}
+            <View style={estilos.tituloArea}>
+              {modo === 'anos' ? (
+                <Text style={estilos.mesAno}>
+                  {anoInicial} — {anoInicial + ANOS_POR_PAGINA - 1}
+                </Text>
+              ) : (
+                <>
+                  <Pressable
+                    onPress={() => alternar('meses')}
+                    hitSlop={6}
+                    style={({ pressed }) => [
+                      estilos.seletorTitulo,
+                      modo === 'meses' && estilos.seletorAtivo,
+                      pressed && { opacity: 0.7 },
+                    ]}
+                  >
+                    <Text style={estilos.mesAno}>{MESES[mesExibido.getMonth()]}</Text>
+                    <Ionicons
+                      name={modo === 'meses' ? 'chevron-up' : 'chevron-down'}
+                      size={13}
+                      color={cores.textoSecundario}
+                    />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => alternar('anos')}
+                    hitSlop={6}
+                    style={({ pressed }) => [estilos.seletorTitulo, pressed && { opacity: 0.7 }]}
+                  >
+                    <Text style={estilos.mesAno}>{mesExibido.getFullYear()}</Text>
+                    <Ionicons name="chevron-down" size={13} color={cores.textoSecundario} />
+                  </Pressable>
+                </>
+              )}
+            </View>
 
             <Pressable onPress={() => navegar(1)} hitSlop={10} style={estilos.seta}>
               <Ionicons name="chevron-forward" size={20} color={cores.primaria} />
@@ -200,7 +222,7 @@ export function Calendario({
                     disabled={indisponivel}
                     onPress={() => {
                       setMesExibido(new Date(ano, mesExibido.getMonth(), 1));
-                      setModo('meses');
+                      setModo('dias');
                     }}
                     style={({ pressed }) => [
                       estilos.bloco,
@@ -324,7 +346,16 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tituloArea: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  tituloArea: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  seletorTitulo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: raios.md,
+  },
+  seletorAtivo: { backgroundColor: cores.superficieAlt },
   mesAno: { ...tipografia.subtitulo, color: cores.textoPrincipal, fontSize: 15 },
   gradeBlocos: {
     flexDirection: 'row',
