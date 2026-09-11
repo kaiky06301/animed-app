@@ -25,7 +25,7 @@ export type RaizParamList = {
 
   // Fluxo autenticado do veterinário
   AbasDoutor: NavigatorScreenParams<AbasDoutorParamList>;
-  FichaPaciente: { idPet: number; nomePet: string };
+  FichaPaciente: { idPet: number; nomePet: string; especie?: string };
   MeusPets: undefined;
   FormPet: { pet?: Pet };
   Vacinas: { idPet: number; nomePet: string };

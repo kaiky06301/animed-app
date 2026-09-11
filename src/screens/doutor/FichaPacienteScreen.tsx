@@ -15,6 +15,7 @@ import {
 import { mensagemDoErro } from '../../api/cliente';
 import { Botao } from '../../components/Botao';
 import { CampoData } from '../../components/CampoData';
+import { CampoSugestao } from '../../components/CampoSugestao';
 import { CampoTexto } from '../../components/CampoTexto';
 import { Cartao } from '../../components/Cartao';
 import {
@@ -25,6 +26,7 @@ import {
 } from '../../hooks/useVacinas';
 import type { RaizParamList } from '../../navigation/tipos';
 import type { Vacina } from '../../services/tipos';
+import { vacinasSugeridas } from '../../data/vacinas';
 import { useAuth } from '../../state/AuthContext';
 import { isoParaBr } from '../../utils/data';
 import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
@@ -40,7 +42,7 @@ const HOJE = new Date().toISOString().slice(0, 10);
  * os pontos de cuidado ao tutor do pet.
  */
 export function FichaPacienteScreen({ route }: Props) {
-  const { idPet, nomePet } = route.params;
+  const { idPet, nomePet, especie } = route.params;
   const { usuario } = useAuth();
 
   const { data: vacinas, isLoading, isRefetching, refetch, isError, error } = useVacinas(idPet);
@@ -200,13 +202,21 @@ export function FichaPacienteScreen({ route }: Props) {
                   {emEdicao ? 'Editar registro' : 'Registrar vacina aplicada'}
                 </Text>
 
-                <CampoTexto
+                <CampoSugestao
                   rotulo="Vacina"
                   iconeRotulo="medkit-outline"
                   icone="medkit-outline"
                   placeholder="Ex: V10, Antirrábica"
-                  value={nomeVacina}
-                  onChangeText={setNomeVacina}
+                  valor={nomeVacina}
+                  onChange={setNomeVacina}
+                  sugestoes={vacinasSugeridas(especie)}
+                  dica={
+                    especie === 'GATO'
+                      ? 'Vacinas comuns em gatos'
+                      : especie === 'CACHORRO'
+                        ? 'Vacinas comuns em cães'
+                        : 'Vacinas mais aplicadas'
+                  }
                   erro={erros.nome}
                 />
                 <CampoData

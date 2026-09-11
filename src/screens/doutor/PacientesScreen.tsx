@@ -105,7 +105,11 @@ export function PacientesScreen() {
           <ItemPaciente
             pet={item}
             onPress={() =>
-              navigation.navigate('FichaPaciente', { idPet: item.id, nomePet: item.nome })
+              navigation.navigate('FichaPaciente', {
+                idPet: item.id,
+                nomePet: item.nome,
+                especie: item.especie,
+              })
             }
           />
         )}
