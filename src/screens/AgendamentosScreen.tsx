@@ -1,11 +1,15 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DetalheAtendimento } from '../components/DetalheAtendimento';
 import { IconePet } from '../components/IconePet';
+import { SemAtendimentos } from '../components/SemAtendimentos';
 import * as consultaService from '../services/consultaService';
 import type { Consulta } from '../services/tipos';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { AbasParamList } from '../navigation/tipos';
 import { usePetAtivo } from '../state/PetAtivoContext';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
@@ -84,6 +88,7 @@ function Cartao({ consulta, onPress }: { consulta: Consulta; onPress: () => void
  * atendimento, o registro muda de seção aqui.
  */
 export function AgendamentosScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<AbasParamList>>();
   const { petAtivo } = usePetAtivo();
   const [aberto, setAberto] = useState<number | null>(null);
 
@@ -115,20 +120,17 @@ export function AgendamentosScreen() {
           <IconePet especie={petAtivo?.especie} tamanho={20} cor={cores.laranja} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={estilos.titulo}>{petAtivo?.nome ?? 'Selecione um pet'}</Text>
-          <Text style={estilos.subtitulo}>O que está marcado e o que já foi feito</Text>
+          <Text style={estilos.titulo}>Atendimentos</Text>
+          <Text style={estilos.subtitulo}>
+            Histórico de consultas e cuidados{petAtivo ? ` de ${petAtivo.nome}` : ' do seu pet'}
+          </Text>
         </View>
       </View>
 
       {isLoading ? (
         <ActivityIndicator color={cores.primaria} style={{ marginTop: espacamentos.lg }} />
       ) : doPet.length === 0 ? (
-        <View style={estilos.vazio}>
-          <MaterialCommunityIcons name="calendar-blank" size={34} color={cores.textoSuave} />
-          <Text style={estilos.vazioTexto}>
-            Nenhum atendimento por aqui ainda. Marque o primeiro na aba Cuidados.
-          </Text>
-        </View>
+        <SemAtendimentos onIrParaCuidados={() => navigation.navigate('Cuidados')} />
       ) : (
         <>
           <View style={estilos.secao}>
@@ -232,16 +234,4 @@ const estilos = StyleSheet.create({
   },
   statusTexto: { fontSize: 11, fontWeight: '700' },
 
-  vazio: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: espacamentos.sm,
-  },
-  vazioTexto: {
-    color: cores.textoSecundario,
-    fontSize: 13,
-    textAlign: 'center',
-    paddingHorizontal: espacamentos.lg,
-  },
 });
