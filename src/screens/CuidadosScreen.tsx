@@ -169,8 +169,9 @@ export function CuidadosScreen() {
         <View style={{ flex: 1 }}>
           <Text style={estilos.titulo}>Cuidados</Text>
           <Text style={estilos.subtitulo}>
-            Cada ação de cuidado vira pontos. Registre o que aconteceu com{' '}
-            <Text style={estilos.destaque}>{petAtivo?.nome ?? 'seu pet'}</Text>.
+            Registre os cuidados do dia a dia de{' '}
+            <Text style={estilos.destaque}>{petAtivo?.nome ?? 'seu pet'}</Text> e marque os
+            atendimentos na clínica.
           </Text>
         </View>
 
