@@ -142,7 +142,7 @@ export function AgendarAtendimento({
         >
           <View style={estilos.cabecalho}>
             <View style={estilos.selo}>
-              <MaterialCommunityIcons name="calendar-month" size={26} color={cores.laranja} />
+              <MaterialCommunityIcons name="calendar-month" size={22} color={cores.laranja} />
             </View>
 
             <View style={{ flex: 1 }}>
@@ -254,7 +254,7 @@ export function AgendarAtendimento({
               {/* Horários do dia escolhido */}
               <View style={[estilos.bloco, largo && { flex: 1 }]}>
                 <View style={estilos.tituloBloco}>
-                  <Ionicons name="time" size={22} color={cores.laranja} />
+                  <Ionicons name="time" size={19} color={cores.laranja} />
                   <Text style={estilos.tituloBlocoTexto}>Horários disponíveis</Text>
                 </View>
 
@@ -350,7 +350,7 @@ const estilos = StyleSheet.create({
     borderRadius: raios.xl,
     borderWidth: 1,
     borderColor: cores.borda,
-    padding: espacamentos.md,
+    padding: espacamentos.sm + 4,
     maxWidth: 460,
     maxHeight: '92%',
     width: '100%',
@@ -360,19 +360,19 @@ const estilos = StyleSheet.create({
 
   cabecalho: { flexDirection: 'row', alignItems: 'center', gap: espacamentos.sm },
   selo: {
-    width: 44,
-    height: 44,
+    width: 38,
+    height: 38,
     borderRadius: raios.md,
     backgroundColor: cores.laranjaSuave,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  titulo: { ...tipografia.titulo, fontSize: 21, color: cores.textoPrincipal },
-  subtitulo: { fontSize: 13, color: cores.textoSecundario, marginTop: 1 },
+  titulo: { ...tipografia.titulo, fontSize: 18, color: cores.textoPrincipal },
+  subtitulo: { fontSize: 12, color: cores.textoSecundario, marginTop: 1 },
   ponto: { color: cores.laranja },
   fechar: {
-    width: 34,
-    height: 34,
+    width: 30,
+    height: 30,
     borderRadius: raios.sm,
     backgroundColor: cores.superficieAlt,
     alignItems: 'center',
@@ -380,36 +380,36 @@ const estilos = StyleSheet.create({
   },
 
   rotulo: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: cores.textoSecundario,
-    marginTop: espacamentos.sm,
+    marginTop: espacamentos.xs,
     marginBottom: espacamentos.sm,
   },
-  motivos: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.sm },
+  motivos: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.xs + 2 },
   motivo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: espacamentos.md,
-    paddingVertical: espacamentos.sm + 2,
+    paddingHorizontal: espacamentos.sm + 4,
+    paddingVertical: espacamentos.xs + 3,
     borderRadius: raios.pill,
     borderWidth: 1,
     borderColor: cores.borda,
     backgroundColor: cores.superficie,
   },
   motivoAtivo: { borderColor: cores.laranja, backgroundColor: cores.laranjaSuave },
-  motivoTexto: { color: cores.textoSecundario, fontSize: 13, fontWeight: '600' },
+  motivoTexto: { color: cores.textoSecundario, fontSize: 12, fontWeight: '600' },
   motivoTextoAtivo: { color: cores.laranja, fontWeight: '700' },
 
-  colunas: { gap: espacamentos.sm, marginTop: espacamentos.md },
+  colunas: { gap: espacamentos.sm, marginTop: espacamentos.sm },
   colunasLado: { flexDirection: 'row', alignItems: 'flex-start' },
   bloco: {
     backgroundColor: cores.superficie,
     borderRadius: raios.lg,
     borderWidth: 1,
     borderColor: cores.borda,
-    padding: espacamentos.md,
+    padding: espacamentos.sm + 2,
   },
 
   navegacaoMes: {
@@ -425,7 +425,7 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  mesTitulo: { fontSize: 16, fontWeight: '700', color: cores.textoPrincipal },
+  mesTitulo: { fontSize: 15, fontWeight: '700', color: cores.textoPrincipal },
 
   semana: { flexDirection: 'row' },
   semanaTexto: {
@@ -439,7 +439,7 @@ const estilos = StyleSheet.create({
   grade: { flexDirection: 'row', flexWrap: 'wrap' },
   celula: {
     width: `${100 / 7}%`,
-    aspectRatio: 1,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: raios.sm,
@@ -448,7 +448,7 @@ const estilos = StyleSheet.create({
   },
   celulaLivre: { borderColor: 'rgba(34, 211, 160, 0.45)' },
   celulaEscolhida: { backgroundColor: cores.primaria, borderColor: cores.primaria },
-  celulaTexto: { fontSize: 14, color: cores.textoSuave },
+  celulaTexto: { fontSize: 13, color: cores.textoSuave },
   celulaTextoLivre: { color: cores.textoPrincipal, fontWeight: '700' },
   celulaTextoEscolhido: { color: '#04261C', fontWeight: '800' },
 
@@ -468,42 +468,42 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: espacamentos.sm,
-    marginBottom: espacamentos.md,
+    marginBottom: espacamentos.sm,
   },
-  tituloBlocoTexto: { fontSize: 16, fontWeight: '700', color: cores.textoPrincipal },
+  tituloBlocoTexto: { fontSize: 15, fontWeight: '700', color: cores.textoPrincipal },
 
-  horarios: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.sm },
+  horarios: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.xs + 2 },
   horario: {
     flexGrow: 1,
-    flexBasis: '28%',
+    flexBasis: '21%',
     alignItems: 'center',
-    paddingVertical: espacamentos.sm + 4,
+    paddingVertical: espacamentos.sm,
     borderRadius: raios.md,
     borderWidth: 1,
     borderColor: cores.borda,
     backgroundColor: cores.superficieAlt,
   },
   horarioAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
-  horarioTexto: { fontSize: 14, fontWeight: '700', color: cores.textoPrincipal },
+  horarioTexto: { fontSize: 13, fontWeight: '700', color: cores.textoPrincipal },
   horarioTextoAtivo: { color: cores.primaria },
 
-  vazio: { alignItems: 'center', gap: espacamentos.sm, paddingVertical: espacamentos.lg },
+  vazio: { alignItems: 'center', gap: espacamentos.sm, paddingVertical: espacamentos.md },
   vazioTexto: { color: cores.textoSecundario, fontSize: 12, textAlign: 'center' },
 
   info: {
     backgroundColor: cores.superficieAlt,
     borderRadius: raios.md,
-    padding: espacamentos.md,
-    marginTop: espacamentos.md,
+    padding: espacamentos.sm + 2,
+    marginTop: espacamentos.sm,
     gap: espacamentos.sm,
   },
   infoLinha: { flexDirection: 'row', alignItems: 'flex-start', gap: espacamentos.sm },
-  infoTexto: { flex: 1, fontSize: 13, color: cores.textoSecundario, lineHeight: 19 },
+  infoTexto: { flex: 1, fontSize: 12, color: cores.textoSecundario, lineHeight: 17 },
   infoDestaque: { color: cores.laranja, fontWeight: '700' },
-  infoTitulo: { fontSize: 13, fontWeight: '700', color: cores.textoPrincipal },
-  infoEndereco: { fontSize: 12, color: cores.textoSecundario, marginTop: 1 },
+  infoTitulo: { fontSize: 12, fontWeight: '700', color: cores.textoPrincipal },
+  infoEndereco: { fontSize: 11, color: cores.textoSecundario, marginTop: 1 },
   divisor: { height: 1, backgroundColor: cores.borda },
 
-  confirmar: { borderRadius: raios.pill, marginTop: espacamentos.sm },
+  confirmar: { borderRadius: raios.pill, marginTop: espacamentos.xs },
   erro: { color: cores.erro, fontSize: 12, marginTop: espacamentos.sm },
 });

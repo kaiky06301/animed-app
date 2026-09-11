@@ -76,17 +76,7 @@ const ACOES_TUTOR: AcaoCuidado[] = [
     icone: 'heart-pulse',
     pedeAgendamento: true,
     motivo: 'Check-up preventivo',
-    nota: 'Marque na agenda da clínica. Os 30 pontos entram quando o veterinário concluir o atendimento.',
-  },
-  {
-    tipo: 'AGENDAMENTO',
-    titulo: 'Agendou consulta',
-    descricao: 'Planejou o cuidado futuro do seu pet.',
-    pontos: 10,
-    cor: '#EAB308',
-    icone: 'calendar-check',
-    pedeAgendamento: true,
-    motivo: 'Consulta de rotina',
+    nota: 'Você ganha 10 pontos ao marcar o horário e os 30 quando o veterinário concluir o atendimento.',
   },
 ];
 
