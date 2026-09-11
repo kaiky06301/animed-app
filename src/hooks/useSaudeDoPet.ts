@@ -13,6 +13,8 @@ export interface SaudeDoPet {
   situacao: string;
   /** Data da última consulta realizada, em ISO, ou null. */
   ultimaConsulta: string | null;
+  /** Próximo atendimento ainda por acontecer, ou null. */
+  proximoAtendimento: { dataHora: string; motivo: string } | null;
 }
 
 /**
@@ -38,9 +40,14 @@ export function useSaudeDoPet(idPet: number | null) {
         (v) => v.dataProximaDose != null && new Date(v.dataProximaDose) < hoje,
       );
 
+      // Só conta como "última" a consulta que já aconteceu de fato
       const realizadas = consultas
-        .filter((c) => c.status === 'REALIZADA')
+        .filter((c) => c.status === 'REALIZADA' && new Date(c.dataHora) <= hoje)
         .sort((a, b) => (a.dataHora < b.dataHora ? 1 : -1));
+
+      const agendadas = consultas
+        .filter((c) => c.status === 'AGENDADA' && new Date(c.dataHora) >= hoje)
+        .sort((a, b) => (a.dataHora > b.dataHora ? 1 : -1));
 
       let estado: SituacaoSaude;
       if (vacinas.length === 0) estado = 'sem-historico';
@@ -64,6 +71,9 @@ export function useSaudeDoPet(idPet: number | null) {
         emDia: estado === 'em-dia',
         situacao,
         ultimaConsulta: realizadas[0]?.dataHora ?? null,
+        proximoAtendimento: agendadas[0]
+          ? { dataHora: agendadas[0].dataHora, motivo: agendadas[0].motivo }
+          : null,
       };
     },
   });

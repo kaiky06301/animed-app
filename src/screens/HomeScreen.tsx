@@ -257,6 +257,30 @@ export function HomeScreen({ navigation }: Props) {
 
               <Ionicons name="chevron-forward" size={20} color={cores.textoSuave} />
             </Pressable>
+
+            <Pressable
+              onPress={() => navigation.navigate('Agendamentos')}
+              style={({ pressed }) => [estilos.rodapePet, pressed && { opacity: 0.7 }]}
+            >
+              <View style={[estilos.iconeSaude, { backgroundColor: cores.laranjaSuave }]}>
+                <Ionicons name="calendar" size={16} color={cores.laranja} />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={[estilos.situacaoSaude, { color: cores.laranja }]}>
+                  {saude?.proximoAtendimento
+                    ? `Atendimento ${formatarDataHora(saude.proximoAtendimento.dataHora)}`
+                    : 'Nenhum atendimento marcado'}
+                </Text>
+                <Text style={estilos.ultimaConsulta}>
+                  {saude?.proximoAtendimento
+                    ? saude.proximoAtendimento.motivo
+                    : 'Toque para ver seus atendimentos'}
+                </Text>
+              </View>
+
+              <Ionicons name="chevron-forward" size={20} color={cores.textoSuave} />
+            </Pressable>
         </Cartao>
       )}
 
@@ -309,6 +333,13 @@ export function HomeScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('Cuidados')}
         />
         <AtalhoBotao
+          icone="calendar"
+          cor={CORES_ATALHO.agenda}
+          titulo="Atendimentos"
+          subtitulo="Marcados e feitos"
+          onPress={() => navigation.navigate('Agendamentos')}
+        />
+        <AtalhoBotao
           icone="gift"
           cor={CORES_ATALHO.recompensas}
           titulo="Recompensas"
@@ -337,10 +368,22 @@ export function HomeScreen({ navigation }: Props) {
 /** Cada atalho tem a própria cor, para diferenciar as áreas do app. */
 const CORES_ATALHO = {
   cuidados: '#3DDC97',
+  agenda: '#FF8A3D',
   recompensas: '#A78BFA',
   comunidade: '#3B82F6',
   planos: '#FFC857',
 } as const;
+
+/** "2026-09-28T09:00" -> "em 28/09 às 09:00" */
+function formatarDataHora(iso: string): string {
+  const data = new Date(iso);
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const hora = String(data.getHours()).padStart(2, '0');
+  const minuto = String(data.getMinutes()).padStart(2, '0');
+
+  return `em ${dia}/${mes} às ${hora}:${minuto}`;
+}
 
 /** Converte a data vinda da API para o formato brasileiro. */
 function formatarData(iso: string): string {
