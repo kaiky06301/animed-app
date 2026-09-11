@@ -13,6 +13,8 @@ interface Props extends TextInputProps {
   /** Ícone ou texto exibido à direita, dentro do campo. */
   sufixo?: keyof typeof Ionicons.glyphMap;
   sufixoTexto?: string;
+  /** Conteúdo exibido dentro do campo, abaixo do texto. */
+  rodape?: React.ReactNode;
 }
 
 /** Campo de formulário com rótulo, ícones e mensagem de validação. */
@@ -23,6 +25,7 @@ export function CampoTexto({
   icone,
   sufixo,
   sufixoTexto,
+  rodape,
   style,
   multiline,
   ...rest
@@ -34,31 +37,29 @@ export function CampoTexto({
         <Text style={estilos.rotulo}>{rotulo}</Text>
       </View>
 
-      <View
-        style={[
-          estilos.campo,
-          multiline && estilos.campoMultilinha,
-          !!erro && estilos.campoComErro,
-        ]}
-      >
-        {!!icone && (
-          <Ionicons
-            name={icone}
-            size={17}
-            color={cores.textoSuave}
-            style={multiline ? { marginTop: 2 } : undefined}
+      <View style={[estilos.caixa, !!erro && estilos.campoComErro]}>
+        <View style={[estilos.campo, multiline && estilos.campoMultilinha]}>
+          {!!icone && (
+            <Ionicons
+              name={icone}
+              size={17}
+              color={cores.textoSuave}
+              style={multiline ? { marginTop: 2 } : undefined}
+            />
+          )}
+
+          <TextInput
+            placeholderTextColor={cores.textoSuave}
+            multiline={multiline}
+            {...rest}
+            style={[estilos.entrada, style]}
           />
-        )}
 
-        <TextInput
-          placeholderTextColor={cores.textoSuave}
-          multiline={multiline}
-          {...rest}
-          style={[estilos.entrada, style]}
-        />
+          {!!sufixoTexto && <Text style={estilos.sufixoTexto}>{sufixoTexto}</Text>}
+          {!!sufixo && <Ionicons name={sufixo} size={16} color={cores.textoSuave} />}
+        </View>
 
-        {!!sufixoTexto && <Text style={estilos.sufixoTexto}>{sufixoTexto}</Text>}
-        {!!sufixo && <Ionicons name={sufixo} size={16} color={cores.textoSuave} />}
+        {!!rodape && <View style={estilos.rodape}>{rodape}</View>}
       </View>
 
       {!!erro && <Text style={estilos.erro}>{erro}</Text>}
@@ -80,16 +81,23 @@ const estilos = StyleSheet.create({
     ...tipografia.legenda,
     color: cores.textoSecundario,
   },
-  campo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: espacamentos.sm,
+  caixa: {
     backgroundColor: cores.superficieAlt,
     borderRadius: raios.md,
     borderWidth: 1,
     borderColor: cores.borda,
+    overflow: 'hidden',
+  },
+  campo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
     paddingHorizontal: espacamentos.md,
     paddingVertical: espacamentos.sm + 4,
+  },
+  rodape: {
+    borderTopWidth: 1,
+    borderTopColor: cores.borda,
   },
   campoMultilinha: { alignItems: 'flex-start' },
   entrada: {

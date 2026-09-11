@@ -277,16 +277,17 @@ export function FormPetScreen({ route, navigation }: Props) {
             multiline
             numberOfLines={3}
             style={estilos.multilinha}
+            rodape={
+              observacoes.trim() ? (
+                <View style={estilos.atencao}>
+                  <Ionicons name="alert-circle" size={15} color={cores.laranja} />
+                  <Text style={estilos.atencaoTexto}>
+                    Este pet precisa de atenção especial
+                  </Text>
+                </View>
+              ) : null
+            }
           />
-
-          {!!observacoes.trim() && (
-            <View style={estilos.atencao}>
-              <View style={estilos.atencaoIcone}>
-                <Ionicons name="paw" size={13} color={cores.laranja} />
-              </View>
-              <Text style={estilos.atencaoTexto}>Atenção especial</Text>
-            </View>
-          )}
 
           {!!erroGeral && (
             <View style={estilos.avisoErro}>
@@ -435,22 +436,10 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: espacamentos.sm,
-    alignSelf: 'flex-start',
+    width: '100%',
     backgroundColor: 'rgba(255,138,61,0.12)',
-    borderRadius: raios.pill,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-    marginTop: -espacamentos.sm,
-    marginBottom: espacamentos.md,
-  },
-  atencaoIcone: {
-    width: 22,
-    height: 22,
-    borderRadius: raios.pill,
-    borderWidth: 1,
-    borderColor: cores.laranja,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: espacamentos.sm + 2,
+    paddingHorizontal: espacamentos.md,
   },
   atencaoTexto: { color: cores.laranja, fontSize: 12, fontWeight: '700' },
   opcaoAtiva: {
