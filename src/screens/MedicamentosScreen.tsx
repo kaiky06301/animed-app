@@ -2,6 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
 import { mensagemDoErro } from '../api/cliente';
 import { useMedicamentos, useRegistrarDose } from '../hooks/useMedicamentos';
 import type { Medicamento } from '../services/tipos';
+import { Botao } from '../components/Botao';
 import { usePetAtivo } from '../state/PetAtivoContext';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
@@ -167,9 +169,13 @@ export function MedicamentosScreen() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
+  /** Dose pedida, à espera de confirmação. */
+  const [aConfirmar, setAConfirmar] = useState<Medicamento | null>(null);
+
   async function registrar(medicamento: Medicamento) {
     setErro(null);
     setAviso(null);
+    setAConfirmar(null);
 
     try {
       const dose = await registrarDose.mutateAsync({ idMedicamento: medicamento.id });
@@ -226,7 +232,7 @@ export function MedicamentosScreen() {
               key={m.id}
               medicamento={m}
               registrando={registrarDose.isPending}
-              onRegistrar={() => registrar(m)}
+              onRegistrar={() => setAConfirmar(m)}
             />
           ))}
 
@@ -245,6 +251,55 @@ export function MedicamentosScreen() {
           )}
         </>
       )}
+
+      {/* Dar remédio é ato de saúde: confirma antes de contar como dado */}
+      <Modal
+        visible={!!aConfirmar}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAConfirmar(null)}
+      >
+        <Pressable style={estilos.fundoModal} onPress={() => setAConfirmar(null)}>
+          <Pressable style={estilos.painel} onPress={(e) => e.stopPropagation()}>
+            <View style={estilos.painelTopo}>
+              <MaterialCommunityIcons name="pill" size={26} color={cores.laranja} />
+            </View>
+
+            <Text style={estilos.painelTitulo}>Confirmar a dose</Text>
+
+            <Text style={estilos.painelTexto}>
+              {aConfirmar?.dosagem ? `${aConfirmar.dosagem} de ` : ''}
+              <Text style={estilos.destaque}>{aConfirmar?.nome}</Text> para{' '}
+              {petAtivo?.nome}, agora.
+            </Text>
+
+            {!!aConfirmar && !aConfirmar.doseLiberada && !!aConfirmar.proximaDose && (
+              <View style={estilos.alerta}>
+                <Ionicons name="warning" size={15} color={cores.alerta} />
+                <Text style={estilos.alertaTexto}>
+                  A receita pede a próxima dose {quando(aConfirmar.proximaDose)}. A dose
+                  fica registrada, mas não rende pontos.
+                </Text>
+              </View>
+            )}
+
+            <View style={estilos.botoes}>
+              <Botao
+                titulo="Voltar"
+                variante="sutil"
+                onPress={() => setAConfirmar(null)}
+                estilo={{ flex: 1 }}
+              />
+              <Botao
+                titulo="Dei o remédio"
+                onPress={() => aConfirmar && registrar(aConfirmar)}
+                carregando={registrarDose.isPending}
+                estilo={{ flex: 1 }}
+              />
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -342,6 +397,47 @@ const estilos = StyleSheet.create({
     marginTop: espacamentos.md,
     marginBottom: espacamentos.sm,
   },
+
+  fundoModal: {
+    flex: 1,
+    backgroundColor: cores.overlay,
+    justifyContent: 'center',
+    padding: espacamentos.md,
+  },
+  painel: {
+    backgroundColor: cores.fundoElevado,
+    borderRadius: raios.lg,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    padding: espacamentos.md,
+    maxWidth: 420,
+    width: '100%',
+    alignSelf: 'center',
+    gap: espacamentos.sm,
+  },
+  painelTopo: { alignItems: 'center' },
+  painelTitulo: {
+    ...tipografia.subtitulo,
+    color: cores.textoPrincipal,
+    textAlign: 'center',
+  },
+  painelTexto: {
+    fontSize: 13,
+    color: cores.textoSecundario,
+    textAlign: 'center',
+    lineHeight: 19,
+  },
+  destaque: { color: cores.textoPrincipal, fontWeight: '700' },
+  alerta: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: espacamentos.sm,
+    backgroundColor: 'rgba(255,180,84,0.12)',
+    borderRadius: raios.md,
+    padding: espacamentos.sm + 2,
+  },
+  alertaTexto: { flex: 1, fontSize: 12, color: cores.alerta, lineHeight: 17 },
+  botoes: { flexDirection: 'row', gap: espacamentos.sm, marginTop: espacamentos.xs },
 
   vazio: {
     flex: 1,
