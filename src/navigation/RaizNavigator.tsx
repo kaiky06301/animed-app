@@ -45,7 +45,8 @@ export function RaizNavigator() {
       screenOptions={{
         headerStyle: { backgroundColor: cores.fundo },
         headerTitleStyle: { color: cores.textoPrincipal, fontWeight: '700' },
-        headerTintColor: cores.primaria,
+        // seta de voltar na cor da marca
+        headerTintColor: cores.laranja,
         contentStyle: { backgroundColor: cores.fundo },
       }}
     >
