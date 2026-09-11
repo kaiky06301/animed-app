@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { mensagemDoErro } from '../../api/cliente';
 import { Botao } from '../../components/Botao';
+import { PrescreverMedicamento } from '../../components/PrescreverMedicamento';
 import { CampoData } from '../../components/CampoData';
 import { CampoSugestao } from '../../components/CampoSugestao';
 import { CampoTexto } from '../../components/CampoTexto';
@@ -60,6 +61,8 @@ export function FichaPacienteScreen({ route }: Props) {
   const [erros, setErros] = useState<{ nome?: string; data?: string }>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [pontosCreditados, setPontosCreditados] = useState(false);
+  const [prescrevendo, setPrescrevendo] = useState(false);
+  const [avisoReceita, setAvisoReceita] = useState<string | null>(null);
 
   const salvando = criar.isPending || atualizar.isPending;
 
@@ -312,15 +315,50 @@ export function FichaPacienteScreen({ route }: Props) {
 
       {!formularioAberto && (
         <View style={estilos.rodape}>
+          {!!avisoReceita && (
+            <View style={estilos.avisoReceita}>
+              <Ionicons name="checkmark-circle" size={16} color={cores.primaria} />
+              <Text style={estilos.avisoReceitaTexto}>{avisoReceita}</Text>
+              <Pressable onPress={() => setAvisoReceita(null)} hitSlop={10}>
+                <Ionicons name="close" size={14} color={cores.textoSecundario} />
+              </Pressable>
+            </View>
+          )}
+
           <Botao titulo="Registrar vacina" icone="add-circle-outline" onPress={abrirNovo} />
+          <Botao
+            titulo="Prescrever medicamento"
+            variante="sutil"
+            icone="medkit-outline"
+            onPress={() => setPrescrevendo(true)}
+            estilo={{ marginTop: espacamentos.sm }}
+          />
         </View>
       )}
+
+      <PrescreverMedicamento
+        visivel={prescrevendo}
+        idPet={idPet}
+        nomePet={nomePet}
+        onFechar={() => setPrescrevendo(false)}
+        onPrescrito={setAvisoReceita}
+      />
     </View>
   );
 }
 
 const estilos = StyleSheet.create({
   fundo: { flex: 1, backgroundColor: cores.fundo },
+  avisoReceita: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    backgroundColor: cores.primariaSuave,
+    borderRadius: raios.md,
+    padding: espacamentos.sm,
+    marginBottom: espacamentos.sm,
+  },
+  avisoReceitaTexto: { flex: 1, fontSize: 12, color: cores.textoPrincipal },
   centro: {
     flex: 1,
     backgroundColor: cores.fundo,

@@ -6,6 +6,7 @@ import { CriarContaScreen } from '../screens/CriarContaScreen';
 import { FormPetScreen } from '../screens/FormPetScreen';
 import { HistoricoScreen } from '../screens/HistoricoScreen';
 import { LoginScreen } from '../screens/LoginScreen';
+import { MedicamentosScreen } from '../screens/MedicamentosScreen';
 import { MeusPetsScreen } from '../screens/MeusPetsScreen';
 import { PlanosScreen } from '../screens/PlanosScreen';
 import { VacinasScreen } from '../screens/VacinasScreen';
@@ -87,6 +88,11 @@ export function RaizNavigator() {
             name="Historico"
             component={HistoricoScreen}
             options={{ title: 'Histórico' }}
+          />
+          <Stack.Screen
+            name="Medicamentos"
+            component={MedicamentosScreen}
+            options={{ title: 'Medicamentos' }}
           />
         </Stack.Group>
       ) : (

@@ -39,25 +39,21 @@ interface AcaoCuidado {
   motivo?: string;
   /** Observação sobre quando os pontos entram. */
   nota?: string;
+  /** Abre outra tela em vez do registro direto. */
+  telaPropria?: 'Medicamentos';
 }
 
 /** Cuidados que o próprio tutor realiza no dia a dia. */
 const ACOES_TUTOR: AcaoCuidado[] = [
   {
     tipo: 'MEDICACAO',
-    titulo: 'Medicação dada',
-    descricao: 'Remédio do tratamento em curso. Registre cada dose para não perder nenhuma.',
+    titulo: 'Medicamentos',
+    descricao:
+      'Remédios e vermífugos receitados pela veterinária. Registre cada dose no horário.',
     pontos: 15,
     cor: '#FF8A3D',
     icone: 'pill',
-  },
-  {
-    tipo: 'VERMIFUGACAO',
-    titulo: 'Vermifugação',
-    descricao: 'Prevenção periódica, a cada 3 a 6 meses. Registre e acompanhe o próximo prazo.',
-    pontos: 15,
-    cor: '#7C5CFF',
-    icone: 'bottle-tonic-plus',
+    telaPropria: 'Medicamentos',
   },
   {
     tipo: 'PESAGEM',
@@ -136,6 +132,11 @@ export function CuidadosScreen() {
   }
 
   function abrir(acao: AcaoCuidado) {
+    if (acao.telaPropria) {
+      navigation.navigate(acao.telaPropria);
+      return;
+    }
+
     if (acao.pedeAgendamento) {
       setAgendamento(acao);
       return;
@@ -249,7 +250,11 @@ export function CuidadosScreen() {
             ]}
           >
             <Text style={[estilos.botaoTexto, { color: acao.cor }]}>
-              {acao.pedeAgendamento ? 'Ver horários' : 'Registrar'}
+              {acao.telaPropria
+                ? 'Ver medicamentos'
+                : acao.pedeAgendamento
+                  ? 'Ver horários'
+                  : 'Registrar'}
             </Text>
             <Ionicons name="chevron-forward" size={15} color={acao.cor} />
           </Pressable>

@@ -33,4 +33,5 @@ export type RaizParamList = {
   CadastroPet: undefined;
   Planos: undefined;
   Historico: undefined;
+  Medicamentos: undefined;
 };

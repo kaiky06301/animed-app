@@ -194,3 +194,43 @@ export interface AgendamentoConfirmado {
   veterinario: string;
   pontosGanhos: number;
 }
+
+export interface Medicamento {
+  id: number;
+  nome: string;
+  dosagem: string | null;
+  intervaloHoras: number;
+  /** "de 12 em 12 horas", "a cada 3 meses" */
+  posologia: string;
+  dataInicio: string;
+  dataFim: string | null;
+  observacao: string | null;
+  veterinario: string | null;
+  idPet: number;
+  nomePet: string;
+  emCurso: boolean;
+  dosesRegistradas: number;
+  ultimaDose: string | null;
+  proximaDose: string | null;
+  /** true quando já passou a hora da próxima dose. */
+  doseLiberada: boolean;
+}
+
+export interface MedicamentoRequisicao {
+  idPet: number;
+  nome: string;
+  dosagem?: string | null;
+  intervaloHoras: number;
+  dataInicio: string;
+  dataFim?: string | null;
+  observacao?: string | null;
+}
+
+export interface DoseRegistrada {
+  idDose: number;
+  dataHora: string;
+  medicamento: string;
+  pontosGanhos: number;
+  pontosTotais: number;
+  proximaDose: string;
+}
