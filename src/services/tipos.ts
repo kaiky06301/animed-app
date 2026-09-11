@@ -103,7 +103,7 @@ export type TipoCuidado =
   | 'VERMIFUGACAO'
   | 'PESAGEM'
   | 'AGENDAMENTO'
-  | 'SOLICITACAO_CHECKUP';
+  | 'CHECKUP';
 
 export interface CuidadoRegistrado {
   tipo: TipoCuidado;
