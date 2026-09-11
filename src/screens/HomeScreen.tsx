@@ -387,6 +387,8 @@ const estilos = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: espacamentos.md,
+    // respiro entre a saudação e o primeiro cartão
+    marginBottom: espacamentos.sm,
   },
   linhaSaudacao: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   saudacao: { color: cores.laranja, fontSize: 13, fontWeight: '700' },
