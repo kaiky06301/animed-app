@@ -69,7 +69,7 @@ const ACOES_TUTOR: AcaoCuidado[] = [
   },
   {
     tipo: 'CHECKUP',
-    titulo: 'Check-up preventivo',
+    titulo: 'Agendar atendimento',
     descricao: 'Cuide do seu pet e previna problemas de saúde.',
     pontos: 30,
     cor: '#A78BFA',
