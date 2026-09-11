@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
 import { useAgendar, useDisponibilidade, useMesDaAgenda } from '../hooks/useAgenda';
@@ -64,9 +63,6 @@ export function AgendarAtendimento({
   onFechar,
   onConfirmado,
 }: Props) {
-  const { width } = useWindowDimensions();
-  const largo = width >= 760;
-
   const hoje = useMemo(() => new Date(), []);
 
   const [mesVisivel, setMesVisivel] = useState(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
@@ -136,10 +132,7 @@ export function AgendarAtendimento({
   return (
     <Modal visible={visivel} transparent animationType="fade" onRequestClose={onFechar}>
       <Pressable style={estilos.fundo} onPress={onFechar}>
-        <Pressable
-          style={[estilos.painel, largo && { maxWidth: 900 }]}
-          onPress={(e) => e.stopPropagation()}
-        >
+        <Pressable style={estilos.painel} onPress={(e) => e.stopPropagation()}>
           <View style={estilos.cabecalho}>
             <View style={estilos.selo}>
               <MaterialCommunityIcons name="calendar-month" size={22} color={cores.laranja} />
@@ -179,9 +172,9 @@ export function AgendarAtendimento({
               })}
             </View>
 
-            <View style={[estilos.colunas, largo && estilos.colunasLado]}>
+            <View style={estilos.colunas}>
               {/* Calendário do mês */}
-              <View style={[estilos.bloco, largo && { flex: 1 }]}>
+              <View style={estilos.bloco}>
                 <View style={estilos.navegacaoMes}>
                   <Pressable onPress={() => mudarMes(-1)} hitSlop={10} style={estilos.seta}>
                     <Ionicons name="chevron-back" size={20} color={cores.textoSecundario} />
@@ -252,7 +245,7 @@ export function AgendarAtendimento({
               </View>
 
               {/* Horários do dia escolhido */}
-              <View style={[estilos.bloco, largo && { flex: 1 }]}>
+              <View style={estilos.bloco}>
                 <View style={estilos.tituloBloco}>
                   <Ionicons name="time" size={19} color={cores.laranja} />
                   <Text style={estilos.tituloBlocoTexto}>Horários disponíveis</Text>
@@ -403,7 +396,6 @@ const estilos = StyleSheet.create({
   motivoTextoAtivo: { color: cores.laranja, fontWeight: '700' },
 
   colunas: { gap: espacamentos.sm, marginTop: espacamentos.sm },
-  colunasLado: { flexDirection: 'row', alignItems: 'flex-start' },
   bloco: {
     backgroundColor: cores.superficie,
     borderRadius: raios.lg,
