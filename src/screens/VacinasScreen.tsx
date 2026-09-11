@@ -36,7 +36,9 @@ type LinhaLista =
   | { tipo: 'ano'; ano: string }
   | { tipo: 'vacina'; vacina: Vacina; cor: string }
   /** Aplicação ainda por acontecer, já marcada na agenda da clínica. */
-  | { tipo: 'agendada'; vacina: Vacina; cor: string; dataHora: string };
+  | { tipo: 'agendada'; vacina: Vacina; cor: string; dataHora: string }
+  /** Reforço vencido, à espera de o tutor marcar a aplicação. */
+  | { tipo: 'pendente'; vacina: Vacina; cor: string; venceuEm: string };
 
 /**
  * Carteira de vacinas do pet, na visão do tutor.
@@ -78,6 +80,11 @@ export function VacinasScreen({ route }: Props) {
     return mapa;
   }, [atendimentos]);
 
+  const atrasadas = useMemo(
+    () => (vacinas ?? []).filter((v) => v.dataProximaDose && new Date(v.dataProximaDose) < hoje),
+    [vacinas],
+  );
+
   /**
    * A lista reúne o que já foi aplicado e o que está marcado, cada um no
    * ano em que acontece — uma aplicação marcada para o ano que vem não
@@ -88,6 +95,7 @@ export function VacinasScreen({ route }: Props) {
       vacina,
       data: vacina.dataAplicacao,
       agendada: undefined as string | undefined,
+      pendente: undefined as string | undefined,
     }));
 
     const marcadas = (vacinas ?? [])
@@ -96,9 +104,24 @@ export function VacinasScreen({ route }: Props) {
         agendada: jaMarcadas.get(motivoVacinacao(vacina.nomeVacina)),
       }))
       .filter((e) => !!e.agendada)
-      .map((e) => ({ vacina: e.vacina, data: e.agendada!.slice(0, 10), agendada: e.agendada }));
+      .map((e) => ({
+        vacina: e.vacina,
+        data: e.agendada!.slice(0, 10),
+        agendada: e.agendada,
+        pendente: undefined as string | undefined,
+      }));
 
-    const eventos = [...marcadas, ...aplicacoes]
+    // O reforço vencido entra pela data em que deveria ter sido dado
+    const pendentes = atrasadas
+      .filter((v) => !jaMarcadas.has(motivoVacinacao(v.nomeVacina)))
+      .map((v) => ({
+        vacina: v,
+        data: v.dataProximaDose!,
+        agendada: undefined as string | undefined,
+        pendente: v.dataProximaDose!,
+      }));
+
+    const eventos = [...pendentes, ...marcadas, ...aplicacoes]
       .filter((e) => !anoFiltro || e.data.startsWith(anoFiltro))
       .sort((a, b) => (a.data < b.data ? 1 : -1));
 
@@ -119,12 +142,14 @@ export function VacinasScreen({ route }: Props) {
       resultado.push(
         evento.agendada
           ? { tipo: 'agendada', vacina: evento.vacina, cor, dataHora: evento.agendada }
-          : { tipo: 'vacina', vacina: evento.vacina, cor },
+          : evento.pendente
+            ? { tipo: 'pendente', vacina: evento.vacina, cor, venceuEm: evento.pendente }
+            : { tipo: 'vacina', vacina: evento.vacina, cor },
       );
     });
 
     return resultado;
-  }, [vacinas, anoFiltro, jaMarcadas]);
+  }, [vacinas, anoFiltro, jaMarcadas, atrasadas]);
 
   /** Aplicação futura mais próxima, considerando as próximas doses. */
   const proximaDose = useMemo(() => {
@@ -135,10 +160,6 @@ export function VacinasScreen({ route }: Props) {
     return futuras[0] ?? null;
   }, [vacinas]);
 
-  const atrasadas = useMemo(
-    () => (vacinas ?? []).filter((v) => v.dataProximaDose && new Date(v.dataProximaDose) < hoje),
-    [vacinas],
-  );
 
   /**
    * Situação do calendário. Só afirma que está em dia quando existe ao
@@ -297,56 +318,6 @@ export function VacinasScreen({ route }: Props) {
             )}
 
             {/* O que precisa ser feito vem antes do que já foi feito */}
-            {atrasadas.map((v) => {
-              const marcada = jaMarcadas.get(motivoVacinacao(v.nomeVacina));
-
-              return (
-                <Pressable
-                  key={v.id}
-                  disabled={!!marcada}
-                  onPress={() => setAgendandoVacina(v)}
-                  style={({ pressed }) => [
-                    estilos.reforco,
-                    !!marcada && estilos.reforcoMarcado,
-                    pressed && { opacity: 0.75 },
-                  ]}
-                >
-                  <View style={[estilos.reforcoIcone, !!marcada && estilos.iconeMarcado]}>
-                    <MaterialCommunityIcons
-                      name="needle"
-                      size={20}
-                      color={marcada ? cores.primaria : cores.erro}
-                    />
-                  </View>
-
-                  <View style={{ flex: 1 }}>
-                    <Text style={estilos.reforcoNome}>{v.nomeVacina}</Text>
-
-                    {marcada ? (
-                      <Text style={estilos.reforcoMarcadoTexto}>
-                        Aplicação marcada para {dataHoraCurta(marcada)}
-                      </Text>
-                    ) : (
-                      <>
-                        <Text style={estilos.reforcoPrazo}>
-                          Reforço venceu em {isoParaBr(v.dataProximaDose)}
-                          {' · '}
-                          {diasDesde(v.dataProximaDose!)}
-                        </Text>
-                        <Text style={estilos.reforcoAcao}>Toque para marcar a aplicação</Text>
-                      </>
-                    )}
-                  </View>
-
-                  {marcada ? (
-                    <Ionicons name="checkmark-circle" size={20} color={cores.primaria} />
-                  ) : (
-                    <Ionicons name="chevron-forward" size={18} color={cores.erro} />
-                  )}
-                </Pressable>
-              );
-            })}
-
             {/* Título da lista e filtro por ano */}
             <View style={estilos.cabecalhoLista}>
               <Text style={estilos.tituloLista}>Histórico de vacinas</Text>
@@ -409,11 +380,21 @@ export function VacinasScreen({ route }: Props) {
           ) : (
             item.tipo === 'agendada' ? (
               <ItemVacina vacina={item.vacina} cor={item.cor} agendadaPara={item.dataHora} />
+            ) : item.tipo === 'pendente' ? (
+              <ItemVacina
+                vacina={item.vacina}
+                cor={item.cor}
+                venceuEm={item.venceuEm}
+                onAgendar={() => setAgendandoVacina(item.vacina)}
+              />
             ) : (
               <ItemVacina
                 vacina={item.vacina}
                 cor={item.cor}
-                reforcoMarcado={jaMarcadas.has(motivoVacinacao(item.vacina.nomeVacina))}
+                reforcoEmOutraLinha={
+                  jaMarcadas.has(motivoVacinacao(item.vacina.nomeVacina))
+                  || atrasadas.some((a) => a.id === item.vacina.id)
+                }
               />
             )
           )
@@ -525,38 +506,58 @@ function ItemVacina({
   vacina,
   cor,
   agendadaPara,
-  reforcoMarcado,
+  reforcoEmOutraLinha,
+  venceuEm,
+  onAgendar,
 }: {
   vacina: Vacina;
   cor: string;
   /** Quando preenchido, a linha é a aplicação marcada, não a já feita. */
   agendadaPara?: string;
-  /** O reforço desta dose já tem atendimento marcado. */
-  reforcoMarcado?: boolean;
+  /** O reforço desta dose já aparece em outra linha, marcado ou pendente. */
+  reforcoEmOutraLinha?: boolean;
+  /** Quando preenchido, a linha é o reforço vencido à espera de marcação. */
+  venceuEm?: string;
+  onAgendar?: () => void;
 }) {
-  // Com o reforço já marcado, a aplicação antiga não cobra mais nada
+  // O reforço é cobrado na linha própria dele, não na aplicação anterior
   const vencida =
     !agendadaPara
-    && !reforcoMarcado
+    && !reforcoEmOutraLinha
     && !!vacina.dataProximaDose
     && new Date(vacina.dataProximaDose) < new Date();
 
-  return (
-    <Cartao style={estilos.item}>
-      <View style={[estilos.marcador, { backgroundColor: cor }]}>
+  const conteudo = (
+    <>
+      <View
+        style={[
+          estilos.marcador,
+          { backgroundColor: venceuEm ? 'rgba(255,107,107,0.2)' : cor },
+        ]}
+      >
         {/* seringa: representa a aplicação da vacina */}
-        <MaterialCommunityIcons name="needle" size={21} color="#FFFFFF" />
+        <MaterialCommunityIcons
+          name="needle"
+          size={21}
+          color={venceuEm ? cores.erro : '#FFFFFF'}
+        />
       </View>
 
       <View style={{ flex: 1 }}>
         <Text style={estilos.itemNome}>{vacina.nomeVacina}</Text>
 
         <View style={estilos.itemLinha}>
-          <Ionicons name="calendar-outline" size={13} color={cores.textoSuave} />
-          <Text style={estilos.itemDetalhe}>
-            {agendadaPara
-              ? `Marcada para ${dataHoraCurta(agendadaPara)}`
-              : `Aplicada em ${isoParaBr(vacina.dataAplicacao)}`}
+          <Ionicons
+            name="calendar-outline"
+            size={13}
+            color={venceuEm ? cores.erro : cores.textoSuave}
+          />
+          <Text style={[estilos.itemDetalhe, !!venceuEm && { color: cores.erro }]}>
+            {venceuEm
+              ? `Venceu em ${isoParaBr(venceuEm)} · ${diasDesde(venceuEm)}`
+              : agendadaPara
+                ? `Marcada para ${dataHoraCurta(agendadaPara)}`
+                : `Aplicada em ${isoParaBr(vacina.dataAplicacao)}`}
           </Text>
         </View>
 
@@ -573,25 +574,61 @@ function ItemVacina({
           estilos.selo,
           vencida && estilos.seloAtrasado,
           !!agendadaPara && estilos.seloAgendado,
+          !!venceuEm && estilos.seloAgendar,
         ]}
       >
         <Ionicons
-          name={agendadaPara ? 'calendar' : vencida ? 'alert-circle' : 'checkmark-circle'}
+          name={
+            venceuEm
+              ? 'calendar-outline'
+              : agendadaPara
+                ? 'calendar'
+                : vencida
+                  ? 'alert-circle'
+                  : 'checkmark-circle'
+          }
           size={13}
-          color={agendadaPara ? cores.laranja : vencida ? cores.alerta : cores.primaria}
+          color={
+            venceuEm
+              ? cores.erro
+              : agendadaPara
+                ? cores.laranja
+                : vencida
+                  ? cores.alerta
+                  : cores.primaria
+          }
         />
         <Text
           style={[
             estilos.seloTexto,
             vencida && { color: cores.alerta },
             !!agendadaPara && { color: cores.laranja },
+            !!venceuEm && { color: cores.erro },
           ]}
         >
-          {agendadaPara ? 'Agendada' : vencida ? 'Reforço' : 'Aplicada'}
+          {venceuEm ? 'Agendar' : agendadaPara ? 'Agendada' : vencida ? 'Reforço' : 'Aplicada'}
         </Text>
       </View>
-    </Cartao>
+    </>
   );
+
+  // O reforço vencido é o único item acionável: leva à marcação
+  if (venceuEm) {
+    return (
+      <Pressable
+        onPress={onAgendar}
+        style={({ pressed }) => [
+          estilos.item,
+          estilos.itemPendente,
+          pressed && { opacity: 0.75 },
+        ]}
+      >
+        {conteudo}
+      </Pressable>
+    );
+  }
+
+  return <Cartao style={estilos.item}>{conteudo}</Cartao>;
 }
 
 const estilos = StyleSheet.create({
@@ -786,6 +823,15 @@ const estilos = StyleSheet.create({
   reforcoMarcadoTexto: { fontSize: 12, color: cores.primaria, marginTop: 2 },
   iconeMarcado: { backgroundColor: 'rgba(34,211,160,0.16)' },
   seloAgendado: { backgroundColor: cores.laranjaSuave },
+  seloAgendar: { backgroundColor: 'rgba(255,107,107,0.16)' },
+  // Repete a moldura do Cartao, já que a linha acionável é um Pressable
+  itemPendente: {
+    backgroundColor: 'rgba(255,107,107,0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,107,0.45)',
+    borderRadius: raios.lg,
+    padding: espacamentos.md,
+  },
   proximaAcao: { fontSize: 11, color: cores.textoSuave, marginTop: 4 },
   agendar: {
     flexDirection: 'row',
