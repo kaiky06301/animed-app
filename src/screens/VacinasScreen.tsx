@@ -119,8 +119,7 @@ export function VacinasScreen({ route }: Props) {
    * Dose que motiva o agendamento: a vencida tem prioridade sobre a
    * prevista, porque é a que já deveria ter sido aplicada.
    */
-  const doseAAgendar = atrasadas[0] ?? proximaDose;
-  const [agendandoVacina, setAgendandoVacina] = useState(false);
+  const [agendandoVacina, setAgendandoVacina] = useState<Vacina | null>(null);
 
   if (isLoading) {
     return (
@@ -253,6 +252,31 @@ export function VacinasScreen({ route }: Props) {
               />
             </View>
 
+            {/* O que precisa ser feito vem antes do que já foi feito */}
+            {atrasadas.map((v) => (
+              <Pressable
+                key={v.id}
+                onPress={() => setAgendandoVacina(v)}
+                style={({ pressed }) => [estilos.reforco, pressed && { opacity: 0.75 }]}
+              >
+                <View style={estilos.reforcoIcone}>
+                  <MaterialCommunityIcons name="needle" size={20} color={cores.erro} />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <Text style={estilos.reforcoNome}>{v.nomeVacina}</Text>
+                  <Text style={estilos.reforcoPrazo}>
+                    Reforço venceu em {isoParaBr(v.dataProximaDose)}
+                    {' · '}
+                    {diasDesde(v.dataProximaDose!)}
+                  </Text>
+                  <Text style={estilos.reforcoAcao}>Toque para marcar a aplicação</Text>
+                </View>
+
+                <Ionicons name="chevron-forward" size={18} color={cores.erro} />
+              </Pressable>
+            ))}
+
             {/* Título da lista e filtro por ano */}
             <View style={estilos.cabecalhoLista}>
               <Text style={estilos.tituloLista}>Histórico de vacinas</Text>
@@ -318,33 +342,11 @@ export function VacinasScreen({ route }: Props) {
         }
         ListFooterComponent={
           <>
-          {!!doseAAgendar && (
-            <Pressable
-              onPress={() => setAgendandoVacina(true)}
-              style={({ pressed }) => [
-                estilos.agendar,
-                alerta && estilos.agendarUrgente,
-                pressed && { opacity: 0.75 },
-              ]}
-            >
-              <MaterialCommunityIcons
-                name="needle"
-                size={17}
-                color={alerta ? cores.erro : cores.laranja}
-              />
-              <Text style={[estilos.agendarTexto, alerta && { color: cores.erro }]}>
-                Agendar {doseAAgendar.nomeVacina}
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={alerta ? cores.erro : cores.laranja}
-              />
-            </Pressable>
-          )}
-
           {proximaDose ? (
-            <View style={estilos.proxima}>
+            <Pressable
+              onPress={() => setAgendandoVacina(proximaDose)}
+              style={({ pressed }) => [estilos.proxima, pressed && { opacity: 0.75 }]}
+            >
               <Ionicons name="paw" size={26} color={cores.laranja} />
 
               <View style={{ flex: 1 }}>
@@ -360,8 +362,12 @@ export function VacinasScreen({ route }: Props) {
                     Indicada por {proximaDose.veterinarioResponsavel} na última aplicação.
                   </Text>
                 )}
+
+                <Text style={estilos.proximaAcao}>Toque para marcar a aplicação</Text>
               </View>
-            </View>
+
+              <Ionicons name="chevron-forward" size={18} color={cores.laranja} />
+            </Pressable>
           ) : null}
           </>
         }
@@ -369,14 +375,28 @@ export function VacinasScreen({ route }: Props) {
 
       {/* A vacinação é marcada como atendimento, com a dose no motivo */}
       <AgendarAtendimento
-        visivel={agendandoVacina}
+        visivel={!!agendandoVacina}
         pet={pet ?? null}
-        motivoFixo={`Vacinação - ${doseAAgendar?.nomeVacina ?? ''}`}
-        onFechar={() => setAgendandoVacina(false)}
-        onConfirmado={() => setAgendandoVacina(false)}
+        motivoFixo={`Vacinação - ${agendandoVacina?.nomeVacina ?? ''}`}
+        onFechar={() => setAgendandoVacina(null)}
+        onConfirmado={() => setAgendandoVacina(null)}
       />
     </View>
   );
+}
+
+/** "2026-08-11" -> "há 1 mês" / "há 12 dias" */
+function diasDesde(iso: string): string {
+  const dias = Math.floor(
+    (Date.now() - new Date(`${iso}T00:00:00`).getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (dias < 1) return 'vence hoje';
+  if (dias === 1) return 'há 1 dia';
+  if (dias < 30) return `há ${dias} dias`;
+
+  const meses = Math.floor(dias / 30);
+  return meses === 1 ? 'há 1 mês' : `há ${meses} meses`;
 }
 
 function OpcaoFiltro({
@@ -605,19 +625,41 @@ const estilos = StyleSheet.create({
     padding: espacamentos.md,
     marginTop: espacamentos.md,
   },
-  agendar: {
+  reforco: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: espacamentos.sm,
     borderWidth: 1,
-    borderColor: cores.laranja,
+    borderColor: 'rgba(255,107,107,0.45)',
+    backgroundColor: 'rgba(255,107,107,0.07)',
     borderRadius: raios.md,
-    paddingVertical: espacamentos.sm + 4,
-    paddingHorizontal: espacamentos.md,
+    padding: espacamentos.md,
     marginBottom: espacamentos.sm,
   },
-  agendarUrgente: { borderColor: cores.erro, backgroundColor: 'rgba(255,107,107,0.08)' },
-  agendarTexto: { flex: 1, fontSize: 14, fontWeight: '700', color: cores.laranja },
+  reforcoIcone: {
+    width: 40,
+    height: 40,
+    borderRadius: raios.pill,
+    backgroundColor: 'rgba(255,107,107,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reforcoNome: { fontSize: 15, fontWeight: '700', color: cores.textoPrincipal },
+  reforcoPrazo: { fontSize: 12, color: cores.erro, marginTop: 1 },
+  reforcoAcao: { fontSize: 11, color: cores.textoSuave, marginTop: 3 },
+  proximaAcao: { fontSize: 11, color: cores.textoSuave, marginTop: 4 },
+  agendar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: cores.laranja,
+    borderRadius: raios.md,
+    paddingVertical: espacamentos.sm,
+    marginTop: espacamentos.sm,
+  },
+  agendarTexto: { fontSize: 13, fontWeight: '700', color: cores.laranja },
   proximaTitulo: { color: cores.laranja, fontSize: 15, fontWeight: '800' },
   proximaTexto: { color: cores.textoSecundario, fontSize: 13, marginTop: 2, lineHeight: 18 },
   proximaData: { color: cores.laranja, fontWeight: '800' },
