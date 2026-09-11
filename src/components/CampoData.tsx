@@ -15,6 +15,8 @@ interface Props {
   icone?: keyof typeof Ionicons.glyphMap;
   /** Impede escolher datas futuras (ex.: nascimento). */
   bloquearFuturo?: boolean;
+  /** Exibe o atalho para hoje no calendário. */
+  atalhoHoje?: boolean;
 }
 
 /**
@@ -30,6 +32,7 @@ export function CampoData({
   iconeRotulo = 'calendar-outline',
   icone,
   bloquearFuturo = false,
+  atalhoHoje = true,
 }: Props) {
   const [texto, setTexto] = useState(isoParaBr(valor));
   const [calendarioAberto, setCalendarioAberto] = useState(false);
@@ -87,6 +90,7 @@ export function CampoData({
         onSelecionar={onChange}
         onFechar={() => setCalendarioAberto(false)}
         bloquearFuturo={bloquearFuturo}
+        atalhoHoje={atalhoHoje}
       />
     </View>
   );

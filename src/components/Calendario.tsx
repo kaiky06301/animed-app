@@ -10,6 +10,8 @@ interface Props {
   onSelecionar: (iso: string) => void;
   onFechar: () => void;
   bloquearFuturo?: boolean;
+  /** Exibe o atalho para a data de hoje. */
+  atalhoHoje?: boolean;
 }
 
 const DIAS_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -30,6 +32,7 @@ export function Calendario({
   onSelecionar,
   onFechar,
   bloquearFuturo = false,
+  atalhoHoje = true,
 }: Props) {
   const selecionada = valor ? new Date(`${valor}T12:00:00`) : null;
   const hoje = new Date();
@@ -64,9 +67,7 @@ export function Calendario({
     setMesExibido((atual) => new Date(atual.getFullYear(), atual.getMonth() + passo, 1));
   }
 
-  function escolher(dia: number) {
-    const ano = mesExibido.getFullYear();
-    const mes = mesExibido.getMonth();
+  function escolher(dia: number, mes = mesExibido.getMonth(), ano = mesExibido.getFullYear()) {
     const iso = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     onSelecionar(iso);
     onFechar();
@@ -162,16 +163,17 @@ export function Calendario({
               <Text style={estilos.acaoSecundaria}>Cancelar</Text>
             </Pressable>
 
-            <Pressable
-              onPress={() => {
-                const agora = new Date();
-                escolher(agora.getDate());
-                setMesExibido(new Date(agora.getFullYear(), agora.getMonth(), 1));
-              }}
-              hitSlop={8}
-            >
-              <Text style={estilos.acaoPrincipal}>Hoje</Text>
-            </Pressable>
+            {atalhoHoje && (
+              <Pressable
+                onPress={() => {
+                  const agora = new Date();
+                  escolher(agora.getDate(), agora.getMonth(), agora.getFullYear());
+                }}
+                hitSlop={8}
+              >
+                <Text style={estilos.acaoPrincipal}>Hoje</Text>
+              </Pressable>
+            )}
           </View>
         </Pressable>
       </Pressable>
@@ -235,6 +237,7 @@ const estilos = StyleSheet.create({
   rodape: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: espacamentos.sm,
     paddingTop: espacamentos.sm,
     borderTopWidth: 1,

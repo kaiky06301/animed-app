@@ -253,6 +253,7 @@ export function FormPetScreen({ route, navigation }: Props) {
             onChange={setDataNascimento}
             erro={erros.data}
             bloquearFuturo
+            atalhoHoje={false}
           />
           <CampoTexto
             rotulo="Peso (kg)"
