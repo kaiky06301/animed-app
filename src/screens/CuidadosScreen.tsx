@@ -14,6 +14,7 @@ import {
 import { mensagemDoErro } from '../api/cliente';
 import { AgendarAtendimento } from '../components/AgendarAtendimento';
 import { Botao } from '../components/Botao';
+import { usePet } from '../hooks/usePet';
 import { useRegistrarCuidado } from '../hooks/useRegistrarCuidado';
 import { useTutor } from '../hooks/useTutor';
 import type { RaizParamList } from '../navigation/tipos';
@@ -102,6 +103,7 @@ export function CuidadosScreen() {
   const navigation = useNavigation<Navegacao>();
   const { petAtivo } = usePetAtivo();
   const { data: tutor } = useTutor();
+  const { data: petDaApi } = usePet(petAtivo?.id ?? null);
   const registrar = useRegistrarCuidado();
 
   const [acaoAberta, setAcaoAberta] = useState<AcaoCuidado | null>(null);
@@ -110,6 +112,18 @@ export function CuidadosScreen() {
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
   const [agendamento, setAgendamento] = useState<AcaoCuidado | null>(null);
+
+  /**
+   * A partir de quando a pesagem volta a render pontos.
+   *
+   * Uma data no futuro significa que o pet já foi pesado há pouco: o
+   * registro continua valendo, mas sem crédito.
+   */
+  // O pet ativo vem do armazenamento local; a situação da pesagem precisa
+  // do dado atual, então é lida da API.
+  const pesagemLiberadaEm = petDaApi?.proximaPesagemPontuada ?? null;
+  const pesagemPontua =
+    !pesagemLiberadaEm || new Date(`${pesagemLiberadaEm}T00:00:00`) <= new Date();
   const [confirmacao, setConfirmacao] = useState<AgendamentoConfirmado | null>(null);
 
   /**
@@ -333,15 +347,25 @@ export function CuidadosScreen() {
             </View>
 
             <Text style={estilos.painelTexto}>
-              Para <Text style={estilos.destaque}>{petAtivo?.nome}</Text>. Você ganha{' '}
-              {acaoAberta?.pontos} pontos.
+              Para <Text style={estilos.destaque}>{petAtivo?.nome}</Text>.{' '}
+              {acaoAberta?.tipo === 'PESAGEM' && !pesagemPontua
+                ? 'O peso será atualizado, mas esta pesagem não rende pontos.'
+                : `Você ganha ${acaoAberta?.pontos} pontos.`}
             </Text>
 
             {acaoAberta?.tipo === 'PESAGEM' && (
-              <Text style={estilos.regra}>
-                A pesagem rende pontos uma vez por semana. Registrar mais vezes atualiza o
-                peso, mas não pontua de novo.
-              </Text>
+              <View style={[estilos.regraCaixa, !pesagemPontua && estilos.regraCaixaAlerta]}>
+                <Ionicons
+                  name={pesagemPontua ? 'information-circle' : 'time'}
+                  size={15}
+                  color={pesagemPontua ? cores.textoSuave : cores.alerta}
+                />
+                <Text style={[estilos.regra, !pesagemPontua && { color: cores.alerta }]}>
+                  {pesagemPontua
+                    ? 'A pesagem rende pontos uma vez por semana.'
+                    : `Os pontos voltam a valer em ${formatarDia(pesagemLiberadaEm!)}.`}
+                </Text>
+              </View>
             )}
 
             {acaoAberta?.pedeValor && (
@@ -389,6 +413,12 @@ export function CuidadosScreen() {
   );
 }
 
+/** "2026-09-18" -> "18/09" */
+function formatarDia(iso: string): string {
+  const [, mes, dia] = iso.split('-');
+  return `${dia}/${mes}`;
+}
+
 /** 2026-09-15T09:00:00 -> "seg, 15/09 às 09:00" */
 function formatarDataHora(iso: string): string {
   const data = new Date(iso);
@@ -403,12 +433,18 @@ function formatarDataHora(iso: string): string {
 
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
-  regra: {
-    color: cores.textoSuave,
-    fontSize: 11,
-    lineHeight: 16,
+  regraCaixa: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: cores.superficieAlt,
+    borderRadius: raios.sm,
+    paddingHorizontal: espacamentos.sm,
+    paddingVertical: 6,
     marginBottom: espacamentos.xs,
   },
+  regraCaixaAlerta: { backgroundColor: 'rgba(255,180,84,0.12)' },
+  regra: { flex: 1, color: cores.textoSuave, fontSize: 11, lineHeight: 16 },
   cartaoNota: { color: cores.textoSuave, fontSize: 11, lineHeight: 15, marginTop: 4 },
   selado: { alignItems: 'center', marginBottom: espacamentos.xs },
   ganho: {

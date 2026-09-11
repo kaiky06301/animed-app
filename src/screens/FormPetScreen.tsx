@@ -58,6 +58,15 @@ export function FormPetScreen({ route, navigation }: Props) {
   const [observacoes, setObservacoes] = useState(petEmEdicao?.observacoesSaude ?? '');
 
   const [erros, setErros] = useState<{ nome?: string; peso?: string; data?: string }>({});
+
+  /**
+   * Mudar o peso aqui vale como pesagem e rende pontos, com o mesmo
+   * intervalo mínimo da tela de cuidados. Quando o pet foi pesado há
+   * pouco, o campo avisa a partir de quando volta a pontuar.
+   */
+  const pesagemLiberadaEm = petEmEdicao?.proximaPesagemPontuada ?? null;
+  const pesagemPontua =
+    !pesagemLiberadaEm || new Date(`${pesagemLiberadaEm}T00:00:00`) <= new Date();
   const [erroGeral, setErroGeral] = useState<string | null>(null);
 
   const salvando = criar.isPending || atualizar.isPending;
@@ -272,6 +281,15 @@ export function FormPetScreen({ route, navigation }: Props) {
             onChangeText={setPeso}
             keyboardType="decimal-pad"
             erro={erros.peso}
+            rodape={
+              <Text style={estilos.avisoPeso}>
+                {pesagemPontua
+                  ? 'Atualizar o peso conta como pesagem e rende 5 pontos, uma vez por semana.'
+                  : `Pesagem registrada há pouco: os pontos voltam a valer em ${formatarDia(
+                      pesagemLiberadaEm!,
+                    )}.`}
+              </Text>
+            }
           />
           <CampoTexto
             rotulo="Observações de saúde"
@@ -324,7 +342,14 @@ function Rotulo({ icone, texto }: { icone: keyof typeof Ionicons.glyphMap; texto
   );
 }
 
+/** "2026-09-18" -> "18/09" */
+function formatarDia(iso: string): string {
+  const [, mes, dia] = iso.split('-');
+  return `${dia}/${mes}`;
+}
+
 const estilos = StyleSheet.create({
+  avisoPeso: { color: cores.textoSuave, fontSize: 11, lineHeight: 15 },
   fundo: { flex: 1, backgroundColor: cores.fundo },
   conteudo: {
     padding: espacamentos.lg,

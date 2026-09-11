@@ -28,6 +28,8 @@ export interface Pet {
   observacoesSaude: string | null;
   idTutor: number;
   nomeTutor: string;
+  /** A partir de quando uma nova pesagem volta a render pontos. */
+  proximaPesagemPontuada: string | null;
 }
 
 export interface PetRequisicao {
