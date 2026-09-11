@@ -254,6 +254,16 @@ export function CuidadosScreen() {
 
       {!!petAtivo && (
         <Botao
+          titulo="Meus atendimentos"
+          variante="sutil"
+          icone="calendar-outline"
+          onPress={() => navigation.navigate('Agendamentos')}
+          estilo={{ marginTop: espacamentos.sm }}
+        />
+      )}
+
+      {!!petAtivo && (
+        <Botao
           titulo="Ver carteira de vacinas"
           variante="sutil"
           icone="medkit-outline"

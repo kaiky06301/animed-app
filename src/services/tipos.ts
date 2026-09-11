@@ -116,11 +116,35 @@ export interface CuidadoRegistrado {
 export interface DisponibilidadeAgenda {
   data: string;
   atende: boolean;
+  veterinario: string;
   observacao: string;
   horarios: string[];
   duracaoMinutos: number;
   clinica: string;
   endereco: string;
+}
+
+export interface Atendimento {
+  idConsulta: number;
+  horario: string;
+  idPet: number;
+  nomePet: string;
+  nomeTutor: string;
+  motivo: string;
+  status: 'AGENDADA' | 'REALIZADA' | 'CANCELADA' | 'NAO_COMPARECEU';
+}
+
+export interface AtendimentoConcluido {
+  atendimento: Atendimento;
+  retorno: string | null;
+  pontosCreditados: number;
+}
+
+export interface AgendaDoDia {
+  data: string;
+  veterinario: string;
+  horariosLivres: number;
+  atendimentos: Atendimento[];
 }
 
 export interface DiaDoMes {

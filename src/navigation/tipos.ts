@@ -11,6 +11,7 @@ export type AbasParamList = {
 };
 
 export type AbasDoutorParamList = {
+  AgendaDoutor: undefined;
   Pacientes: undefined;
   PerfilDoutor: undefined;
 };
@@ -32,4 +33,5 @@ export type RaizParamList = {
   CadastroPet: undefined;
   Planos: undefined;
   Historico: undefined;
+  Agendamentos: undefined;
 };

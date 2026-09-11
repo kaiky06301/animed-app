@@ -1,5 +1,11 @@
 import { api } from '../api/cliente';
-import { AgendamentoConfirmado, DisponibilidadeAgenda, MesDaAgenda } from './tipos';
+import {
+  AgendaDoDia,
+  AgendamentoConfirmado,
+  AtendimentoConcluido,
+  DisponibilidadeAgenda,
+  MesDaAgenda,
+} from './tipos';
 
 /** Horários livres da clínica em um dia. */
 export async function disponibilidade(data: string): Promise<DisponibilidadeAgenda> {
@@ -25,5 +31,30 @@ export async function agendar(pedido: {
   motivo: string;
 }): Promise<AgendamentoConfirmado> {
   const { data } = await api.post<AgendamentoConfirmado>('/api/agenda/agendamentos', pedido);
+  return data;
+}
+
+/** Agenda do veterinário em um dia: o que já está marcado. */
+export async function agendaDoDia(data: string): Promise<AgendaDoDia> {
+  const { data: resposta } = await api.get<AgendaDoDia>('/api/agenda/dia', {
+    params: { data },
+  });
+  return resposta;
+}
+
+/**
+ * Fecha o atendimento e credita os pontos ao tutor.
+ *
+ * O retorno é opcional e vem no formato "2026-09-28T09:00:00"; quando
+ * informado, o horário é reservado na mesma agenda.
+ */
+export async function concluir(pedido: {
+  idConsulta: number;
+  retorno?: string | null;
+}): Promise<AtendimentoConcluido> {
+  const { data } = await api.patch<AtendimentoConcluido>(
+    `/api/agenda/atendimentos/${pedido.idConsulta}/concluir`,
+    { retorno: pedido.retorno ?? null },
+  );
   return data;
 }

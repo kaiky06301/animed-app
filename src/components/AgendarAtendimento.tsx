@@ -24,7 +24,18 @@ interface Props {
   onConfirmado: (confirmacao: AgendamentoConfirmado) => void;
 }
 
-const MOTIVOS = ['Check-up preventivo', 'Consulta de rotina', 'Retorno', 'Avaliação de sintoma'];
+/**
+ * Motivos que o próprio tutor pode marcar.
+ *
+ * São dois e não se confundem: um é o pet sem queixa, em avaliação
+ * periódica; o outro é o pet com algum sinal de que algo não vai bem.
+ * Retorno não entra aqui — quem decide se haverá retorno, e quando, é o
+ * veterinário ao concluir o atendimento.
+ */
+const MOTIVOS = [
+  { nome: 'Check-up preventivo', ajuda: 'Pet sem queixa, avaliação periódica' },
+  { nome: 'Avaliação de sintoma', ajuda: 'Algo mudou: apetite, ânimo, dor…' },
+];
 
 const DIAS_SEMANA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 const MESES = [
@@ -69,6 +80,7 @@ export function AgendarAtendimento({
   const [dataEscolhida, setDataEscolhida] = useState(paraIso(hoje));
   const [horario, setHorario] = useState<string | null>(null);
   const [motivo, setMotivo] = useState(motivoInicial);
+  const ajuda = MOTIVOS.find((m) => m.nome === motivo)?.ajuda;
   const [erro, setErro] = useState<string | null>(null);
 
   const ano = mesVisivel.getFullYear();
@@ -154,23 +166,25 @@ export function AgendarAtendimento({
             <Text style={estilos.rotulo}>Motivo do atendimento</Text>
             <View style={estilos.motivos}>
               {MOTIVOS.map((opcao) => {
-                const ativo = motivo === opcao;
+                const ativo = motivo === opcao.nome;
                 return (
                   <Pressable
-                    key={opcao}
-                    onPress={() => setMotivo(opcao)}
+                    key={opcao.nome}
+                    onPress={() => setMotivo(opcao.nome)}
                     style={[estilos.motivo, ativo && estilos.motivoAtivo]}
                   >
                     {ativo && (
                       <Ionicons name="checkmark-circle" size={16} color={cores.laranja} />
                     )}
                     <Text style={[estilos.motivoTexto, ativo && estilos.motivoTextoAtivo]}>
-                      {opcao}
+                      {opcao.nome}
                     </Text>
                   </Pressable>
                 );
               })}
             </View>
+
+            {!!ajuda && <Text style={estilos.ajuda}>{ajuda}</Text>}
 
             <View style={estilos.colunas}>
               {/* Calendário do mês */}
@@ -394,6 +408,7 @@ const estilos = StyleSheet.create({
   motivoAtivo: { borderColor: cores.laranja, backgroundColor: cores.laranjaSuave },
   motivoTexto: { color: cores.textoSecundario, fontSize: 12, fontWeight: '600' },
   motivoTextoAtivo: { color: cores.laranja, fontWeight: '700' },
+  ajuda: { fontSize: 11, color: cores.textoSuave, marginTop: espacamentos.xs },
 
   colunas: { gap: espacamentos.sm, marginTop: espacamentos.sm },
   bloco: {

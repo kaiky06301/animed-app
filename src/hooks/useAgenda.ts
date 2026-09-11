@@ -30,3 +30,24 @@ export function useAgendar() {
     },
   });
 }
+
+/** Agenda do veterinário no dia escolhido. */
+export function useAgendaDoDia(data: string) {
+  return useQuery({
+    queryKey: ['agenda', 'dia', data],
+    queryFn: () => agendaService.agendaDoDia(data),
+  });
+}
+
+/** Conclusão do atendimento pelo veterinário. */
+export function useConcluirAtendimento() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: agendaService.concluir,
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ['agenda'] });
+      client.invalidateQueries({ queryKey: ['consultas'] });
+    },
+  });
+}
