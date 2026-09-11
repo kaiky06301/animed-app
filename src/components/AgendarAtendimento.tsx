@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
+import * as consultaService from '../services/consultaService';
 import { useAgendar, useDisponibilidade, useMesDaAgenda } from '../hooks/useAgenda';
 import type { AgendamentoConfirmado, Pet } from '../services/tipos';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
@@ -87,6 +89,13 @@ export function AgendarAtendimento({
   const mes = mesVisivel.getMonth();
 
   const { data: calendario } = useMesDaAgenda(ano, mes + 1);
+
+  /** Atendimentos que este pet já tem marcados. */
+  const { data: doPet } = useQuery({
+    queryKey: ['consultas', pet?.id],
+    queryFn: () => consultaService.listarConsultasDoPet(pet!.id),
+    enabled: !!pet && visivel,
+  });
   const { data: agenda, isLoading } = useDisponibilidade(visivel ? dataEscolhida : null);
   const agendar = useAgendar();
 
@@ -98,6 +107,22 @@ export function AgendarAtendimento({
     });
     return mapa;
   }, [calendario]);
+
+  /**
+   * Dias em que o pet já será atendido.
+   *
+   * Um mesmo animal não é atendido duas vezes no mesmo dia, então esses
+   * dias saem do calendário — outro pet do tutor continua podendo marcar.
+   */
+  const diasJaMarcados = useMemo(() => {
+    const prefixo = `${ano}-${String(mes + 1).padStart(2, '0')}`;
+
+    return new Set(
+      (doPet ?? [])
+        .filter((c) => c.status === 'AGENDADA' && c.dataHora.startsWith(prefixo))
+        .map((c) => Number(c.dataHora.slice(8, 10))),
+    );
+  }, [doPet, ano, mes]);
 
   useEffect(() => {
     if (visivel) {
@@ -218,7 +243,8 @@ export function AgendarAtendimento({
                     }
 
                     const vagas = vagasPorDia.get(dia) ?? 0;
-                    const disponivel = vagas > 0;
+                    const jaMarcado = diasJaMarcados.has(dia);
+                    const disponivel = vagas > 0 && !jaMarcado;
                     const selecionado = mesSelecionado && dia === diaSelecionado;
 
                     return (
@@ -229,6 +255,7 @@ export function AgendarAtendimento({
                         style={[
                           estilos.celula,
                           disponivel && estilos.celulaLivre,
+                          jaMarcado && estilos.celulaMarcada,
                           selecionado && estilos.celulaEscolhida,
                         ]}
                       >
@@ -236,6 +263,7 @@ export function AgendarAtendimento({
                           style={[
                             estilos.celulaTexto,
                             disponivel && estilos.celulaTextoLivre,
+                            jaMarcado && estilos.celulaTextoMarcada,
                             selecionado && estilos.celulaTextoEscolhido,
                           ]}
                         >
@@ -250,6 +278,10 @@ export function AgendarAtendimento({
                   <View style={estilos.legendaItem}>
                     <View style={[estilos.bolinha, { backgroundColor: cores.primaria }]} />
                     <Text style={estilos.legendaTexto}>Dias disponíveis</Text>
+                  </View>
+                  <View style={estilos.legendaItem}>
+                    <View style={[estilos.bolinha, { backgroundColor: cores.laranja }]} />
+                    <Text style={estilos.legendaTexto}>Já marcado</Text>
                   </View>
                   <View style={estilos.legendaItem}>
                     <View style={[estilos.bolinha, { backgroundColor: cores.superficieAlt }]} />
@@ -454,14 +486,18 @@ const estilos = StyleSheet.create({
     borderColor: 'transparent',
   },
   celulaLivre: { borderColor: 'rgba(34, 211, 160, 0.45)' },
+  celulaMarcada: { borderColor: 'rgba(255,138,61,0.5)', backgroundColor: cores.laranjaSuave },
   celulaEscolhida: { backgroundColor: cores.primaria, borderColor: cores.primaria },
   celulaTexto: { fontSize: 13, color: cores.textoSuave },
   celulaTextoLivre: { color: cores.textoPrincipal, fontWeight: '700' },
+  celulaTextoMarcada: { color: cores.laranja, fontWeight: '700' },
   celulaTextoEscolhido: { color: '#04261C', fontWeight: '800' },
 
   legenda: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    gap: espacamentos.xs,
     borderTopWidth: 1,
     borderTopColor: cores.borda,
     marginTop: espacamentos.sm,
