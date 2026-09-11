@@ -112,3 +112,19 @@ export interface CuidadoRegistrado {
   pontosTotais: number;
   moedas: number;
 }
+
+export interface DisponibilidadeAgenda {
+  data: string;
+  atende: boolean;
+  observacao: string;
+  horarios: string[];
+}
+
+export interface AgendamentoConfirmado {
+  idConsulta: number;
+  dataHora: string;
+  motivo: string;
+  veterinario: string;
+  pontosGanhos: number;
+  orientacoes: string[];
+}

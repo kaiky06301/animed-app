@@ -12,11 +12,12 @@ import {
   View,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
+import { AgendarAtendimento } from '../components/AgendarAtendimento';
 import { Botao } from '../components/Botao';
 import { useRegistrarCuidado } from '../hooks/useRegistrarCuidado';
 import { useTutor } from '../hooks/useTutor';
 import type { RaizParamList } from '../navigation/tipos';
-import type { TipoCuidado } from '../services/tipos';
+import type { AgendamentoConfirmado, TipoCuidado } from '../services/tipos';
 import { usePetAtivo } from '../state/PetAtivoContext';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
@@ -31,8 +32,12 @@ interface AcaoCuidado {
   icone: keyof typeof MaterialCommunityIcons.glyphMap;
   /** Pede um valor numérico antes de registrar (caso da pesagem). */
   pedeValor?: boolean;
-  /** Ação de agendamento: o botão convida a marcar, não a registrar. */
+  /** Ação de agendamento: abre a agenda da clínica em vez de registrar direto. */
   pedeAgendamento?: boolean;
+  /** Motivo levado para a agenda da clínica. */
+  motivo?: string;
+  /** Observação sobre quando os pontos entram. */
+  nota?: string;
 }
 
 /** Cuidados que o próprio tutor realiza no dia a dia. */
@@ -69,6 +74,9 @@ const ACOES_TUTOR: AcaoCuidado[] = [
     pontos: 30,
     cor: '#A78BFA',
     icone: 'heart-pulse',
+    pedeAgendamento: true,
+    motivo: 'Check-up preventivo',
+    nota: 'Marque na agenda da clínica. Os 30 pontos entram quando o veterinário concluir o atendimento.',
   },
   {
     tipo: 'AGENDAMENTO',
@@ -78,6 +86,7 @@ const ACOES_TUTOR: AcaoCuidado[] = [
     cor: '#EAB308',
     icone: 'calendar-check',
     pedeAgendamento: true,
+    motivo: 'Consulta de rotina',
   },
 ];
 
@@ -110,8 +119,14 @@ export function CuidadosScreen() {
   const [observacao, setObservacao] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
+  const [agendamento, setAgendamento] = useState<AcaoCuidado | null>(null);
+  const [confirmacao, setConfirmacao] = useState<AgendamentoConfirmado | null>(null);
 
   function abrir(acao: AcaoCuidado) {
+    if (acao.pedeAgendamento) {
+      setAgendamento(acao);
+      return;
+    }
     setAcaoAberta(acao);
     setPeso(petAtivo?.pesoKg != null ? String(petAtivo.pesoKg) : '');
     setObservacao('');
@@ -198,6 +213,7 @@ export function CuidadosScreen() {
             <View style={{ flex: 1 }}>
               <Text style={estilos.cartaoTitulo}>{acao.titulo}</Text>
               <Text style={estilos.cartaoDescricao}>{acao.descricao}</Text>
+              {!!acao.nota && <Text style={estilos.cartaoNota}>{acao.nota}</Text>}
             </View>
 
             <View style={[estilos.seloAcao, { backgroundColor: `${acao.cor}22` }]}>
@@ -215,7 +231,7 @@ export function CuidadosScreen() {
             ]}
           >
             <Text style={[estilos.botaoTexto, { color: acao.cor }]}>
-              {acao.pedeAgendamento ? 'Agendar' : 'Registrar'}
+              {acao.pedeAgendamento ? 'Ver horários' : 'Registrar'}
             </Text>
             <Ionicons name="chevron-forward" size={15} color={acao.cor} />
           </Pressable>
@@ -258,6 +274,56 @@ export function CuidadosScreen() {
         />
       )}
 
+      {/* Agenda da clínica */}
+      <AgendarAtendimento
+        visivel={!!agendamento}
+        pet={petAtivo}
+        motivoInicial={agendamento?.motivo}
+        onFechar={() => setAgendamento(null)}
+        onConfirmado={setConfirmacao}
+      />
+
+      <Modal
+        visible={!!confirmacao}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmacao(null)}
+      >
+        <Pressable style={estilos.fundoModal} onPress={() => setConfirmacao(null)}>
+          <Pressable style={estilos.painel} onPress={(e) => e.stopPropagation()}>
+            <View style={estilos.selado}>
+              <Ionicons name="checkmark-circle" size={34} color={cores.primaria} />
+            </View>
+
+            <Text style={estilos.painelTitulo}>Atendimento marcado</Text>
+            <Text style={estilos.painelTexto}>
+              {confirmacao && formatarDataHora(confirmacao.dataHora)} · {confirmacao?.motivo}
+              {'\n'}com {confirmacao?.veterinario}
+            </Text>
+
+            <View style={estilos.ganho}>
+              <Ionicons name="star" size={14} color={cores.dourado} />
+              <Text style={estilos.ganhoTexto}>
+                +{confirmacao?.pontosGanhos} pontos pelo agendamento
+              </Text>
+            </View>
+
+            <Text style={estilos.orientacoesTitulo}>Leve no dia</Text>
+            {confirmacao?.orientacoes.map((item) => (
+              <Text key={item} style={estilos.orientacao}>
+                • {item}
+              </Text>
+            ))}
+
+            <Botao
+              titulo="Entendi"
+              icone="checkmark-outline"
+              onPress={() => setConfirmacao(null)}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* Confirmação do registro */}
       <Modal visible={!!acaoAberta} transparent animationType="fade" onRequestClose={fechar}>
         <Pressable style={estilos.fundoModal} onPress={fechar}>
@@ -270,13 +336,9 @@ export function CuidadosScreen() {
             </View>
 
             <Text style={estilos.painelTexto}>
-              {acaoAberta?.pedeAgendamento
-                ? 'A clínica recebe o pedido de horário. '
-                : ''}
               Para <Text style={estilos.destaque}>{petAtivo?.nome}</Text>. Você ganha{' '}
               {acaoAberta?.pontos} pontos.
             </Text>
-
 
             {acaoAberta?.pedeValor && (
               <View style={estilos.campo}>
@@ -323,8 +385,40 @@ export function CuidadosScreen() {
   );
 }
 
+/** 2026-09-15T09:00:00 -> "seg, 15/09 às 09:00" */
+function formatarDataHora(iso: string): string {
+  const data = new Date(iso);
+  const semana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][data.getDay()];
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const hora = String(data.getHours()).padStart(2, '0');
+  const minuto = String(data.getMinutes()).padStart(2, '0');
+
+  return `${semana}, ${dia}/${mes} às ${hora}:${minuto}`;
+}
+
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
+  cartaoNota: { color: cores.textoSuave, fontSize: 11, lineHeight: 15, marginTop: 4 },
+  selado: { alignItems: 'center', marginBottom: espacamentos.xs },
+  ganho: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: cores.douradoSuave,
+    paddingHorizontal: espacamentos.sm,
+    paddingVertical: 5,
+    borderRadius: raios.pill,
+  },
+  ganhoTexto: { color: cores.dourado, fontSize: 12, fontWeight: '700' },
+  orientacoesTitulo: {
+    ...tipografia.legenda,
+    color: cores.textoSuave,
+    textTransform: 'uppercase',
+    marginTop: espacamentos.sm,
+  },
+  orientacao: { color: cores.textoSecundario, fontSize: 12, lineHeight: 18 },
   conteudo: {
     padding: espacamentos.md,
     paddingBottom: espacamentos.xxl,
