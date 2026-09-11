@@ -140,6 +140,22 @@ export interface AtendimentoConcluido {
   pontosCreditados: number;
 }
 
+export interface DetalheAtendimento {
+  idConsulta: number;
+  dataHora: string;
+  motivo: string;
+  status: 'AGENDADA' | 'REALIZADA' | 'CANCELADA' | 'NAO_COMPARECEU';
+  veterinario: string | null;
+  clinica: string;
+  endereco: string;
+  duracaoMinutos: number;
+  idPet: number;
+  nomePet: string;
+  diagnostico: string | null;
+  prescricao: string | null;
+  orientacoes: string[];
+}
+
 export interface AgendaDoDia {
   data: string;
   veterinario: string;

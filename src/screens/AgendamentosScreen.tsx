@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { DetalheAtendimento } from '../components/DetalheAtendimento';
 import { IconePet } from '../components/IconePet';
 import * as consultaService from '../services/consultaService';
 import type { Consulta } from '../services/tipos';
@@ -41,11 +42,14 @@ const CORES: Record<Consulta['status'], string> = {
   NAO_COMPARECEU: cores.textoSuave,
 };
 
-function Cartao({ consulta }: { consulta: Consulta }) {
+function Cartao({ consulta, onPress }: { consulta: Consulta; onPress: () => void }) {
   const { dia, mes, hora } = partesDaData(consulta.dataHora);
 
   return (
-    <View style={estilos.cartao}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [estilos.cartao, pressed && { opacity: 0.7 }]}
+    >
       <View style={estilos.data}>
         <Text style={estilos.dataDia}>{dia}</Text>
         <Text style={estilos.dataMes}>{mes}</Text>
@@ -67,7 +71,9 @@ function Cartao({ consulta }: { consulta: Consulta }) {
           {ROTULOS[consulta.status]}
         </Text>
       </View>
-    </View>
+
+      <Ionicons name="chevron-forward" size={18} color={cores.textoSuave} />
+    </Pressable>
   );
 }
 
@@ -79,6 +85,7 @@ function Cartao({ consulta }: { consulta: Consulta }) {
  */
 export function AgendamentosScreen() {
   const { petAtivo } = usePetAtivo();
+  const [aberto, setAberto] = useState<number | null>(null);
 
   const { data: consultas, isLoading } = useQuery({
     queryKey: ['consultas', petAtivo?.id],
@@ -127,7 +134,9 @@ export function AgendamentosScreen() {
           {proximos.length === 0 ? (
             <Text style={estilos.semItens}>Nenhum atendimento marcado.</Text>
           ) : (
-            proximos.map((c) => <Cartao key={c.id} consulta={c} />)
+            proximos.map((c) => (
+              <Cartao key={c.id} consulta={c} onPress={() => setAberto(c.id)} />
+            ))
           )}
 
           <View style={estilos.secao}>
@@ -138,10 +147,14 @@ export function AgendamentosScreen() {
           {anteriores.length === 0 ? (
             <Text style={estilos.semItens}>Nada registrado até agora.</Text>
           ) : (
-            anteriores.map((c) => <Cartao key={c.id} consulta={c} />)
+            anteriores.map((c) => (
+              <Cartao key={c.id} consulta={c} onPress={() => setAberto(c.id)} />
+            ))
           )}
         </>
       )}
+
+      <DetalheAtendimento idConsulta={aberto} onFechar={() => setAberto(null)} />
     </ScrollView>
   );
 }

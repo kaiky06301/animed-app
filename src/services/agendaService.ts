@@ -3,6 +3,7 @@ import {
   AgendaDoDia,
   AgendamentoConfirmado,
   AtendimentoConcluido,
+  DetalheAtendimento,
   DisponibilidadeAgenda,
   MesDaAgenda,
 } from './tipos';
@@ -55,6 +56,14 @@ export async function concluir(pedido: {
   const { data } = await api.patch<AtendimentoConcluido>(
     `/api/agenda/atendimentos/${pedido.idConsulta}/concluir`,
     { retorno: pedido.retorno ?? null },
+  );
+  return data;
+}
+
+/** Tudo sobre um atendimento: profissional, endereço, horário e preparo. */
+export async function detalhe(idConsulta: number): Promise<DetalheAtendimento> {
+  const { data } = await api.get<DetalheAtendimento>(
+    `/api/agenda/atendimentos/${idConsulta}`,
   );
   return data;
 }

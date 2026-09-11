@@ -42,6 +42,15 @@ export function useAgendaDoDia(data: string) {
   });
 }
 
+/** Detalhe de um atendimento, carregado ao abrir o cartão. */
+export function useDetalheAtendimento(idConsulta: number | null) {
+  return useQuery({
+    queryKey: ['atendimento', idConsulta],
+    queryFn: () => agendaService.detalhe(idConsulta as number),
+    enabled: idConsulta != null,
+  });
+}
+
 /** Conclusão do atendimento pelo veterinário. */
 export function useConcluirAtendimento() {
   const client = useQueryClient();
