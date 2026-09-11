@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useMemo, useState } from 'react';
 import {
@@ -363,7 +363,8 @@ function ItemVacina({ vacina, cor }: { vacina: Vacina; cor: string }) {
   return (
     <Cartao style={estilos.item}>
       <View style={[estilos.marcador, { backgroundColor: cor }]}>
-        <Ionicons name="medkit" size={20} color="#FFFFFF" />
+        {/* seringa: representa a aplicação da vacina */}
+        <MaterialCommunityIcons name="needle" size={21} color="#FFFFFF" />
       </View>
 
       <View style={{ flex: 1 }}>
