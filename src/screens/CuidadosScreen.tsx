@@ -46,7 +46,7 @@ const ACOES_TUTOR: AcaoCuidado[] = [
   {
     tipo: 'MEDICACAO',
     titulo: 'Medicação dada',
-    descricao: 'Registre a aplicação de medicamentos e mantenha o controle de doses.',
+    descricao: 'Remédio do tratamento em curso. Registre cada dose para não perder nenhuma.',
     pontos: 15,
     cor: '#FF8A3D',
     icone: 'pill',
@@ -54,7 +54,7 @@ const ACOES_TUTOR: AcaoCuidado[] = [
   {
     tipo: 'VERMIFUGACAO',
     titulo: 'Vermifugação',
-    descricao: 'Registre o vermífugo aplicado e acompanhe o próximo prazo.',
+    descricao: 'Prevenção periódica, a cada 3 a 6 meses. Registre e acompanhe o próximo prazo.',
     pontos: 15,
     cor: '#7C5CFF',
     icone: 'bottle-tonic-plus',
