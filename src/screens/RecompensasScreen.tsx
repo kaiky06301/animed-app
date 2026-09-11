@@ -192,13 +192,10 @@ export function RecompensasScreen() {
                   <Ionicons
                     name={comprado === item.id ? 'checkmark' : 'cart'}
                     size={17}
-                    color={comprado === item.id ? cores.primaria : '#3B1A05'}
+                    color="#04261C"
                   />
                   <Text
-                    style={[
-                      estilos.comprarTexto,
-                      comprado === item.id && { color: cores.primaria },
-                    ]}
+                    style={estilos.comprarTexto}
                   >
                     {comprado === item.id ? 'Compra registrada' : 'Comprar'}
                   </Text>
@@ -350,15 +347,11 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: cores.laranja,
+    backgroundColor: cores.primaria,
     borderRadius: raios.pill,
     paddingVertical: espacamentos.sm + 2,
     marginTop: espacamentos.sm + 2,
   },
-  compradoBotao: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: cores.primaria,
-  },
-  comprarTexto: { color: '#3B1A05', fontSize: 14, fontWeight: '800' },
+  compradoBotao: { backgroundColor: cores.primariaForte },
+  comprarTexto: { color: '#04261C', fontSize: 14, fontWeight: '800' },
 });
