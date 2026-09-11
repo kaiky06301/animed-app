@@ -6,7 +6,8 @@ export interface Produto {
   categoria: Categoria;
   descricao: string;
   preco: number;
-  emoji: string;
+  /** Foto do produto, embarcada no app (fotos livres do Unsplash). */
+  imagem: number;
 }
 
 export type Categoria = 'Alimentação' | 'Saúde' | 'Casa' | 'Diversão';
@@ -27,7 +28,7 @@ export const PRODUTOS_PARCEIROS: Produto[] = [
     categoria: 'Alimentação',
     descricao: 'Alimento completo para cães adultos de todas as raças.',
     preco: 219.9,
-    emoji: '🍖',
+    imagem: require('../../assets/produtos/racao.jpg'),
   },
   {
     id: 'p2',
@@ -36,7 +37,7 @@ export const PRODUTOS_PARCEIROS: Produto[] = [
     categoria: 'Saúde',
     descricao: 'Proteção contra pulgas e carrapatos por 30 dias.',
     preco: 89.9,
-    emoji: '💊',
+    imagem: require('../../assets/produtos/antipulgas.jpg'),
   },
   {
     id: 'p3',
@@ -45,7 +46,7 @@ export const PRODUTOS_PARCEIROS: Produto[] = [
     categoria: 'Casa',
     descricao: 'Espuma que alivia as articulações de pets idosos.',
     preco: 159.0,
-    emoji: '🛏️',
+    imagem: require('../../assets/produtos/caminha.jpg'),
   },
   {
     id: 'p4',
@@ -54,7 +55,7 @@ export const PRODUTOS_PARCEIROS: Produto[] = [
     categoria: 'Diversão',
     descricao: 'Estimula a brincadeira e ajuda a limpar os dentes.',
     preco: 49.9,
-    emoji: '🦴',
+    imagem: require('../../assets/produtos/brinquedo.jpg'),
   },
   {
     id: 'p5',
@@ -63,7 +64,7 @@ export const PRODUTOS_PARCEIROS: Produto[] = [
     categoria: 'Saúde',
     descricao: 'Limpeza e cuidado para peles sensíveis.',
     preco: 39.9,
-    emoji: '🧴',
+    imagem: require('../../assets/produtos/shampoo.jpg'),
   },
   {
     id: 'p6',
@@ -72,7 +73,7 @@ export const PRODUTOS_PARCEIROS: Produto[] = [
     categoria: 'Diversão',
     descricao: 'Passeios noturnos mais seguros, com ajuste rápido.',
     preco: 59.9,
-    emoji: '🦮',
+    imagem: require('../../assets/produtos/coleira.jpg'),
   },
   {
     id: 'p7',
@@ -81,7 +82,7 @@ export const PRODUTOS_PARCEIROS: Produto[] = [
     categoria: 'Casa',
     descricao: 'Alta absorção e controle de odor para gatos.',
     preco: 34.9,
-    emoji: '🐱',
+    imagem: require('../../assets/produtos/areia.jpg'),
   },
   {
     id: 'p8',
@@ -90,6 +91,6 @@ export const PRODUTOS_PARCEIROS: Produto[] = [
     categoria: 'Alimentação',
     descricao: 'Sem corantes nem conservantes, feito de carne desidratada.',
     preco: 24.9,
-    emoji: '🥩',
+    imagem: require('../../assets/produtos/petisco.jpg'),
   },
 ];

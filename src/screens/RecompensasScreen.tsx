@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { CATEGORIAS, PRODUTOS_PARCEIROS, type Produto } from '../data/parceiros';
 import { useTutor } from '../hooks/useTutor';
 import { cores, espacamentos, raios } from '../theme/cores';
@@ -145,9 +145,7 @@ export function RecompensasScreen() {
 
           return (
             <View style={estilos.produto}>
-              <View style={estilos.foto}>
-                <Text style={{ fontSize: 38 }}>{item.emoji}</Text>
-              </View>
+              <Image source={item.imagem} style={estilos.foto} resizeMode="cover" />
 
               <View style={{ flex: 1 }}>
                 <Text style={estilos.marca}>{item.marca}</Text>
@@ -302,12 +300,10 @@ const estilos = StyleSheet.create({
     marginBottom: espacamentos.sm,
   },
   foto: {
-    width: 82,
-    height: 82,
+    width: 88,
+    height: 88,
     borderRadius: raios.md,
     backgroundColor: cores.superficieAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   marca: {
     color: cores.laranja,
