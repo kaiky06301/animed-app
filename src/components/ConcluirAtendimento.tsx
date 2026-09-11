@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
@@ -58,6 +59,7 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
   const [querRetorno, setQuerRetorno] = useState(false);
   const [dataRetorno, setDataRetorno] = useState(paraIso(dias[0]));
   const [horario, setHorario] = useState<string | null>(null);
+  const [orientacao, setOrientacao] = useState('');
   const [erro, setErro] = useState<string | null>(null);
 
   const { data: agenda, isLoading } = useDisponibilidade(querRetorno ? dataRetorno : null);
@@ -67,6 +69,7 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
     if (atendimento) {
       setQuerRetorno(false);
       setHorario(null);
+      setOrientacao('');
       setErro(null);
     }
   }, [atendimento]);
@@ -85,6 +88,7 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
       const resultado = await concluir.mutateAsync({
         idConsulta: atendimento.idConsulta,
         retorno: querRetorno ? `${dataRetorno}T${horario}:00` : null,
+        orientacao: querRetorno ? orientacao.trim() || null : null,
       });
 
       const [ano, mes, dia] = dataRetorno.split('-');
@@ -218,6 +222,19 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
                     })}
                   </View>
                 )}
+
+                <Text style={estilos.rotulo}>Orientação para o tutor</Text>
+                <TextInput
+                  value={orientacao}
+                  onChangeText={setOrientacao}
+                  placeholder="Ex.: jejum de 10 horas, vamos coletar sangue. Água liberada."
+                  placeholderTextColor={cores.textoSuave}
+                  multiline
+                  style={estilos.campo}
+                />
+                <Text style={estilos.ajuda}>
+                  Aparece para o tutor no detalhe do retorno. Opcional.
+                </Text>
               </>
             )}
           </ScrollView>
@@ -318,6 +335,19 @@ const estilos = StyleSheet.create({
   horarioAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
   horarioTexto: { fontSize: 13, fontWeight: '700', color: cores.textoPrincipal },
   semHorario: { fontSize: 12, color: cores.textoSuave },
+
+  campo: {
+    minHeight: 74,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    backgroundColor: cores.superficie,
+    borderRadius: raios.md,
+    padding: espacamentos.sm + 2,
+    color: cores.textoPrincipal,
+    fontSize: 13,
+    textAlignVertical: 'top',
+  },
+  ajuda: { fontSize: 11, color: cores.textoSuave, marginTop: espacamentos.xs },
 
   erro: { color: cores.erro, fontSize: 12, marginTop: espacamentos.sm },
 });

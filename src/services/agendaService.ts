@@ -47,15 +47,17 @@ export async function agendaDoDia(data: string): Promise<AgendaDoDia> {
  * Fecha o atendimento e credita os pontos ao tutor.
  *
  * O retorno é opcional e vem no formato "2026-09-28T09:00:00"; quando
- * informado, o horário é reservado na mesma agenda.
+ * informado, o horário é reservado na mesma agenda e a orientação escrita
+ * pelo veterinário acompanha esse retorno.
  */
 export async function concluir(pedido: {
   idConsulta: number;
   retorno?: string | null;
+  orientacao?: string | null;
 }): Promise<AtendimentoConcluido> {
   const { data } = await api.patch<AtendimentoConcluido>(
     `/api/agenda/atendimentos/${pedido.idConsulta}/concluir`,
-    { retorno: pedido.retorno ?? null },
+    { retorno: pedido.retorno ?? null, orientacao: pedido.orientacao ?? null },
   );
   return data;
 }

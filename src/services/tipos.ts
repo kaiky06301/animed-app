@@ -153,7 +153,8 @@ export interface DetalheAtendimento {
   nomePet: string;
   diagnostico: string | null;
   prescricao: string | null;
-  orientacoes: string[];
+  /** Instrução escrita pelo veterinário, quando há. */
+  orientacao: string | null;
 }
 
 export interface AgendaDoDia {
@@ -181,5 +182,4 @@ export interface AgendamentoConfirmado {
   motivo: string;
   veterinario: string;
   pontosGanhos: number;
-  orientacoes: string[];
 }

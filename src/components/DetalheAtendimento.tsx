@@ -88,9 +88,9 @@ function Linha({
 /**
  * Detalhe do atendimento.
  *
- * Reúne o que o tutor precisa saber no dia: quando é, quem atende, onde
- * fica a clínica e como preparar o pet. Depois de realizado, o espaço das
- * orientações passa a mostrar o que o veterinário registrou.
+ * Reúne o que o tutor precisa saber: quando é, quem atende e onde fica a
+ * clínica. O preparo do pet não é texto padrão do aplicativo — aparece
+ * apenas quando o veterinário escreveu uma orientação para aquele caso.
  */
 export function DetalheAtendimento({ idConsulta, onFechar }: Props) {
   const { data: atendimento, isLoading } = useDetalheAtendimento(idConsulta);
@@ -154,22 +154,19 @@ export function DetalheAtendimento({ idConsulta, onFechar }: Props) {
                   detalhe={atendimento.endereco}
                 />
 
-                {atendimento.orientacoes.length > 0 && (
+                {!!atendimento.orientacao && (
                   <View style={estilos.bloco}>
                     <View style={estilos.blocoTopo}>
                       <MaterialCommunityIcons
-                        name="clipboard-check-outline"
+                        name="clipboard-text-outline"
                         size={17}
                         color={cores.laranja}
                       />
-                      <Text style={estilos.blocoTitulo}>Como preparar o pet</Text>
-                    </View>
-
-                    {atendimento.orientacoes.map((item) => (
-                      <Text key={item} style={estilos.blocoItem}>
-                        • {item}
+                      <Text style={estilos.blocoTitulo}>
+                        Orientação de {atendimento.veterinario ?? 'sua veterinária'}
                       </Text>
-                    ))}
+                    </View>
+                    <Text style={estilos.blocoItem}>{atendimento.orientacao}</Text>
                   </View>
                 )}
 

@@ -307,13 +307,6 @@ export function CuidadosScreen() {
               </Text>
             </View>
 
-            <Text style={estilos.orientacoesTitulo}>Leve no dia</Text>
-            {confirmacao?.orientacoes.map((item) => (
-              <Text key={item} style={estilos.orientacao}>
-                • {item}
-              </Text>
-            ))}
-
             <Botao
               titulo="Ver meus atendimentos"
               icone="calendar-outline"
