@@ -2,6 +2,7 @@ import { api } from '../api/cliente';
 import {
   AgendaDoDia,
   AgendamentoConfirmado,
+  Atendimento,
   AtendimentoCancelado,
   AtendimentoConcluido,
   DetalheAtendimento,
@@ -74,6 +75,14 @@ export async function concluir(pedido: {
 export async function detalhe(idConsulta: number): Promise<DetalheAtendimento> {
   const { data } = await api.get<DetalheAtendimento>(
     `/api/agenda/atendimentos/${idConsulta}`,
+  );
+  return data;
+}
+
+/** O paciente não compareceu: o veterinário registra e os pontos voltam. */
+export async function registrarFalta(idConsulta: number): Promise<Atendimento> {
+  const { data } = await api.patch<Atendimento>(
+    `/api/agenda/atendimentos/${idConsulta}/falta`,
   );
   return data;
 }

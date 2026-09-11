@@ -9,7 +9,8 @@ import {
   View,
 } from 'react-native';
 import { ConcluirAtendimento } from '../../components/ConcluirAtendimento';
-import { useAgendaDoDia } from '../../hooks/useAgenda';
+import { mensagemDoErro } from '../../api/cliente';
+import { useAgendaDoDia, useRegistrarFalta } from '../../hooks/useAgenda';
 import type { Atendimento } from '../../services/tipos';
 import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
 
@@ -61,6 +62,25 @@ export function AgendaDoutorScreen() {
   const [aviso, setAviso] = useState<string | null>(null);
 
   const { data: agenda, isLoading } = useAgendaDoDia(dataEscolhida);
+  const registrarFalta = useRegistrarFalta();
+  const [erro, setErro] = useState<string | null>(null);
+
+  /**
+   * Marca a falta do paciente.
+   *
+   * Os pontos que o tutor ganhou ao agendar voltam atrás: marcar horário
+   * sem aparecer tira a vaga de quem precisava dela.
+   */
+  async function marcarFalta(item: Atendimento) {
+    setErro(null);
+
+    try {
+      await registrarFalta.mutateAsync(item.idConsulta);
+      setAviso(`${item.nomePet} não compareceu. Os pontos do agendamento foram estornados.`);
+    } catch (e) {
+      setErro(mensagemDoErro(e, 'Não foi possível registrar a falta'));
+    }
+  }
 
   function mudarDia(passo: number) {
     const [ano, mes, dia] = dataEscolhida.split('-').map(Number);
@@ -110,6 +130,8 @@ export function AgendaDoutorScreen() {
         </View>
       </View>
 
+      {!!erro && <Text style={estilos.erro}>{erro}</Text>}
+
       {!!aviso && (
         <View style={estilos.aviso}>
           <Ionicons name="checkmark-circle" size={17} color={cores.primaria} />
@@ -152,13 +174,24 @@ export function AgendaDoutorScreen() {
                 </View>
 
                 {item.status === 'AGENDADA' && (
-                  <Pressable
-                    onPress={() => setAConcluir(item)}
-                    style={({ pressed }) => [estilos.concluir, pressed && { opacity: 0.7 }]}
-                  >
-                    <Ionicons name="checkmark-circle" size={15} color={cores.primaria} />
-                    <Text style={estilos.concluirTexto}>Concluir</Text>
-                  </Pressable>
+                  <View style={estilos.acoes}>
+                    <Pressable
+                      onPress={() => marcarFalta(item)}
+                      disabled={registrarFalta.isPending}
+                      style={({ pressed }) => [estilos.falta, pressed && { opacity: 0.7 }]}
+                    >
+                      <Ionicons name="close-circle" size={15} color={cores.erro} />
+                      <Text style={estilos.faltaTexto}>Não veio</Text>
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => setAConcluir(item)}
+                      style={({ pressed }) => [estilos.concluir, pressed && { opacity: 0.7 }]}
+                    >
+                      <Ionicons name="checkmark-circle" size={15} color={cores.primaria} />
+                      <Text style={estilos.concluirTexto}>Concluir</Text>
+                    </Pressable>
+                  </View>
                 )}
               </View>
             </View>
@@ -263,6 +296,19 @@ const estilos = StyleSheet.create({
     paddingVertical: 4,
   },
   concluirTexto: { fontSize: 12, fontWeight: '700', color: cores.primaria },
+  acoes: { flexDirection: 'row', gap: espacamentos.xs },
+  falta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderWidth: 1,
+    borderColor: cores.erro,
+    borderRadius: raios.pill,
+    paddingHorizontal: espacamentos.sm + 2,
+    paddingVertical: 4,
+  },
+  faltaTexto: { fontSize: 12, fontWeight: '700', color: cores.erro },
+  erro: { color: cores.erro, fontSize: 12, marginBottom: espacamentos.sm },
 
   vazio: { alignItems: 'center', gap: espacamentos.sm, paddingVertical: espacamentos.xl },
   vazioTexto: { color: cores.textoSecundario, fontSize: 13 },

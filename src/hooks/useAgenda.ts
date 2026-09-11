@@ -64,6 +64,20 @@ export function useConcluirAtendimento() {
   });
 }
 
+/** Registro de falta pelo veterinário. */
+export function useRegistrarFalta() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: agendaService.registrarFalta,
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ['agenda'] });
+      client.invalidateQueries({ queryKey: ['consultas'] });
+      client.invalidateQueries({ queryKey: ['tutor'] });
+    },
+  });
+}
+
 /** Cancelamento do atendimento pelo tutor. */
 export function useCancelarAtendimento() {
   const client = useQueryClient();
