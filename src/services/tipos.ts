@@ -111,6 +111,8 @@ export interface CuidadoRegistrado {
   pontosGanhos: number;
   pontosTotais: number;
   moedas: number;
+  /** Explica por que a ação não rendeu pontos, quando for o caso. */
+  aviso: string | null;
 }
 
 export interface DisponibilidadeAgenda {

@@ -156,7 +156,11 @@ export function CuidadosScreen() {
         observacao: observacao.trim() || undefined,
       });
 
-      setSucesso(`${acaoAberta.titulo}: +${resultado.pontosGanhos} pontos`);
+      setSucesso(
+        resultado.pontosGanhos > 0
+          ? `${acaoAberta.titulo}: +${resultado.pontosGanhos} pontos`
+          : (resultado.aviso ?? `${acaoAberta.titulo} registrado`),
+      );
       fechar();
     } catch (e) {
       setErro(mensagemDoErro(e, 'Não foi possível registrar o cuidado'));
@@ -333,6 +337,13 @@ export function CuidadosScreen() {
               {acaoAberta?.pontos} pontos.
             </Text>
 
+            {acaoAberta?.tipo === 'PESAGEM' && (
+              <Text style={estilos.regra}>
+                A pesagem rende pontos uma vez por semana. Registrar mais vezes atualiza o
+                peso, mas não pontua de novo.
+              </Text>
+            )}
+
             {acaoAberta?.pedeValor && (
               <View style={estilos.campo}>
                 <MaterialCommunityIcons
@@ -392,6 +403,12 @@ function formatarDataHora(iso: string): string {
 
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
+  regra: {
+    color: cores.textoSuave,
+    fontSize: 11,
+    lineHeight: 16,
+    marginBottom: espacamentos.xs,
+  },
   cartaoNota: { color: cores.textoSuave, fontSize: 11, lineHeight: 15, marginTop: 4 },
   selado: { alignItems: 'center', marginBottom: espacamentos.xs },
   ganho: {
