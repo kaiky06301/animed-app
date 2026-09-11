@@ -11,6 +11,8 @@ import { PlanosScreen } from '../screens/PlanosScreen';
 import { VacinasScreen } from '../screens/VacinasScreen';
 import { useAuth } from '../state/AuthContext';
 import { cores } from '../theme/cores';
+import { FichaPacienteScreen } from '../screens/doutor/FichaPacienteScreen';
+import { AbasDoutorNavigator } from './AbasDoutorNavigator';
 import { AbasNavigator } from './AbasNavigator';
 import type { RaizParamList } from './tipos';
 
@@ -36,6 +38,7 @@ export function RaizNavigator() {
   }
 
   const autenticado = !!usuario;
+  const ehDoutor = usuario?.role === 'DOUTOR';
 
   return (
     <Stack.Navigator
@@ -46,7 +49,21 @@ export function RaizNavigator() {
         contentStyle: { backgroundColor: cores.fundo },
       }}
     >
-      {autenticado ? (
+      {autenticado && ehDoutor ? (
+        // Fluxo do veterinário: pacientes e registro clínico
+        <Stack.Group>
+          <Stack.Screen
+            name="AbasDoutor"
+            component={AbasDoutorNavigator}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FichaPaciente"
+            component={FichaPacienteScreen}
+            options={{ title: 'Ficha do paciente' }}
+          />
+        </Stack.Group>
+      ) : autenticado ? (
         <Stack.Group>
           <Stack.Screen name="Abas" component={AbasNavigator} options={{ headerShown: false }} />
           <Stack.Screen

@@ -34,3 +34,11 @@ export async function registrarFotoDoPet(idPet: number): Promise<number> {
   const { data } = await api.post<{ pontosGanhos: number }>(`/api/pets/${idPet}/foto`);
   return data.pontosGanhos ?? 0;
 }
+
+/** Todos os pets atendidos pela clínica — usado no painel do doutor. */
+export async function listarTodosOsPets(): Promise<Pet[]> {
+  const { data } = await api.get<Pagina<Pet>>('/api/pets', {
+    params: { size: 100, sort: 'nome,asc' },
+  });
+  return data.content;
+}

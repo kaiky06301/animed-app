@@ -10,13 +10,22 @@ export type AbasParamList = {
   Perfil: undefined;
 };
 
+export type AbasDoutorParamList = {
+  Pacientes: undefined;
+  PerfilDoutor: undefined;
+};
+
 export type RaizParamList = {
   // Fluxo público
   Login: undefined;
   CriarConta: undefined;
 
-  // Fluxo autenticado
+  // Fluxo autenticado do tutor
   Abas: NavigatorScreenParams<AbasParamList>;
+
+  // Fluxo autenticado do veterinário
+  AbasDoutor: NavigatorScreenParams<AbasDoutorParamList>;
+  FichaPaciente: { idPet: number; nomePet: string };
   MeusPets: undefined;
   FormPet: { pet?: Pet };
   Vacinas: { idPet: number; nomePet: string };
