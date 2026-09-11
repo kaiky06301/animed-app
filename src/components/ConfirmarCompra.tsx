@@ -32,6 +32,9 @@ const TETO_ABATIMENTO = 0.5;
 /** Pet shop parceiro da demonstração. */
 const ID_PETSHOP = 1;
 
+/** Pontuação que libera o uso das moedas. */
+const PONTOS_PARA_PREMIUM = 1200;
+
 function reais(valor: number): string {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
@@ -53,6 +56,10 @@ export function ConfirmarCompra({ produto, onFechar, onComprado }: Props) {
   const saldo = tutor?.moedas ?? 0;
   const liberado = tutor?.podeGastarMoedas ?? false;
   const desconto = tutor?.descontoPercentual ?? 0;
+
+  /** Quanto o saldo inteiro vale em dinheiro — é o que dá sentido a guardá-lo. */
+  const saldoEmReais = saldo * VALOR_DA_MOEDA;
+  const faltamPontos = Math.max(0, PONTOS_PARA_PREMIUM - (tutor?.pontosTotais ?? 0));
 
   const preco = produto?.preco ?? 0;
   const valorDesconto = preco * (desconto / 100);
@@ -136,21 +143,39 @@ export function ConfirmarCompra({ produto, onFechar, onComprado }: Props) {
 
               <View style={{ flex: 1 }}>
                 <View style={estilos.moedasTopo}>
-                  <Text style={estilos.moedasTitulo}>Usar minhas moedas</Text>
+                  <Text style={estilos.moedasTitulo}>
+                    {liberado ? 'Usar minhas moedas' : 'Suas moedas viram desconto'}
+                  </Text>
                   {!liberado && (
                     <Ionicons name="lock-closed" size={13} color={cores.textoSuave} />
                   )}
                 </View>
 
-                <Text style={estilos.moedasTexto}>
-                  {!liberado
-                    ? `Você tem ${saldo} moedas guardadas. Elas são liberadas no nível `
-                      + 'Tutor Premium, a partir de 1.200 pontos.'
-                    : moedasAplicaveis === 0
+                {liberado ? (
+                  <Text style={estilos.moedasTexto}>
+                    {moedasAplicaveis === 0
                       ? 'Você ainda não tem moedas suficientes para esta compra.'
                       : `Abate ${reais(moedasAplicaveis * VALOR_DA_MOEDA)} usando `
                         + `${moedasAplicaveis} das suas ${saldo} moedas.`}
-                </Text>
+                  </Text>
+                ) : (
+                  <>
+                    {/* O saldo em reais é o que explica para que servem */}
+                    <Text style={estilos.moedasTexto}>
+                      Suas <Text style={estilos.moedasForte}>{saldo} moedas</Text> valem{' '}
+                      <Text style={estilos.moedasValor}>{reais(saldoEmReais)}</Text> de
+                      abatimento nas compras.
+                    </Text>
+
+                    <Text style={estilos.moedasBloqueio}>
+                      Liberam no nível Tutor Premium — faltam{' '}
+                      <Text style={estilos.moedasForte}>
+                        {faltamPontos.toLocaleString('pt-BR')} pontos
+                      </Text>
+                      .
+                    </Text>
+                  </>
+                )}
               </View>
 
               {liberado && moedasAplicaveis > 0 && (
@@ -279,7 +304,10 @@ const estilos = StyleSheet.create({
   moedasBloqueado: { opacity: 0.7 },
   moedasTopo: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   moedasTitulo: { fontSize: 13, fontWeight: '700', color: cores.textoPrincipal },
-  moedasTexto: { fontSize: 11, color: cores.textoSecundario, lineHeight: 16, marginTop: 2 },
+  moedasTexto: { fontSize: 12, color: cores.textoSecundario, lineHeight: 17, marginTop: 2 },
+  moedasForte: { color: cores.textoPrincipal, fontWeight: '700' },
+  moedasValor: { color: cores.dourado, fontWeight: '800' },
+  moedasBloqueio: { fontSize: 11, color: cores.textoSuave, lineHeight: 16, marginTop: 3 },
 
   conta: {
     backgroundColor: cores.superficie,
