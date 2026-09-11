@@ -254,3 +254,17 @@ export interface LancamentoPontos {
   dataHora: string;
   idTutor: number;
 }
+
+export interface CompraRealizada {
+  id: number;
+  dataHora: string;
+  valorBruto: number;
+  descontoAplicado: number;
+  moedasUsadas: number;
+  abatimentoMoedas: number;
+  valorFinal: number;
+  comissaoClyvo: number;
+  pontosGerados: number;
+  descricaoProduto: string;
+  nomePetShop: string;
+}

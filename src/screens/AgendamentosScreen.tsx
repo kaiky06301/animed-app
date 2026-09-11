@@ -136,7 +136,7 @@ export function AgendamentosScreen() {
     <ScrollView style={estilos.container} contentContainerStyle={estilos.conteudo}>
       <View style={estilos.cabecalho}>
         <View style={estilos.selo}>
-          <IconePet especie={petAtivo?.especie} tamanho={20} cor={cores.laranja} />
+          <IconePet especie={petAtivo?.especie} tamanho={28} cor={cores.laranja} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={estilos.titulo}>Atendimentos</Text>
@@ -204,8 +204,8 @@ const estilos = StyleSheet.create({
     marginBottom: espacamentos.md,
   },
   selo: {
-    width: 38,
-    height: 38,
+    width: 50,
+    height: 50,
     borderRadius: raios.md,
     backgroundColor: cores.laranjaSuave,
     alignItems: 'center',

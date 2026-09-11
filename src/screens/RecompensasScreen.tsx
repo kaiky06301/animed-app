@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ConfirmarCompra } from '../components/ConfirmarCompra';
 import { CATEGORIAS, PRODUTOS_PARCEIROS, type Produto } from '../data/parceiros';
 import { useTutor } from '../hooks/useTutor';
 import { cores, espacamentos, raios } from '../theme/cores';
@@ -31,7 +32,8 @@ export function RecompensasScreen() {
   const proximo = proximoNivel(pontos);
 
   const [categoria, setCategoria] = useState<string>('Todos');
-  const [comprado, setComprado] = useState<string | null>(null);
+  const [aComprar, setAComprar] = useState<Produto | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   const produtos =
     categoria === 'Todos'
@@ -40,11 +42,6 @@ export function RecompensasScreen() {
 
   /** Quanto do caminho até o próximo nível já foi percorrido. */
   const progresso = proximo ? Math.min(100, Math.round((pontos / proximo.minimo) * 100)) : 100;
-
-  function comprar(produto: Produto) {
-    setComprado(produto.id);
-    setTimeout(() => setComprado(null), 2500);
-  }
 
   return (
     <View style={estilos.container}>
@@ -203,23 +200,11 @@ export function RecompensasScreen() {
                 </View>
 
                 <Pressable
-                  onPress={() => comprar(item)}
-                  style={({ pressed }) => [
-                    estilos.comprar,
-                    comprado === item.id && estilos.compradoBotao,
-                    pressed && { opacity: 0.8 },
-                  ]}
+                  onPress={() => setAComprar(item)}
+                  style={({ pressed }) => [estilos.comprar, pressed && { opacity: 0.8 }]}
                 >
-                  <Ionicons
-                    name={comprado === item.id ? 'checkmark' : 'cart'}
-                    size={17}
-                    color="#04261C"
-                  />
-                  <Text
-                    style={estilos.comprarTexto}
-                  >
-                    {comprado === item.id ? 'Compra registrada' : 'Comprar'}
-                  </Text>
+                  <Ionicons name="cart" size={17} color="#04261C" />
+                  <Text style={estilos.comprarTexto}>Comprar</Text>
                 </Pressable>
               </View>
             </View>
@@ -227,6 +212,22 @@ export function RecompensasScreen() {
         }}
         contentContainerStyle={estilos.lista}
         showsVerticalScrollIndicator={false}
+      />
+
+      {!!aviso && (
+        <View style={estilos.faixa}>
+          <Ionicons name="checkmark-circle" size={17} color={cores.primaria} />
+          <Text style={estilos.faixaTexto}>{aviso}</Text>
+          <Pressable onPress={() => setAviso(null)} hitSlop={10}>
+            <Ionicons name="close" size={15} color={cores.textoSecundario} />
+          </Pressable>
+        </View>
+      )}
+
+      <ConfirmarCompra
+        produto={aComprar}
+        onFechar={() => setAComprar(null)}
+        onComprado={setAviso}
       />
     </View>
   );
@@ -396,6 +397,20 @@ const estilos = StyleSheet.create({
     paddingVertical: espacamentos.sm + 2,
     marginTop: espacamentos.sm + 2,
   },
-  compradoBotao: { backgroundColor: cores.primariaForte },
+  faixa: {
+    position: 'absolute',
+    left: espacamentos.md,
+    right: espacamentos.md,
+    bottom: espacamentos.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    backgroundColor: cores.fundoElevado,
+    borderWidth: 1,
+    borderColor: cores.primaria,
+    borderRadius: raios.md,
+    padding: espacamentos.sm + 2,
+  },
+  faixaTexto: { flex: 1, fontSize: 12, color: cores.textoPrincipal, lineHeight: 17 },
   comprarTexto: { color: '#04261C', fontSize: 14, fontWeight: '800' },
 });
