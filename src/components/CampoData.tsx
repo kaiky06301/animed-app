@@ -17,6 +17,12 @@ interface Props {
   bloquearFuturo?: boolean;
   /** Exibe o atalho para hoje no calendário. */
   atalhoHoje?: boolean;
+  /**
+   * Informa o texto digitado e se ele forma uma data válida.
+   * Permite ao formulário barrar o envio de datas impossíveis em vez de
+   * descartá-las em silêncio.
+   */
+  onTexto?: (texto: string, valido: boolean) => void;
 }
 
 /**
@@ -33,6 +39,7 @@ export function CampoData({
   icone,
   bloquearFuturo = false,
   atalhoHoje = true,
+  onTexto,
 }: Props) {
   const [texto, setTexto] = useState(isoParaBr(valor));
   const [calendarioAberto, setCalendarioAberto] = useState(false);
@@ -46,9 +53,16 @@ export function CampoData({
     const mascarado = mascaraData(entrada);
     setTexto(mascarado);
 
-    if (mascarado.length === 10 && dataBrValida(mascarado)) {
+    const completa = mascarado.length === 10;
+    const valida = completa && dataBrValida(mascarado);
+
+    // O formulário acompanha o texto para poder recusar datas impossíveis
+    onTexto?.(mascarado, valida || mascarado.length === 0);
+
+    if (valida) {
       onChange(brParaIso(mascarado));
-    } else if (mascarado.length === 0) {
+    } else {
+      // Texto incompleto ou inexistente no calendário não vira data
       onChange('');
     }
   }
@@ -87,7 +101,10 @@ export function CampoData({
       <Calendario
         visivel={calendarioAberto}
         valor={valor}
-        onSelecionar={onChange}
+        onSelecionar={(iso) => {
+          onTexto?.(isoParaBr(iso), true);
+          onChange(iso);
+        }}
         onFechar={() => setCalendarioAberto(false)}
         bloquearFuturo={bloquearFuturo}
         atalhoHoje={atalhoHoje}

@@ -56,6 +56,7 @@ export function FichaPacienteScreen({ route }: Props) {
   const [dataAplicacao, setDataAplicacao] = useState(HOJE);
   const [proximaDose, setProximaDose] = useState('');
   const [lote, setLote] = useState('');
+  const [dataDigitada, setDataDigitada] = useState({ texto: '', valida: true });
   const [erros, setErros] = useState<{ nome?: string; data?: string }>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [pontosCreditados, setPontosCreditados] = useState(false);
@@ -92,8 +93,10 @@ export function FichaPacienteScreen({ route }: Props) {
   function validar(): boolean {
     const novos: typeof erros = {};
     if (!nomeVacina.trim()) novos.nome = 'Informe a vacina aplicada';
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataAplicacao)) {
-      novos.data = 'Informe uma data válida no formato DD/MM/AAAA';
+    if (!dataDigitada.valida) {
+      novos.data = 'Essa data não existe no calendário';
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(dataAplicacao)) {
+      novos.data = 'Informe a data da aplicação no formato DD/MM/AAAA';
     }
     setErros(novos);
     return Object.keys(novos).length === 0;
@@ -224,6 +227,7 @@ export function FichaPacienteScreen({ route }: Props) {
                   icone="medkit-outline"
                   valor={dataAplicacao}
                   onChange={setDataAplicacao}
+                  onTexto={(texto, valida) => setDataDigitada({ texto, valida })}
                   erro={erros.data}
                   bloquearFuturo
                 />

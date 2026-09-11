@@ -49,6 +49,8 @@ export function FormPetScreen({ route, navigation }: Props) {
   const [sexo, setSexo] = useState<string | null>(petEmEdicao?.sexo ?? null);
   const [raca, setRaca] = useState(petEmEdicao?.raca ?? '');
   const [dataNascimento, setDataNascimento] = useState(petEmEdicao?.dataNascimento ?? '');
+  // Guarda o que foi digitado para recusar datas impossíveis no envio
+  const [dataDigitada, setDataDigitada] = useState({ texto: '', valida: true });
   const [peso, setPeso] = useState(
     petEmEdicao?.pesoKg != null ? String(petEmEdicao.pesoKg) : '',
   );
@@ -65,7 +67,10 @@ export function FormPetScreen({ route, navigation }: Props) {
     if (peso && Number.isNaN(Number(peso.replace(',', '.')))) {
       novos.peso = 'Peso deve ser um número (ex: 8.5)';
     }
-    if (dataNascimento && !/^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
+    // Texto preenchido que não virou data significa data inexistente
+    if (!dataDigitada.valida) {
+      novos.data = 'Essa data não existe no calendário';
+    } else if (dataNascimento && !/^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
       novos.data = 'Informe uma data válida no formato DD/MM/AAAA';
     }
     setErros(novos);
@@ -251,6 +256,7 @@ export function FormPetScreen({ route, navigation }: Props) {
             icone="paw"
             valor={dataNascimento}
             onChange={setDataNascimento}
+            onTexto={(texto, valida) => setDataDigitada({ texto, valida })}
             erro={erros.data}
             bloquearFuturo
             atalhoHoje={false}
