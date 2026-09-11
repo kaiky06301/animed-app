@@ -97,3 +97,13 @@ export interface Tutor {
   descontoPercentual: number;
   plano: string;
 }
+
+export type TipoCuidado = 'MEDICACAO' | 'VERMIFUGACAO' | 'PESAGEM' | 'AGENDAMENTO';
+
+export interface CuidadoRegistrado {
+  tipo: TipoCuidado;
+  descricao: string;
+  pontosGanhos: number;
+  pontosTotais: number;
+  moedas: number;
+}
