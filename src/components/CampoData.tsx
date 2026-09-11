@@ -51,36 +51,33 @@ export function CampoData({
   }
 
   function abrirCalendario() {
-    if (Platform.OS === 'web') {
-      // Abre o seletor nativo do navegador a partir de um campo oculto
-      const input = document.createElement('input');
-      input.type = 'date';
-      input.value = valor || '';
-      if (bloquearFuturo) input.max = new Date().toISOString().slice(0, 10);
-      input.style.position = 'fixed';
-      input.style.opacity = '0';
-      input.style.pointerEvents = 'none';
-
-      document.body.appendChild(input);
-      input.addEventListener('change', () => {
-        if (input.value) onChange(input.value);
-        input.remove();
-      });
-      input.addEventListener('blur', () => input.remove());
-
-      // showPicker é suportado nos navegadores atuais
-      if (typeof (input as HTMLInputElement & { showPicker?: () => void }).showPicker === 'function') {
-        (input as HTMLInputElement & { showPicker: () => void }).showPicker();
-      } else {
-        input.style.opacity = '1';
-        input.style.pointerEvents = 'auto';
-        input.click();
-      }
-      return;
-    }
-
     setCalendarioAberto(true);
   }
+
+  /**
+   * No navegador, o seletor nativo é um campo de data transparente
+   * sobreposto ao ícone — assim o calendário abre ancorado nele, e não
+   * no canto da janela.
+   */
+  const seletorWeb =
+    Platform.OS === 'web'
+      ? React.createElement('input', {
+          type: 'date',
+          value: valor || '',
+          max: bloquearFuturo ? new Date().toISOString().slice(0, 10) : undefined,
+          onChange: (e: { target: { value: string } }) => {
+            if (e.target.value) onChange(e.target.value);
+          },
+          style: {
+            position: 'absolute',
+            inset: 0,
+            opacity: 0,
+            cursor: 'pointer',
+            border: 'none',
+            padding: 0,
+          },
+        })
+      : null;
 
   const dataSelecionada = valor ? new Date(`${valor}T12:00:00`) : new Date();
 
@@ -104,9 +101,15 @@ export function CampoData({
           style={estilos.entrada}
         />
 
-        <Pressable onPress={abrirCalendario} hitSlop={10}>
-          <Ionicons name="calendar" size={19} color={cores.primaria} />
-        </Pressable>
+        <View style={estilos.areaCalendario}>
+          <Pressable
+            onPress={Platform.OS === 'web' ? undefined : abrirCalendario}
+            hitSlop={10}
+          >
+            <Ionicons name="calendar" size={19} color={cores.primaria} />
+          </Pressable>
+          {seletorWeb}
+        </View>
       </View>
 
       {!!erro && <Text style={estilos.erro}>{erro}</Text>}
@@ -149,5 +152,6 @@ const estilos = StyleSheet.create({
   },
   campoComErro: { borderColor: cores.erro },
   entrada: { flex: 1, color: cores.textoPrincipal, fontSize: 15, padding: 0 },
+  areaCalendario: { position: 'relative', justifyContent: 'center' },
   erro: { ...tipografia.legenda, color: cores.erro, marginTop: espacamentos.xs },
 });
