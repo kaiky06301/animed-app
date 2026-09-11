@@ -214,6 +214,10 @@ export interface Medicamento {
   proximaDose: string | null;
   /** true quando já passou a hora da próxima dose. */
   doseLiberada: boolean;
+  /** Minutos passados desde a hora prevista; zero quando não há atraso. */
+  minutosDeAtraso: number;
+  /** O atraso passou de um intervalo inteiro: a dose foi pulada. */
+  dosePerdida: boolean;
   /** Os dias da receita acabaram e o tutor ainda não confirmou. */
   aguardandoConfirmacao: boolean;
   confirmadoEm: string | null;
@@ -236,4 +240,6 @@ export interface DoseRegistrada {
   pontosGanhos: number;
   pontosTotais: number;
   proximaDose: string;
+  /** Por que a dose não pontuou, quando for o caso. */
+  aviso: string | null;
 }

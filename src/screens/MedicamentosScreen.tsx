@@ -43,6 +43,23 @@ function quando(iso: string): string {
   return `${dia}/${mes} às ${hora}`;
 }
 
+/** 200 -> "3h20" ; 45 -> "45 min" ; 1500 -> "1 dia e 1h" */
+function duracao(minutos: number): string {
+  if (minutos < 60) return `${minutos} min`;
+
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+
+  if (horas < 24) return resto === 0 ? `${horas}h` : `${horas}h${String(resto).padStart(2, '0')}`;
+
+  const dias = Math.floor(horas / 24);
+  const horasRestantes = horas % 24;
+
+  return `${dias} ${dias === 1 ? 'dia' : 'dias'}${
+    horasRestantes > 0 ? ` e ${horasRestantes}h` : ''
+  }`;
+}
+
 /** "2026-09-18" -> "18/09/2026" */
 function dataCurta(iso: string): string {
   const [ano, mes, dia] = iso.split('-');
@@ -62,10 +79,17 @@ function Cartao({
   registrando: boolean;
   confirmando: boolean;
 }) {
-  const { emCurso, doseLiberada, aguardandoConfirmacao } = medicamento;
+  const { emCurso, doseLiberada, aguardandoConfirmacao, minutosDeAtraso } = medicamento;
+  const atrasada = minutosDeAtraso > 0;
 
   return (
-    <View style={[estilos.cartao, !emCurso && estilos.cartaoEncerrado]}>
+    <View
+      style={[
+        estilos.cartao,
+        !emCurso && estilos.cartaoEncerrado,
+        emCurso && atrasada && !aguardandoConfirmacao && estilos.cartaoAtrasado,
+      ]}
+    >
       <View style={estilos.linhaTopo}>
         <View style={[estilos.icone, !emCurso && { backgroundColor: cores.superficieAlt }]}>
           <MaterialCommunityIcons
@@ -150,13 +174,31 @@ function Cartao({
             </Text>
 
             {!!medicamento.proximaDose && (
-              <Text style={[estilos.proxima, doseLiberada && { color: cores.primaria }]}>
-                {doseLiberada
-                  ? 'Pode dar a próxima'
-                  : `Próxima ${quando(medicamento.proximaDose)}`}
+              <Text
+                style={[
+                  estilos.proxima,
+                  doseLiberada && { color: cores.primaria },
+                  atrasada && { color: cores.erro },
+                ]}
+              >
+                {atrasada
+                  ? `Atrasada há ${duracao(minutosDeAtraso)}`
+                  : doseLiberada
+                    ? 'Pode dar a próxima'
+                    : `Próxima ${quando(medicamento.proximaDose)}`}
               </Text>
             )}
           </View>
+
+          {medicamento.dosePerdida && (
+            <View style={estilos.atraso}>
+              <Ionicons name="alert-circle" size={15} color={cores.erro} />
+              <Text style={estilos.atrasoTexto}>
+                Passou mais de um intervalo inteiro. Essa dose não conta para os pontos, e
+                o horário do tratamento recomeça a partir da próxima que você der.
+              </Text>
+            </View>
+          )}
 
           {/* Sem a hora da última dose, o tutor não percebe que o registro
               entrou nem que o próximo horário se moveu junto. */}
@@ -172,18 +214,27 @@ function Cartao({
             style={({ pressed }) => [
               estilos.botao,
               !doseLiberada && estilos.botaoAdiantado,
+              atrasada && estilos.botaoAtrasado,
               pressed && { opacity: 0.7 },
             ]}
           >
             <Ionicons
               name="checkmark-circle-outline"
               size={16}
-              color={doseLiberada ? cores.primaria : cores.textoSuave}
+              color={atrasada ? cores.erro : doseLiberada ? cores.primaria : cores.textoSuave}
             />
             <Text
-              style={[estilos.botaoTexto, !doseLiberada && { color: cores.textoSuave }]}
+              style={[
+                estilos.botaoTexto,
+                !doseLiberada && { color: cores.textoSuave },
+                atrasada && { color: cores.erro },
+              ]}
             >
-              {doseLiberada ? 'Registrar dose' : 'Registrar mesmo assim'}
+              {atrasada
+                ? 'Dei o remédio agora'
+                : doseLiberada
+                  ? 'Registrar dose'
+                  : 'Registrar mesmo assim'}
             </Text>
           </Pressable>
         </>
@@ -226,8 +277,8 @@ export function MedicamentosScreen() {
           ? `${dose.medicamento}: +${dose.pontosGanhos} pontos. Próxima dose ${quando(
               dose.proximaDose,
             )}.`
-          : `Dose registrada às ${quando(dose.dataHora)}, fora do intervalo da receita: `
-            + `não rendeu pontos. Próxima dose ${quando(dose.proximaDose)}.`,
+          : `${dose.aviso ?? 'Dose fora do intervalo da receita'}. `
+            + `Próxima dose ${quando(dose.proximaDose)}.`,
       );
     } catch (e) {
       setErro(mensagemDoErro(e, 'Não foi possível registrar a dose'));
@@ -335,15 +386,28 @@ export function MedicamentosScreen() {
               {petAtivo?.nome}, agora.
             </Text>
 
-            {!!aConfirmar && !aConfirmar.doseLiberada && !!aConfirmar.proximaDose && (
-              <View style={estilos.alerta}>
-                <Ionicons name="warning" size={15} color={cores.alerta} />
-                <Text style={estilos.alertaTexto}>
-                  A receita pede a próxima dose {quando(aConfirmar.proximaDose)}. A dose
-                  fica registrada, mas não rende pontos.
+            {!!aConfirmar && aConfirmar.dosePerdida && (
+              <View style={[estilos.alerta, estilos.alertaGrave]}>
+                <Ionicons name="alert-circle" size={15} color={cores.erro} />
+                <Text style={[estilos.alertaTexto, { color: cores.erro }]}>
+                  Atrasada há {duracao(aConfirmar.minutosDeAtraso)}: passou de um intervalo
+                  inteiro. A dose não rende pontos e o horário recomeça a contar de agora.
                 </Text>
               </View>
             )}
+
+            {!!aConfirmar &&
+              !aConfirmar.dosePerdida &&
+              !aConfirmar.doseLiberada &&
+              !!aConfirmar.proximaDose && (
+                <View style={estilos.alerta}>
+                  <Ionicons name="warning" size={15} color={cores.alerta} />
+                  <Text style={estilos.alertaTexto}>
+                    A receita pede a próxima dose {quando(aConfirmar.proximaDose)}. A dose
+                    fica registrada, mas não rende pontos.
+                  </Text>
+                </View>
+              )}
 
             <View style={estilos.botoes}>
               <Botao
@@ -400,6 +464,18 @@ const estilos = StyleSheet.create({
     marginBottom: espacamentos.sm,
   },
   cartaoEncerrado: { opacity: 0.65 },
+  cartaoAtrasado: { borderColor: 'rgba(255,107,107,0.5)' },
+
+  atraso: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: espacamentos.sm,
+    backgroundColor: 'rgba(255,107,107,0.10)',
+    borderRadius: raios.md,
+    padding: espacamentos.sm,
+    marginTop: espacamentos.sm,
+  },
+  atrasoTexto: { flex: 1, fontSize: 11, color: cores.erro, lineHeight: 16 },
 
   linhaTopo: { flexDirection: 'row', alignItems: 'center', gap: espacamentos.sm },
   icone: {
@@ -472,6 +548,7 @@ const estilos = StyleSheet.create({
     marginTop: espacamentos.sm,
   },
   botaoAdiantado: { borderColor: cores.borda },
+  botaoAtrasado: { borderColor: cores.erro },
   botaoTexto: { fontSize: 13, fontWeight: '700', color: cores.primaria },
 
   secao: {
@@ -520,6 +597,7 @@ const estilos = StyleSheet.create({
     borderRadius: raios.md,
     padding: espacamentos.sm + 2,
   },
+  alertaGrave: { backgroundColor: 'rgba(255,107,107,0.12)' },
   alertaTexto: { flex: 1, fontSize: 12, color: cores.alerta, lineHeight: 17 },
   botoes: { flexDirection: 'row', gap: espacamentos.sm, marginTop: espacamentos.xs },
 
