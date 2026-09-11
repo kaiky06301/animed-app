@@ -64,7 +64,7 @@ const ACOES_TUTOR: AcaoCuidado[] = [
     descricao: 'Atualize o peso regularmente e acompanhe a evolução.',
     pontos: 5,
     cor: '#F05252',
-    icone: 'scale-bathroom',
+    icone: 'weight-kilogram',
     pedeValor: true,
   },
   {
@@ -336,7 +336,7 @@ export function CuidadosScreen() {
             {acaoAberta?.pedeValor && (
               <View style={estilos.campo}>
                 <MaterialCommunityIcons
-                  name="scale-bathroom"
+                  name="weight-kilogram"
                   size={18}
                   color={cores.textoSuave}
                 />
