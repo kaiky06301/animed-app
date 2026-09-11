@@ -31,6 +31,8 @@ interface AcaoCuidado {
   icone: keyof typeof MaterialCommunityIcons.glyphMap;
   /** Pede um valor numérico antes de registrar (caso da pesagem). */
   pedeValor?: boolean;
+  /** Pede o motivo do atendimento antes de enviar à clínica. */
+  pedeMotivo?: boolean;
 }
 
 /** Cuidados que o próprio tutor realiza no dia a dia. */
@@ -62,19 +64,12 @@ const ACOES_TUTOR: AcaoCuidado[] = [
   },
   {
     tipo: 'AGENDAMENTO',
-    titulo: 'Agendou consulta',
-    descricao: 'Planejou o cuidado futuro do seu pet.',
+    titulo: 'Atendimento na clínica',
+    descricao: 'Peça uma consulta ou um check-up preventivo e planeje o cuidado.',
     pontos: 10,
     cor: '#EAB308',
     icone: 'calendar-check',
-  },
-  {
-    tipo: 'SOLICITACAO_CHECKUP',
-    titulo: 'Check-up preventivo',
-    descricao: 'Peça o check-up à clínica e previna problemas de saúde.',
-    pontos: 10,
-    cor: '#A78BFA',
-    icone: 'heart-pulse',
+    pedeMotivo: true,
   },
 ];
 
@@ -111,6 +106,7 @@ export function CuidadosScreen() {
 
   const [acaoAberta, setAcaoAberta] = useState<AcaoCuidado | null>(null);
   const [peso, setPeso] = useState('');
+  const [motivo, setMotivo] = useState<'AGENDAMENTO' | 'SOLICITACAO_CHECKUP'>('AGENDAMENTO');
   const [observacao, setObservacao] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
@@ -119,6 +115,7 @@ export function CuidadosScreen() {
     setAcaoAberta(acao);
     setPeso(petAtivo?.pesoKg != null ? String(petAtivo.pesoKg) : '');
     setObservacao('');
+    setMotivo('AGENDAMENTO');
     setErro(null);
   }
 
@@ -141,12 +138,18 @@ export function CuidadosScreen() {
     try {
       const resultado = await registrar.mutateAsync({
         idPet: petAtivo.id,
-        tipo: acaoAberta.tipo,
+        tipo: acaoAberta.pedeMotivo ? motivo : acaoAberta.tipo,
         pesoKg: acaoAberta.pedeValor ? valor : undefined,
         observacao: observacao.trim() || undefined,
       });
 
-      setSucesso(`${acaoAberta.titulo}: +${resultado.pontosGanhos} pontos`);
+      const rotulo = acaoAberta.pedeMotivo
+        ? motivo === 'SOLICITACAO_CHECKUP'
+          ? 'Check-up solicitado'
+          : 'Consulta agendada'
+        : acaoAberta.titulo;
+
+      setSucesso(`${rotulo}: +${resultado.pontosGanhos} pontos`);
       fechar();
     } catch (e) {
       setErro(mensagemDoErro(e, 'Não foi possível registrar o cuidado'));
@@ -219,11 +222,7 @@ export function CuidadosScreen() {
             ]}
           >
             <Text style={[estilos.botaoTexto, { color: acao.cor }]}>
-              {acao.tipo === 'SOLICITACAO_CHECKUP'
-                ? 'Solicitar'
-                : acao.tipo === 'AGENDAMENTO'
-                  ? 'Agendar'
-                  : 'Registrar'}
+              {acao.pedeMotivo ? 'Agendar' : 'Registrar'}
             </Text>
             <Ionicons name="chevron-forward" size={15} color={acao.cor} />
           </Pressable>
@@ -278,12 +277,43 @@ export function CuidadosScreen() {
             </View>
 
             <Text style={estilos.painelTexto}>
-              {acaoAberta?.tipo === 'SOLICITACAO_CHECKUP'
-                ? 'A clínica recebe o pedido e registra o resultado após a avaliação. '
+              {acaoAberta?.pedeMotivo
+                ? 'A clínica recebe o pedido e registra o resultado após o atendimento. '
                 : ''}
               Para <Text style={estilos.destaque}>{petAtivo?.nome}</Text>. Você ganha{' '}
               {acaoAberta?.pontos} pontos.
             </Text>
+
+            {acaoAberta?.pedeMotivo && (
+              <View style={estilos.motivos}>
+                {[
+                  { valor: 'AGENDAMENTO' as const, rotulo: 'Consulta', icone: 'stethoscope' as const },
+                  {
+                    valor: 'SOLICITACAO_CHECKUP' as const,
+                    rotulo: 'Check-up preventivo',
+                    icone: 'heart-pulse' as const,
+                  },
+                ].map((opcao) => {
+                  const ativo = motivo === opcao.valor;
+                  return (
+                    <Pressable
+                      key={opcao.valor}
+                      onPress={() => setMotivo(opcao.valor)}
+                      style={[estilos.motivo, ativo && estilos.motivoAtivo]}
+                    >
+                      <MaterialCommunityIcons
+                        name={opcao.icone}
+                        size={18}
+                        color={ativo ? cores.primaria : cores.textoSuave}
+                      />
+                      <Text style={[estilos.motivoTexto, ativo && { color: cores.primaria }]}>
+                        {opcao.rotulo}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
 
             {acaoAberta?.pedeValor && (
               <View style={estilos.campo}>
@@ -473,6 +503,22 @@ const estilos = StyleSheet.create({
     color: cores.textoSecundario,
     marginBottom: espacamentos.xs,
   },
+  motivos: { flexDirection: 'row', gap: espacamentos.sm, marginBottom: espacamentos.xs },
+  motivo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: espacamentos.sm + 2,
+    paddingHorizontal: espacamentos.sm,
+    borderRadius: raios.md,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    backgroundColor: cores.superficieAlt,
+  },
+  motivoAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
+  motivoTexto: { color: cores.textoSecundario, fontSize: 12, fontWeight: '600' },
   campo: {
     flexDirection: 'row',
     alignItems: 'center',
