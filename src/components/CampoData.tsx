@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Calendario } from './Calendario';
 import { brParaIso, dataBrValida, isoParaBr, mascaraData } from '../utils/data';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
@@ -19,8 +19,8 @@ interface Props {
 
 /**
  * Campo de data no formato brasileiro, com digitação assistida e
- * calendário. No navegador usa o seletor nativo do próprio browser;
- * no celular, o calendário do sistema.
+ * calendário próprio do aplicativo — mesmo comportamento e aparência em
+ * qualquer plataforma.
  */
 export function CampoData({
   rotulo,
@@ -54,33 +54,6 @@ export function CampoData({
     setCalendarioAberto(true);
   }
 
-  /**
-   * No navegador, o seletor nativo é um campo de data transparente
-   * sobreposto ao ícone — assim o calendário abre ancorado nele, e não
-   * no canto da janela.
-   */
-  const seletorWeb =
-    Platform.OS === 'web'
-      ? React.createElement('input', {
-          type: 'date',
-          value: valor || '',
-          max: bloquearFuturo ? new Date().toISOString().slice(0, 10) : undefined,
-          onChange: (e: { target: { value: string } }) => {
-            if (e.target.value) onChange(e.target.value);
-          },
-          style: {
-            position: 'absolute',
-            inset: 0,
-            opacity: 0,
-            cursor: 'pointer',
-            border: 'none',
-            padding: 0,
-          },
-        })
-      : null;
-
-  const dataSelecionada = valor ? new Date(`${valor}T12:00:00`) : new Date();
-
   return (
     <View style={estilos.container}>
       <View style={estilos.linhaRotulo}>
@@ -101,31 +74,20 @@ export function CampoData({
           style={estilos.entrada}
         />
 
-        <View style={estilos.areaCalendario}>
-          <Pressable
-            onPress={Platform.OS === 'web' ? undefined : abrirCalendario}
-            hitSlop={10}
-          >
-            <Ionicons name="calendar" size={19} color={cores.primaria} />
-          </Pressable>
-          {seletorWeb}
-        </View>
+        <Pressable onPress={abrirCalendario} hitSlop={10}>
+          <Ionicons name="calendar" size={19} color={cores.primaria} />
+        </Pressable>
       </View>
 
       {!!erro && <Text style={estilos.erro}>{erro}</Text>}
 
-      {calendarioAberto && Platform.OS !== 'web' && (
-        <DateTimePicker
-          value={dataSelecionada}
-          mode="date"
-          display="spinner"
-          maximumDate={bloquearFuturo ? new Date() : undefined}
-          onChange={(_evento, data) => {
-            setCalendarioAberto(false);
-            if (data) onChange(data.toISOString().slice(0, 10));
-          }}
-        />
-      )}
+      <Calendario
+        visivel={calendarioAberto}
+        valor={valor}
+        onSelecionar={onChange}
+        onFechar={() => setCalendarioAberto(false)}
+        bloquearFuturo={bloquearFuturo}
+      />
     </View>
   );
 }
@@ -152,6 +114,5 @@ const estilos = StyleSheet.create({
   },
   campoComErro: { borderColor: cores.erro },
   entrada: { flex: 1, color: cores.textoPrincipal, fontSize: 15, padding: 0 },
-  areaCalendario: { position: 'relative', justifyContent: 'center' },
   erro: { ...tipografia.legenda, color: cores.erro, marginTop: espacamentos.xs },
 });
