@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../../components/Botao';
 import { Cartao } from '../../components/Cartao';
+import { TrocarSenha } from '../../components/TrocarSenha';
 import { usePacientes } from '../../hooks/usePacientes';
 import { useAuth } from '../../state/AuthContext';
 import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
@@ -10,6 +11,8 @@ import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
 /** Perfil do veterinário, com um resumo da carteira de pacientes. */
 export function PerfilDoutorScreen() {
   const { usuario, sair } = useAuth();
+  const [trocandoSenha, setTrocandoSenha] = useState(false);
+  const [avisoSenha, setAvisoSenha] = useState<string | null>(null);
   const { data: pacientes } = usePacientes();
 
   const total = pacientes?.length ?? 0;
@@ -44,13 +47,34 @@ export function PerfilDoutorScreen() {
       <Cartao>
         <Text style={estilos.secao}>Sessão</Text>
         <Text style={estilos.email}>{usuario?.email}</Text>
+
+        {!!avisoSenha && (
+          <View style={estilos.aviso}>
+            <Ionicons name="checkmark-circle" size={16} color={cores.primaria} />
+            <Text style={estilos.avisoTexto}>{avisoSenha}</Text>
+          </View>
+        )}
+
+        <Botao
+          titulo="Trocar senha"
+          variante="sutil"
+          icone="key-outline"
+          onPress={() => setTrocandoSenha(true)}
+          estilo={{ marginTop: espacamentos.md }}
+        />
         <Botao
           titulo="Sair da conta"
           variante="contorno"
           onPress={sair}
-          estilo={{ marginTop: espacamentos.md }}
+          estilo={{ marginTop: espacamentos.sm }}
         />
       </Cartao>
+
+      <TrocarSenha
+        visivel={trocandoSenha}
+        onFechar={() => setTrocandoSenha(false)}
+        onTrocada={setAvisoSenha}
+      />
     </ScrollView>
   );
 }
@@ -107,5 +131,15 @@ const estilos = StyleSheet.create({
   },
   linha: { flexDirection: 'row', alignItems: 'center', gap: espacamentos.sm, paddingVertical: 5 },
   linhaTexto: { flex: 1, color: cores.textoSecundario, fontSize: 13 },
+  aviso: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    backgroundColor: cores.primariaSuave,
+    borderRadius: raios.md,
+    padding: espacamentos.sm,
+    marginTop: espacamentos.sm,
+  },
+  avisoTexto: { flex: 1, fontSize: 12, color: cores.textoPrincipal },
   email: { color: cores.textoSecundario, fontSize: 13 },
 });

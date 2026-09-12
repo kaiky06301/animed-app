@@ -110,7 +110,7 @@ export function CriarContaScreen() {
             placeholder="Mínimo de 6 caracteres"
             value={senha}
             onChangeText={setSenha}
-            secureTextEntry
+            senha
             erro={erros.senha}
           />
 

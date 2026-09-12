@@ -1,6 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+} from 'react-native';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
 interface Props extends TextInputProps {
@@ -15,6 +22,13 @@ interface Props extends TextInputProps {
   sufixoTexto?: string;
   /** Conteúdo exibido dentro do campo, abaixo do texto. */
   rodape?: React.ReactNode;
+  /**
+   * Campo de senha: o conteúdo nasce oculto e ganha o botão de revelar.
+   *
+   * Digitar senha às cegas em teclado de celular é fonte de erro; deixar
+   * conferir o que foi digitado evita tentativas repetidas.
+   */
+  senha?: boolean;
 }
 
 /** Campo de formulário com rótulo, ícones e mensagem de validação. */
@@ -26,10 +40,13 @@ export function CampoTexto({
   sufixo,
   sufixoTexto,
   rodape,
+  senha,
   style,
   multiline,
   ...rest
 }: Props) {
+  const [revelada, setRevelada] = useState(false);
+
   return (
     <View style={estilos.container}>
       <View style={estilos.linhaRotulo}>
@@ -51,12 +68,28 @@ export function CampoTexto({
           <TextInput
             placeholderTextColor={cores.textoSuave}
             multiline={multiline}
+            secureTextEntry={senha && !revelada}
+            autoCapitalize={senha ? 'none' : rest.autoCapitalize}
             {...rest}
             style={[estilos.entrada, style]}
           />
 
           {!!sufixoTexto && <Text style={estilos.sufixoTexto}>{sufixoTexto}</Text>}
           {!!sufixo && <Ionicons name={sufixo} size={16} color={cores.textoSuave} />}
+
+          {senha && (
+            <Pressable
+              onPress={() => setRevelada((v) => !v)}
+              hitSlop={10}
+              accessibilityLabel={revelada ? 'Ocultar senha' : 'Mostrar senha'}
+            >
+              <Ionicons
+                name={revelada ? 'eye-off-outline' : 'eye-outline'}
+                size={19}
+                color={revelada ? cores.primaria : cores.textoSuave}
+              />
+            </Pressable>
+          )}
         </View>
 
         {!!rodape && <View style={estilos.rodape}>{rodape}</View>}

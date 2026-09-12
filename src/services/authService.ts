@@ -43,3 +43,8 @@ async function salvarSessao(sessao: RespostaAutenticacao): Promise<void> {
     [CHAVE_USUARIO, JSON.stringify(sessao)],
   ]);
 }
+
+/** Troca a senha do usuário autenticado; exige a senha atual. */
+export async function trocarSenha(senhaAtual: string, novaSenha: string): Promise<void> {
+  await api.patch('/api/auth/senha', { senhaAtual, novaSenha });
+}

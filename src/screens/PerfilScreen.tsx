@@ -2,12 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { usePetAtivo } from '../state/PetAtivoContext';
+import { TrocarSenha } from '../components/TrocarSenha';
 import { useTutor } from '../hooks/useTutor';
 import { useAnimed } from '../state/AnimedContext';
 import { useAuth } from '../state/AuthContext';
@@ -30,6 +31,9 @@ export function PerfilScreen({ navigation }: Props) {
   // Pontuação e nível são apurados na API; o plano segue local por ora
   const { data: tutor } = useTutor();
   const { plano, registrarAcao } = useAnimed();
+
+  const [trocandoSenha, setTrocandoSenha] = useState(false);
+  const [avisoSenha, setAvisoSenha] = useState<string | null>(null);
 
   const pontos = tutor?.pontosTotais ?? 0;
   const nivel = nivelPorPontos(pontos);
@@ -145,9 +149,30 @@ export function PerfilScreen({ navigation }: Props) {
         />
       </Cartao>
 
+      <TrocarSenha
+        visivel={trocandoSenha}
+        onFechar={() => setTrocandoSenha(false)}
+        onTrocada={setAvisoSenha}
+      />
+
       <Cartao>
         <Text style={estilos.secao}>Sessão</Text>
         <Text style={estilos.emailUsuario}>{usuario?.email}</Text>
+
+        {!!avisoSenha && (
+          <View style={estilos.avisoSenha}>
+            <Ionicons name="checkmark-circle" size={16} color={cores.primaria} />
+            <Text style={estilos.avisoSenhaTexto}>{avisoSenha}</Text>
+          </View>
+        )}
+
+        <Botao
+          titulo="Trocar senha"
+          variante="sutil"
+          icone="key-outline"
+          onPress={() => setTrocandoSenha(true)}
+          estilo={{ marginBottom: espacamentos.sm }}
+        />
         <Botao
           titulo="Sair da conta"
           variante="contorno"
@@ -304,6 +329,16 @@ const estilos = StyleSheet.create({
   grade: { flexDirection: 'row', gap: espacamentos.sm },
   indicador: { flex: 1, alignItems: 'center', padding: espacamentos.sm },
   indicadorToque: { flex: 1 },
+  avisoSenha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    backgroundColor: cores.primariaSuave,
+    borderRadius: raios.md,
+    padding: espacamentos.sm,
+    marginBottom: espacamentos.sm,
+  },
+  avisoSenhaTexto: { flex: 1, fontSize: 12, color: cores.textoPrincipal },
   emailUsuario: { color: cores.textoSecundario, fontSize: 13 },
   selo: {
     paddingHorizontal: 12,

@@ -79,7 +79,7 @@ export function LoginScreen({ navigation }: Props) {
             placeholder="Sua senha"
             value={senha}
             onChangeText={setSenha}
-            secureTextEntry
+            senha
             erro={erros.senha}
           />
 
