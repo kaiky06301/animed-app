@@ -91,6 +91,8 @@ export interface Tutor {
   id: number;
   nome: string;
   email: string;
+  cpf: string;
+  telefone: string | null;
   pontosTotais: number;
   moedas: number;
   podeGastarMoedas: boolean;

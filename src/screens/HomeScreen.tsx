@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
@@ -13,7 +13,6 @@ import { IconePet } from '../components/IconePet';
 import { SeletorPet } from '../components/SeletorPet';
 import { useSaudeDoPet } from '../hooks/useSaudeDoPet';
 import { useTutor } from '../hooks/useTutor';
-import { useAnimed } from '../state/AnimedContext';
 import { usePetAtivo } from '../state/PetAtivoContext';
 import { cores, espacamentos, raios } from '../theme/cores';
 import { NIVEIS, nivelPorPontos, progressoNivel, proximoNivel } from '../utils/nivel';
@@ -25,8 +24,6 @@ type Props = CompositeScreenProps<
 >;
 
 export function HomeScreen({ navigation }: Props) {
-  const { registrarAcao } = useAnimed();
-
   // Pontos, moedas e nível são calculados pela API
   const { data: tutor } = useTutor();
   const pontos = tutor?.pontosTotais ?? 0;
@@ -42,10 +39,6 @@ export function HomeScreen({ navigation }: Props) {
   const nivel = nivelPorPontos(pontos);
   const proximo = proximoNivel(pontos);
   const progresso = progressoNivel(pontos);
-
-  useEffect(() => {
-    registrarAcao('usoDiario', { unico: true });
-  }, [registrarAcao]);
 
   return (
     <ScrollView

@@ -30,7 +30,7 @@ const ROTULO_PLANO: Record<'gratuito' | 'intermediario' | 'premium', string> = {
 export function PerfilScreen({ navigation }: Props) {
   // Pontuação e nível são apurados na API; o plano segue local por ora
   const { data: tutor } = useTutor();
-  const { plano, registrarAcao } = useAnimed();
+  const { plano } = useAnimed();
 
   const [trocandoSenha, setTrocandoSenha] = useState(false);
   const [avisoSenha, setAvisoSenha] = useState<string | null>(null);
@@ -44,11 +44,8 @@ export function PerfilScreen({ navigation }: Props) {
   const { uri: fotoUri, escolherFoto } = useFotoPet(petPrincipal?.id ?? null);
 
   async function aoTocarNoAvatar() {
-    const eraPrimeira = await escolherFoto();
-    // A primeira foto de cada pet rende pontos, uma única vez.
-    if (eraPrimeira) {
-      registrarAcao('fotoPet', { unico: true });
-    }
+    // Os pontos da primeira foto são creditados pela API, dentro de useFotoPet
+    await escolherFoto();
   }
 
   return (

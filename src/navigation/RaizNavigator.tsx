@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { CadastroPetScreen } from '../screens/CadastroPetScreen';
 import { CriarContaScreen } from '../screens/CriarContaScreen';
 import { FormPetScreen } from '../screens/FormPetScreen';
 import { HistoricoScreen } from '../screens/HistoricoScreen';
@@ -77,11 +76,6 @@ export function RaizNavigator() {
             name="Vacinas"
             component={VacinasScreen}
             options={{ title: 'Vacinas' }}
-          />
-          <Stack.Screen
-            name="CadastroPet"
-            component={CadastroPetScreen}
-            options={{ title: 'Cadastro do pet' }}
           />
           <Stack.Screen name="Planos" component={PlanosScreen} options={{ title: 'Planos' }} />
           <Stack.Screen

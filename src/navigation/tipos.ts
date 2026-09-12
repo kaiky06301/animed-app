@@ -30,7 +30,6 @@ export type RaizParamList = {
   MeusPets: undefined;
   FormPet: { pet?: Pet };
   Vacinas: { idPet: number; nomePet: string };
-  CadastroPet: undefined;
   Planos: undefined;
   Historico: undefined;
   Medicamentos: undefined;
