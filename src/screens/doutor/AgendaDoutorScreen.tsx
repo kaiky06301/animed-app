@@ -8,6 +8,8 @@ import {
   Text,
   View,
 } from 'react-native';
+import { AcoesAtendimento } from '../../components/AcoesAtendimento';
+import { AgendaTranquila } from '../../components/AgendaTranquila';
 import { ConcluirAtendimento } from '../../components/ConcluirAtendimento';
 import { mensagemDoErro } from '../../api/cliente';
 import { useAgendaDoDia, useRegistrarFalta } from '../../hooks/useAgenda';
@@ -49,6 +51,16 @@ const ROTULOS_STATUS: Record<Atendimento['status'], string> = {
   NAO_COMPARECEU: 'Não compareceu',
 };
 
+/** Recortes da agenda do dia. */
+const FILTROS = [
+  { chave: 'TODOS', rotulo: 'Todos' },
+  { chave: 'AGENDADA', rotulo: 'A atender' },
+  { chave: 'REALIZADA', rotulo: 'Realizados' },
+  { chave: 'NAO_COMPARECEU', rotulo: 'Faltas' },
+] as const;
+
+type Filtro = (typeof FILTROS)[number]['chave'];
+
 /**
  * Agenda do veterinário.
  *
@@ -58,6 +70,8 @@ const ROTULOS_STATUS: Record<Atendimento['status'], string> = {
  */
 export function AgendaDoutorScreen() {
   const [dataEscolhida, setDataEscolhida] = useState(paraIso(new Date()));
+  const [filtro, setFiltro] = useState<Filtro>('TODOS');
+  const [aberto, setAberto] = useState<Atendimento | null>(null);
   const [aConcluir, setAConcluir] = useState<Atendimento | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
@@ -76,6 +90,7 @@ export function AgendaDoutorScreen() {
 
     try {
       await registrarFalta.mutateAsync(item.idConsulta);
+      setAberto(null);
       setAviso(`${item.nomePet} não compareceu. Os pontos do agendamento foram estornados.`);
     } catch (e) {
       setErro(mensagemDoErro(e, 'Não foi possível registrar a falta'));
@@ -91,10 +106,37 @@ export function AgendaDoutorScreen() {
   const atendimentos = agenda?.atendimentos ?? [];
   const realizados = atendimentos.filter((a) => a.status === 'REALIZADA').length;
 
+  const visiveis = filtro === 'TODOS'
+    ? atendimentos
+    : atendimentos.filter((a) => a.status === filtro);
+
+  /** Quantos atendimentos cada recorte tem, para o chip mostrar o número. */
+  function quantidade(chave: Filtro): number {
+    return chave === 'TODOS'
+      ? atendimentos.length
+      : atendimentos.filter((a) => a.status === chave).length;
+  }
+
   return (
     <ScrollView style={estilos.container} contentContainerStyle={estilos.conteudo}>
-      <Text style={estilos.titulo}>Agenda</Text>
-      <Text style={estilos.subtitulo}>{agenda?.veterinario ?? 'Clínica Animed'}</Text>
+      <View style={estilos.cabecalho}>
+        <View style={{ flex: 1 }}>
+          <Text style={estilos.titulo}>Agenda</Text>
+          <Text style={estilos.subtitulo}>{agenda?.veterinario ?? 'Clínica Animed'}</Text>
+        </View>
+
+        {!ehHoje && (
+          // Depois de navegar alguns dias, voltar de seta em seta cansa
+          <Pressable
+            onPress={() => setDataEscolhida(paraIso(new Date()))}
+            hitSlop={8}
+            style={({ pressed }) => [estilos.voltarHoje, pressed && { opacity: 0.7 }]}
+          >
+            <Ionicons name="today-outline" size={13} color={cores.primaria} />
+            <Text style={estilos.voltarHojeTexto}>Hoje</Text>
+          </Pressable>
+        )}
+      </View>
 
       <View style={estilos.navegacao}>
         <Pressable onPress={() => mudarDia(-1)} hitSlop={10} style={estilos.seta}>
@@ -103,6 +145,7 @@ export function AgendaDoutorScreen() {
 
         <View style={{ alignItems: 'center' }}>
           <Text style={estilos.dia}>{porExtenso(dataEscolhida)}</Text>
+
           {ehHoje && <Text style={estilos.hoje}>hoje</Text>}
         </View>
 
@@ -113,22 +156,74 @@ export function AgendaDoutorScreen() {
 
       <View style={estilos.resumo}>
         <View style={estilos.resumoItem}>
-          <Text style={estilos.resumoNumero}>{atendimentos.length}</Text>
-          <Text style={estilos.resumoTexto}>marcados</Text>
+          <View style={[estilos.resumoSelo, { backgroundColor: cores.laranjaSuave }]}>
+            <MaterialCommunityIcons name="calendar-month" size={18} color={cores.laranja} />
+          </View>
+          <View>
+            <Text style={estilos.resumoNumero}>{atendimentos.length}</Text>
+            <Text style={estilos.resumoTexto}>marcados</Text>
+          </View>
         </View>
+
         <View style={estilos.resumoDivisor} />
+
         <View style={estilos.resumoItem}>
-          <Text style={[estilos.resumoNumero, { color: cores.primaria }]}>{realizados}</Text>
-          <Text style={estilos.resumoTexto}>realizados</Text>
+          <View style={[estilos.resumoSelo, { backgroundColor: cores.primariaSuave }]}>
+            <Ionicons name="checkmark-circle" size={18} color={cores.primaria} />
+          </View>
+          <View>
+            <Text style={[estilos.resumoNumero, { color: cores.primaria }]}>{realizados}</Text>
+            <Text style={estilos.resumoTexto}>realizados</Text>
+          </View>
         </View>
+
         <View style={estilos.resumoDivisor} />
+
         <View style={estilos.resumoItem}>
-          <Text style={[estilos.resumoNumero, { color: cores.textoSecundario }]}>
-            {agenda?.horariosLivres ?? 0}
-          </Text>
-          <Text style={estilos.resumoTexto}>livres</Text>
+          <View style={[estilos.resumoSelo, { backgroundColor: cores.superficieAlt }]}>
+            <Ionicons name="close-circle" size={18} color={cores.textoSecundario} />
+          </View>
+          <View>
+            <Text style={[estilos.resumoNumero, { color: cores.textoSecundario }]}>
+              {agenda?.horariosLivres ?? 0}
+            </Text>
+            <Text style={estilos.resumoTexto}>horários livres</Text>
+          </View>
         </View>
       </View>
+
+      {atendimentos.length > 0 && (
+        <View style={estilos.filtros}>
+          {FILTROS.map((opcao) => {
+            const total = quantidade(opcao.chave);
+            const ativo = filtro === opcao.chave;
+
+            // Recorte sem nenhum atendimento no dia não vira botão morto
+            if (total === 0 && opcao.chave !== 'TODOS') return null;
+
+            return (
+              <Pressable
+                key={opcao.chave}
+                onPress={() => setFiltro(opcao.chave)}
+                style={({ pressed }) => [
+                  estilos.filtro,
+                  ativo && estilos.filtroAtivo,
+                  pressed && { opacity: 0.8 },
+                ]}
+              >
+                <Text style={[estilos.filtroTexto, ativo && estilos.filtroTextoAtivo]}>
+                  {opcao.rotulo}
+                </Text>
+                <View style={[estilos.filtroSelo, ativo && estilos.filtroSeloAtivo]}>
+                  <Text style={[estilos.filtroNumero, ativo && estilos.filtroTextoAtivo]}>
+                    {total}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       {!!erro && <Text style={estilos.erro}>{erro}</Text>}
 
@@ -144,22 +239,55 @@ export function AgendaDoutorScreen() {
 
       {isLoading ? (
         <ActivityIndicator color={cores.primaria} style={{ marginTop: espacamentos.lg }} />
-      ) : atendimentos.length === 0 ? (
-        <View style={estilos.vazio}>
-          <MaterialCommunityIcons name="calendar-blank" size={34} color={cores.textoSuave} />
-          <Text style={estilos.vazioTexto}>Nenhum atendimento marcado neste dia</Text>
+      ) : visiveis.length === 0 ? (
+        <View style={estilos.vazioCentralizado}>
+          {/* Lista vazia por causa do filtro não é dia vazio */}
+          <AgendaTranquila
+            titulo={
+              atendimentos.length > 0
+                ? 'Nada neste recorte'
+                : 'Dia livre por aqui!'
+            }
+            texto={
+              atendimentos.length > 0
+                ? 'O dia tem atendimentos, mas nenhum\nneste filtro. Toque em Todos.'
+                : 'Nenhum atendimento marcado\npara esta data.'
+            }
+          />
         </View>
       ) : (
-        atendimentos.map((item) => (
-          <View key={item.idConsulta} style={estilos.cartao}>
+        visiveis.map((item) => (
+          <Pressable
+            key={item.idConsulta}
+            onPress={() => setAberto(item)}
+            style={({ pressed }) => [estilos.cartao, pressed && { opacity: 0.85 }]}
+          >
             <View style={estilos.horaColuna}>
               <Text style={estilos.hora}>{item.horario.slice(0, 5)}</Text>
+              <View style={estilos.duracao}>
+                <Ionicons name="time-outline" size={12} color={cores.textoSuave} />
+                <Text style={estilos.duracaoTexto}>30 min</Text>
+              </View>
+            </View>
+
+            <View style={estilos.avatar}>
+              <Ionicons name="paw" size={22} color={cores.textoSecundario} />
             </View>
 
             <View style={{ flex: 1 }}>
-              <Text style={estilos.pet}>{item.nomePet}</Text>
+              <View style={estilos.tituloLinha}>
+                <Text style={estilos.pet}>{item.nomePet}</Text>
+                <Ionicons name="chevron-forward" size={18} color={cores.textoSuave} />
+              </View>
               <Text style={estilos.tutor}>Tutor: {item.nomeTutor}</Text>
-              <Text style={estilos.motivo}>{item.motivo}</Text>
+              <View style={estilos.motivoLinha}>
+                <MaterialCommunityIcons
+                  name="stethoscope"
+                  size={13}
+                  color={cores.textoSuave}
+                />
+                <Text style={estilos.motivo}>{item.motivo}</Text>
+              </View>
 
               <View style={estilos.rodape}>
                 <View
@@ -172,32 +300,22 @@ export function AgendaDoutorScreen() {
                     {ROTULOS_STATUS[item.status]}
                   </Text>
                 </View>
-
-                {item.status === 'AGENDADA' && (
-                  <View style={estilos.acoes}>
-                    <Pressable
-                      onPress={() => marcarFalta(item)}
-                      disabled={registrarFalta.isPending}
-                      style={({ pressed }) => [estilos.falta, pressed && { opacity: 0.7 }]}
-                    >
-                      <Ionicons name="close-circle" size={15} color={cores.erro} />
-                      <Text style={estilos.faltaTexto}>Não veio</Text>
-                    </Pressable>
-
-                    <Pressable
-                      onPress={() => setAConcluir(item)}
-                      style={({ pressed }) => [estilos.concluir, pressed && { opacity: 0.7 }]}
-                    >
-                      <Ionicons name="checkmark-circle" size={15} color={cores.primaria} />
-                      <Text style={estilos.concluirTexto}>Concluir</Text>
-                    </Pressable>
-                  </View>
-                )}
               </View>
             </View>
-          </View>
+          </Pressable>
         ))
       )}
+
+      <AcoesAtendimento
+        atendimento={aberto}
+        onFechar={() => setAberto(null)}
+        onConcluir={(item) => {
+          setAberto(null);
+          setAConcluir(item);
+        }}
+        onFalta={marcarFalta}
+        registrandoFalta={registrarFalta.isPending}
+      />
 
       <ConcluirAtendimento
         atendimento={aConcluir}
@@ -210,10 +328,48 @@ export function AgendaDoutorScreen() {
 
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
-  conteudo: { padding: espacamentos.md, paddingBottom: espacamentos.xxl },
+  conteudo: {
+    padding: espacamentos.md,
+    paddingBottom: espacamentos.xxl,
+    // Deixa o conteúdo esticar: sem isto o estado vazio fica colado no topo
+    flexGrow: 1,
+  },
+  vazioCentralizado: { flex: 1, justifyContent: 'center' },
+
+  filtros: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: espacamentos.xs,
+    marginBottom: espacamentos.md,
+  },
+  filtro: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    paddingHorizontal: espacamentos.sm + 2,
+    paddingVertical: 7,
+    borderRadius: raios.md,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    backgroundColor: cores.superficie,
+  },
+  filtroAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
+  filtroTexto: { fontSize: 12, fontWeight: '700', color: cores.textoSecundario },
+  filtroTextoAtivo: { color: cores.primaria },
+  filtroSelo: {
+    minWidth: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
+    backgroundColor: cores.superficieAlt,
+    alignItems: 'center',
+  },
+  filtroSeloAtivo: { backgroundColor: 'transparent' },
+  filtroNumero: { fontSize: 11, fontWeight: '800', color: cores.textoSuave },
 
   titulo: { ...tipografia.titulo, color: cores.textoPrincipal },
-  subtitulo: { fontSize: 13, color: cores.primaria, marginBottom: espacamentos.md },
+  subtitulo: { fontSize: 13, color: cores.primaria },
 
   navegacao: {
     flexDirection: 'row',
@@ -234,6 +390,25 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
   },
   dia: { fontSize: 15, fontWeight: '700', color: cores.textoPrincipal },
+  cabecalho: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: espacamentos.sm,
+    marginBottom: espacamentos.md,
+  },
+  voltarHoje: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: espacamentos.sm,
+    paddingVertical: 7,
+    borderRadius: raios.md,
+    borderWidth: 1,
+    borderColor: cores.primaria,
+    backgroundColor: cores.primariaSuave,
+    marginTop: 4,
+  },
+  voltarHojeTexto: { fontSize: 12, color: cores.primaria, fontWeight: '700' },
   hoje: { fontSize: 11, color: cores.laranja, fontWeight: '700' },
 
   resumo: {
@@ -247,7 +422,20 @@ const estilos = StyleSheet.create({
     marginTop: espacamentos.sm,
     marginBottom: espacamentos.md,
   },
-  resumoItem: { flex: 1, alignItems: 'center' },
+  resumoItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: espacamentos.sm,
+  },
+  resumoSelo: {
+    width: 34,
+    height: 34,
+    borderRadius: raios.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   resumoDivisor: { width: 1, height: 28, backgroundColor: cores.borda },
   resumoNumero: { fontSize: 18, fontWeight: '800', color: cores.laranja },
   resumoTexto: { fontSize: 11, color: cores.textoSuave },
@@ -269,9 +457,23 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
   },
   hora: { fontSize: 15, fontWeight: '800', color: cores.textoPrincipal },
+  duracao: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  duracaoTexto: { fontSize: 11, color: cores.textoSuave },
+
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: cores.superficieAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: espacamentos.sm,
+  },
+  tituloLinha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  motivoLinha: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
   pet: { fontSize: 15, fontWeight: '700', color: cores.textoPrincipal },
   tutor: { fontSize: 12, color: cores.textoSecundario, marginTop: 1 },
-  motivo: { fontSize: 12, color: cores.textoSuave, marginTop: 2 },
+  motivo: { fontSize: 12, color: cores.textoSuave },
 
   rodape: {
     flexDirection: 'row',
@@ -285,33 +487,8 @@ const estilos = StyleSheet.create({
     borderRadius: raios.pill,
   },
   statusTexto: { fontSize: 11, fontWeight: '700' },
-  concluir: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    borderWidth: 1,
-    borderColor: cores.primaria,
-    borderRadius: raios.pill,
-    paddingHorizontal: espacamentos.sm + 2,
-    paddingVertical: 4,
-  },
-  concluirTexto: { fontSize: 12, fontWeight: '700', color: cores.primaria },
-  acoes: { flexDirection: 'row', gap: espacamentos.xs },
-  falta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    borderWidth: 1,
-    borderColor: cores.erro,
-    borderRadius: raios.pill,
-    paddingHorizontal: espacamentos.sm + 2,
-    paddingVertical: 4,
-  },
-  faltaTexto: { fontSize: 12, fontWeight: '700', color: cores.erro },
   erro: { color: cores.erro, fontSize: 12, marginBottom: espacamentos.sm },
 
-  vazio: { alignItems: 'center', gap: espacamentos.sm, paddingVertical: espacamentos.xl },
-  vazioTexto: { color: cores.textoSecundario, fontSize: 13 },
   aviso: {
     flexDirection: 'row',
     alignItems: 'center',

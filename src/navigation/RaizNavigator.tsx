@@ -11,6 +11,7 @@ import { PlanosScreen } from '../screens/PlanosScreen';
 import { VacinasScreen } from '../screens/VacinasScreen';
 import { useAuth } from '../state/AuthContext';
 import { cores } from '../theme/cores';
+import { CadastrarPessoaScreen } from '../screens/doutor/CadastrarPessoaScreen';
 import { FichaPacienteScreen } from '../screens/doutor/FichaPacienteScreen';
 import { AbasDoutorNavigator } from './AbasDoutorNavigator';
 import { AbasNavigator } from './AbasNavigator';
@@ -62,6 +63,11 @@ export function RaizNavigator() {
             name="FichaPaciente"
             component={FichaPacienteScreen}
             options={{ title: 'Ficha do paciente' }}
+          />
+          <Stack.Screen
+            name="CadastrarPessoa"
+            component={CadastrarPessoaScreen}
+            options={{ title: 'Cadastrar' }}
           />
         </Stack.Group>
       ) : autenticado ? (

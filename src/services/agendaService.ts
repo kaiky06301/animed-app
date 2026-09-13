@@ -11,18 +11,30 @@ import {
 } from './tipos';
 
 /** Horários livres da clínica em um dia. */
-export async function disponibilidade(data: string): Promise<DisponibilidadeAgenda> {
+export async function disponibilidade(
+  data: string,
+  idVeterinario?: number,
+): Promise<DisponibilidadeAgenda> {
   const { data: resposta } = await api.get<DisponibilidadeAgenda>(
     '/api/agenda/disponibilidade',
-    { params: { data } },
+    { params: { data, idVeterinario } },
   );
   return resposta;
 }
 
-/** Dias do mês em que a clínica ainda tem horário livre. */
-export async function mes(ano: number, numeroDoMes: number): Promise<MesDaAgenda> {
+/**
+ * Dias do mês com horário livre.
+ *
+ * Sem idVeterinario a API responde pela agenda de quem está mais tranquilo;
+ * informando, responde pela agenda daquele profissional.
+ */
+export async function mes(
+  ano: number,
+  numeroDoMes: number,
+  idVeterinario?: number,
+): Promise<MesDaAgenda> {
   const { data } = await api.get<MesDaAgenda>('/api/agenda/disponibilidade/mes', {
-    params: { ano, mes: numeroDoMes },
+    params: { ano, mes: numeroDoMes, idVeterinario },
   });
   return data;
 }

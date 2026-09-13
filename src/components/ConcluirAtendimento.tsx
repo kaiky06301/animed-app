@@ -11,11 +11,13 @@ import {
   View,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
-import { useConcluirAtendimento, useDisponibilidade } from '../hooks/useAgenda';
+import { useConcluirAtendimento, useDisponibilidade, useMesDaAgenda } from '../hooks/useAgenda';
 import { useMedicamentos } from '../hooks/useMedicamentos';
 import type { Atendimento } from '../services/tipos';
+import { useAuth } from '../state/AuthContext';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 import { Botao } from './Botao';
+import { CampoData } from './CampoData';
 import { PrescreverMedicamento } from './PrescreverMedicamento';
 
 interface Props {
@@ -24,28 +26,22 @@ interface Props {
   onConcluido: (mensagem: string) => void;
 }
 
-const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-const MESES = [
-  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
-  'jul', 'ago', 'set', 'out', 'nov', 'dez',
-];
-
 function paraIso(data: Date): string {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(
     data.getDate(),
   ).padStart(2, '0')}`;
 }
 
-/** Dias oferecidos para o retorno, a partir de uma semana depois. */
-function diasDeRetorno(quantidade: number): Date[] {
-  const inicio = new Date();
-  inicio.setDate(inicio.getDate() + 7);
-
-  return Array.from({ length: quantidade }, (_, i) => {
-    const dia = new Date(inicio);
-    dia.setDate(inicio.getDate() + i);
-    return dia;
-  });
+/**
+ * Data sugerida para o retorno.
+ *
+ * Uma semana à frente: tempo suficiente para o tratamento surtir efeito
+ * sem que o caso saia do radar. O veterinário muda no calendário.
+ */
+function daquiUmaSemana(): string {
+  const dia = new Date();
+  dia.setDate(dia.getDate() + 7);
+  return paraIso(dia);
 }
 
 /**
@@ -56,10 +52,8 @@ function diasDeRetorno(quantidade: number): Date[] {
  * que horário da própria agenda ele fica reservado.
  */
 export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Props) {
-  const dias = useMemo(() => diasDeRetorno(21), []);
-
   const [querRetorno, setQuerRetorno] = useState(false);
-  const [dataRetorno, setDataRetorno] = useState(paraIso(dias[0]));
+  const [dataRetorno, setDataRetorno] = useState(daquiUmaSemana);
   const [horario, setHorario] = useState<string | null>(null);
   const [orientacao, setOrientacao] = useState('');
   const [diagnostico, setDiagnostico] = useState('');
@@ -72,7 +66,30 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
   const { data: medicamentos } = useMedicamentos(atendimento?.idPet ?? null);
   const emCurso = (medicamentos ?? []).filter((m) => m.emCurso);
 
-  const { data: agenda, isLoading } = useDisponibilidade(querRetorno ? dataRetorno : null);
+  // O retorno é reservado na agenda de quem está concluindo, não na da clínica
+  const { usuario } = useAuth();
+  const idVeterinario = usuario?.idUsuario;
+
+  const { data: agenda, isLoading } = useDisponibilidade(
+    querRetorno ? dataRetorno : null,
+    idVeterinario,
+  );
+
+  const [ano, mesDoRetorno] = dataRetorno.split('-').map(Number);
+  const { data: calendario } = useMesDaAgenda(ano, mesDoRetorno, idVeterinario);
+
+  /** Dias do mês em que este veterinário ainda tem horário livre. */
+  const diasDisponiveis = useMemo(
+    () => new Set((calendario?.dias ?? []).filter((d) => d.disponivel).map((d) => d.data)),
+    [calendario],
+  );
+
+  /** Quantos horários sobram em cada dia, para o calendário mostrar. */
+  const horariosPorDia = useMemo(
+    () => new Map((calendario?.dias ?? []).map((d) => [d.data, d.horariosLivres])),
+    [calendario],
+  );
+
   const concluir = useConcluirAtendimento();
 
   useEffect(() => {
@@ -226,36 +243,19 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
 
             {querRetorno && (
               <>
-                <Text style={estilos.rotulo}>Data do retorno</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: espacamentos.xs }}
-                >
-                  {dias.map((dia) => {
-                    const iso = paraIso(dia);
-                    const ativo = dataRetorno === iso;
-
-                    return (
-                      <Pressable
-                        key={iso}
-                        onPress={() => {
-                          setDataRetorno(iso);
-                          setHorario(null);
-                        }}
-                        style={[estilos.dia, ativo && estilos.diaAtivo]}
-                      >
-                        <Text style={[estilos.diaSemana, ativo && { color: cores.primaria }]}>
-                          {DIAS_SEMANA[dia.getDay()]}
-                        </Text>
-                        <Text style={[estilos.diaNumero, ativo && { color: cores.primaria }]}>
-                          {dia.getDate()}
-                        </Text>
-                        <Text style={estilos.diaMes}>{MESES[dia.getMonth()]}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
+                <CampoData
+                  rotulo="Data do retorno"
+                  iconeRotulo="calendar-outline"
+                  icone="calendar-outline"
+                  valor={dataRetorno}
+                  diasDisponiveis={diasDisponiveis}
+                  horariosPorDia={horariosPorDia}
+                  onChange={(iso) => {
+                    setDataRetorno(iso);
+                    // O horário escolhido pertence ao dia anterior: some junto
+                    setHorario(null);
+                  }}
+                />
 
                 <Text style={estilos.rotulo}>Horário</Text>
 
@@ -380,19 +380,6 @@ const estilos = StyleSheet.create({
   escolhaTexto: { fontSize: 13, color: cores.textoSecundario, fontWeight: '600' },
   escolhaTextoAtivo: { color: cores.textoPrincipal },
 
-  dia: {
-    width: 54,
-    paddingVertical: espacamentos.sm,
-    borderRadius: raios.md,
-    borderWidth: 1,
-    borderColor: cores.borda,
-    backgroundColor: cores.superficieAlt,
-    alignItems: 'center',
-  },
-  diaAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
-  diaSemana: { color: cores.textoSuave, fontSize: 11, fontWeight: '700' },
-  diaNumero: { color: cores.textoPrincipal, fontSize: 16, fontWeight: '800' },
-  diaMes: { color: cores.textoSuave, fontSize: 10 },
 
   horarios: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamentos.xs + 2 },
   horario: {

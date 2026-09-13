@@ -16,6 +16,9 @@ export const cores = {
   laranja: '#FF8A3D',
   laranjaSuave: 'rgba(255, 138, 61, 0.15)',
 
+  /** Traço das ilustrações de estado vazio */
+  azulSuave: '#8FB4D9',
+
   dourado: '#FFC857',
   douradoSuave: 'rgba(255, 200, 87, 0.18)',
 

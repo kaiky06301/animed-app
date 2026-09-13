@@ -17,6 +17,10 @@ interface Props {
   bloquearFuturo?: boolean;
   /** Exibe o atalho para hoje no calendário. */
   atalhoHoje?: boolean;
+  /** Restringe o calendário aos dias com vaga na agenda. */
+  diasDisponiveis?: Set<string>;
+  /** Horários livres por dia, exibidos no calendário. */
+  horariosPorDia?: Map<string, number>;
   /**
    * Informa o texto digitado e se ele forma uma data válida.
    * Permite ao formulário barrar o envio de datas impossíveis em vez de
@@ -39,6 +43,8 @@ export function CampoData({
   icone,
   bloquearFuturo = false,
   atalhoHoje = true,
+  diasDisponiveis,
+  horariosPorDia,
   onTexto,
 }: Props) {
   const [texto, setTexto] = useState(isoParaBr(valor));
@@ -108,6 +114,8 @@ export function CampoData({
         onFechar={() => setCalendarioAberto(false)}
         bloquearFuturo={bloquearFuturo}
         atalhoHoje={atalhoHoje}
+        diasDisponiveis={diasDisponiveis}
+        horariosPorDia={horariosPorDia}
       />
     </View>
   );

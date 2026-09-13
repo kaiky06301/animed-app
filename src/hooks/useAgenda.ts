@@ -2,19 +2,19 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as agendaService from '../services/agendaService';
 
 /** Horários livres do dia selecionado. */
-export function useDisponibilidade(data: string | null) {
+export function useDisponibilidade(data: string | null, idVeterinario?: number) {
   return useQuery({
-    queryKey: ['agenda', data],
-    queryFn: () => agendaService.disponibilidade(data as string),
+    queryKey: ['agenda', data, idVeterinario ?? null],
+    queryFn: () => agendaService.disponibilidade(data as string, idVeterinario),
     enabled: !!data,
   });
 }
 
 /** Calendário do mês: quais dias ainda têm vaga. */
-export function useMesDaAgenda(ano: number, mes: number) {
+export function useMesDaAgenda(ano: number, mes: number, idVeterinario?: number) {
   return useQuery({
-    queryKey: ['agenda', 'mes', ano, mes],
-    queryFn: () => agendaService.mes(ano, mes),
+    queryKey: ['agenda', 'mes', ano, mes, idVeterinario ?? null],
+    queryFn: () => agendaService.mes(ano, mes, idVeterinario),
   });
 }
 

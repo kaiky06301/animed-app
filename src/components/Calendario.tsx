@@ -10,6 +10,14 @@ interface Props {
   onSelecionar: (iso: string) => void;
   onFechar: () => void;
   bloquearFuturo?: boolean;
+  /**
+   * Dias em ISO que aceitam marcação. Quando informado, o que estiver de
+   * fora fica apagado e não responde ao toque: o calendário passa a mostrar
+   * a agenda real em vez de datas que a clínica não atende.
+   */
+  diasDisponiveis?: Set<string>;
+  /** Quantos horários cada dia ainda tem livre, para exibir sob o número. */
+  horariosPorDia?: Map<string, number>;
   /** Exibe o atalho para a data de hoje. */
   atalhoHoje?: boolean;
 }
@@ -42,6 +50,8 @@ export function Calendario({
   onSelecionar,
   onFechar,
   bloquearFuturo = false,
+  diasDisponiveis,
+  horariosPorDia,
   atalhoHoje = true,
 }: Props) {
   const selecionada = valor ? new Date(`${valor}T12:00:00`) : null;
@@ -102,6 +112,18 @@ export function Calendario({
     const iso = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     onSelecionar(iso);
     onFechar();
+  }
+
+  /** ISO do dia dentro do mês exibido. */
+  function isoDoDia(dia: number): string {
+    return `${mesExibido.getFullYear()}-${String(mesExibido.getMonth() + 1)
+      .padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+  }
+
+  /** Dia sem vaga na agenda de quem está marcando. */
+  function semVaga(dia: number): boolean {
+    if (!diasDisponiveis) return false;
+    return !diasDisponiveis.has(isoDoDia(dia));
   }
 
   function estaNoFuturo(dia: number): boolean {
@@ -262,7 +284,8 @@ export function Calendario({
                 return <View key={`vazio-${indice}`} style={estilos.celula} />;
               }
 
-              const indisponivel = estaNoFuturo(dia);
+              const indisponivel = estaNoFuturo(dia) || semVaga(dia);
+              const livres = horariosPorDia?.get(isoDoDia(dia));
               const selecionado = ehSelecionada(dia);
 
               return (
@@ -286,6 +309,10 @@ export function Calendario({
                   >
                     {dia}
                   </Text>
+
+                  {!!livres && !selecionado && (
+                    <Text style={estilos.vagas}>{livres}</Text>
+                  )}
                 </Pressable>
               );
             })}
@@ -392,6 +419,7 @@ const estilos = StyleSheet.create({
   celulaHoje: { borderWidth: 1, borderColor: cores.primariaSuave },
   diaTexto: { color: cores.textoPrincipal, fontSize: 14 },
   diaTextoSelecionado: { color: '#04261C', fontWeight: '800' },
+  vagas: { fontSize: 8, color: cores.primaria, marginTop: -2, fontWeight: '700' },
   diaTextoIndisponivel: { color: cores.textoSuave, opacity: 0.4 },
   rodape: {
     flexDirection: 'row',
