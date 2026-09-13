@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -11,9 +11,23 @@ import {
 } from 'react-native';
 import { mensagemDoErro } from '../../api/cliente';
 import { CadastrarPessoa } from '../../components/CadastrarPessoa';
+import { CampoTexto } from '../../components/CampoTexto';
 import { useMudarAcesso, useUsuarios } from '../../hooks/useUsuarios';
 import type { UsuarioDaClinica } from '../../services/usuarioService';
 import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
+
+type Filtro = 'TODOS' | 'DOUTOR' | 'TUTOR';
+
+/** Recortes da lista de acessos. */
+const FILTROS: {
+  chave: Filtro;
+  rotulo: string;
+  icone: keyof typeof Ionicons.glyphMap;
+}[] = [
+  { chave: 'TODOS', rotulo: 'Todos', icone: 'people' },
+  { chave: 'DOUTOR', rotulo: 'Veterinários', icone: 'medkit' },
+  { chave: 'TUTOR', rotulo: 'Tutores', icone: 'person' },
+];
 
 /**
  * Quem tem acesso ao sistema da clínica.
@@ -27,12 +41,29 @@ export function CadastrarPessoaScreen() {
   const mudarAcesso = useMudarAcesso();
 
   const [cadastrando, setCadastrando] = useState(false);
+  const [busca, setBusca] = useState('');
+  const [filtro, setFiltro] = useState<Filtro>('TODOS');
   const [aviso, setAviso] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
-  const veterinarios = (usuarios ?? []).filter((u) => u.role === 'DOUTOR');
-  const tutores = (usuarios ?? []).filter((u) => u.role === 'TUTOR');
   const ativos = (usuarios ?? []).filter((u) => u.ativo).length;
+
+  const encontrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+
+    return (usuarios ?? []).filter((usuario) => {
+      if (filtro !== 'TODOS' && usuario.role !== filtro) return false;
+      if (!termo) return true;
+
+      return (
+        usuario.nome.toLowerCase().includes(termo)
+        || usuario.email.toLowerCase().includes(termo)
+      );
+    });
+  }, [usuarios, busca, filtro]);
+
+  const veterinarios = encontrados.filter((u) => u.role === 'DOUTOR');
+  const tutores = encontrados.filter((u) => u.role === 'TUTOR');
 
   /**
    * Liga ou desliga o acesso de alguém.
@@ -72,6 +103,54 @@ export function CadastrarPessoaScreen() {
         </Pressable>
       </View>
 
+      <CampoTexto
+        rotulo=""
+        icone="search"
+        placeholder="Buscar por nome ou e-mail"
+        value={busca}
+        onChangeText={setBusca}
+        autoCapitalize="none"
+      />
+
+      {/* Recortes da lista: o filtro sem ninguém não vira botão morto */}
+      <View style={estilos.filtros}>
+        {FILTROS.map((opcao) => {
+          const total = opcao.chave === 'TODOS'
+            ? (usuarios ?? []).length
+            : (usuarios ?? []).filter((u) => u.role === opcao.chave).length;
+
+          if (total === 0 && opcao.chave !== 'TODOS') return null;
+
+          const ativo = filtro === opcao.chave;
+
+          return (
+            <Pressable
+              key={opcao.chave}
+              onPress={() => setFiltro(opcao.chave)}
+              style={({ pressed }) => [
+                estilos.filtro,
+                ativo && estilos.filtroAtivo,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Ionicons
+                name={opcao.icone}
+                size={14}
+                color={ativo ? cores.primaria : cores.textoSecundario}
+              />
+              <Text style={[estilos.filtroTexto, ativo && estilos.filtroTextoAtivo]}>
+                {opcao.rotulo}
+              </Text>
+              <View style={[estilos.filtroSelo, ativo && estilos.filtroSeloAtivo]}>
+                <Text style={[estilos.filtroNumero, ativo && estilos.filtroTextoAtivo]}>
+                  {total}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+
       {!!aviso && (
         <View style={estilos.avisoOk}>
           <Ionicons name="checkmark-circle" size={17} color={cores.primaria} />
@@ -90,25 +169,42 @@ export function CadastrarPessoaScreen() {
         <ActivityIndicator color={cores.primaria} style={{ marginTop: espacamentos.xl }} />
       ) : (
         <>
-          <Secao titulo="Corpo clínico" quantidade={veterinarios.length} />
-          {veterinarios.map((usuario) => (
-            <Pessoa
-              key={usuario.id}
-              usuario={usuario}
-              ocupado={mudarAcesso.isPending}
-              onAlternar={alternarAcesso}
-            />
-          ))}
+          {veterinarios.length > 0 && (
+            <>
+              <Secao titulo="Corpo clínico" quantidade={veterinarios.length} />
+              {veterinarios.map((usuario) => (
+                <Pessoa
+                  key={usuario.id}
+                  usuario={usuario}
+                  ocupado={mudarAcesso.isPending}
+                  onAlternar={alternarAcesso}
+                />
+              ))}
+            </>
+          )}
 
-          <Secao titulo="Tutores" quantidade={tutores.length} />
-          {tutores.map((usuario) => (
-            <Pessoa
-              key={usuario.id}
-              usuario={usuario}
-              ocupado={mudarAcesso.isPending}
-              onAlternar={alternarAcesso}
-            />
-          ))}
+          {tutores.length > 0 && (
+            <>
+              <Secao titulo="Tutores" quantidade={tutores.length} />
+              {tutores.map((usuario) => (
+                <Pessoa
+                  key={usuario.id}
+                  usuario={usuario}
+                  ocupado={mudarAcesso.isPending}
+                  onAlternar={alternarAcesso}
+                />
+              ))}
+            </>
+          )}
+
+          {encontrados.length === 0 && (
+            <View style={estilos.vazio}>
+              <Ionicons name="search" size={30} color={cores.textoSuave} />
+              <Text style={estilos.vazioTexto}>
+                Nenhuma conta encontrada para esta busca.
+              </Text>
+            </View>
+          )}
         </>
       )}
 
@@ -223,6 +319,40 @@ const estilos = StyleSheet.create({
     marginTop: espacamentos.md,
   },
   avisoErroTexto: { flex: 1, fontSize: 13, color: cores.erro, lineHeight: 18 },
+
+  filtros: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: espacamentos.xs,
+  },
+  filtro: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    paddingHorizontal: espacamentos.sm + 2,
+    paddingVertical: 8,
+    borderRadius: raios.md,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    backgroundColor: cores.superficie,
+  },
+  filtroAtivo: { borderColor: cores.primaria, backgroundColor: cores.primariaSuave },
+  filtroTexto: { fontSize: 12, fontWeight: '700', color: cores.textoSecundario },
+  filtroTextoAtivo: { color: cores.primaria },
+  filtroSelo: {
+    minWidth: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
+    backgroundColor: cores.superficieAlt,
+    alignItems: 'center',
+  },
+  filtroSeloAtivo: { backgroundColor: 'transparent' },
+  filtroNumero: { fontSize: 11, fontWeight: '800', color: cores.textoSuave },
+
+  vazio: { alignItems: 'center', gap: espacamentos.sm, paddingVertical: espacamentos.xl },
+  vazioTexto: { fontSize: 13, color: cores.textoSecundario, textAlign: 'center' },
 
   secao: {
     flexDirection: 'row',
