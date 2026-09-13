@@ -9,6 +9,7 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from 'react-native';
@@ -58,9 +59,10 @@ export function FichaPacienteScreen({ route }: Props) {
   const [nomeVacina, setNomeVacina] = useState('');
   const [dataAplicacao, setDataAplicacao] = useState(HOJE);
   const [proximaDose, setProximaDose] = useState('');
+  const [temReforco, setTemReforco] = useState(false);
   const [lote, setLote] = useState('');
   const [dataDigitada, setDataDigitada] = useState({ texto: '', valida: true });
-  const [erros, setErros] = useState<{ nome?: string; data?: string }>({});
+  const [erros, setErros] = useState<{ nome?: string; data?: string; reforco?: string }>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [pontosCreditados, setPontosCreditados] = useState(false);
   const [aExcluir, setAExcluir] = useState<Vacina | null>(null);
@@ -78,6 +80,7 @@ export function FichaPacienteScreen({ route }: Props) {
     setNomeVacina('');
     setDataAplicacao(HOJE);
     setProximaDose('');
+    setTemReforco(false);
     setLote('');
     setErros({});
     setErroGeral(null);
@@ -94,6 +97,7 @@ export function FichaPacienteScreen({ route }: Props) {
     setNomeVacina(vacina.nomeVacina);
     setDataAplicacao(vacina.dataAplicacao);
     setProximaDose(vacina.dataProximaDose ?? '');
+    setTemReforco(!!vacina.dataProximaDose);
     setLote(vacina.lote ?? '');
     setErros({});
     setErroGeral(null);
@@ -108,6 +112,12 @@ export function FichaPacienteScreen({ route }: Props) {
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(dataAplicacao)) {
       novos.data = 'Informe a data da aplicação no formato DD/MM/AAAA';
     }
+
+    // Marcar que há reforço sem dizer quando deixaria o tutor sem aviso
+    if (temReforco && !/^\d{4}-\d{2}-\d{2}$/.test(proximaDose)) {
+      novos.reforco = 'Informe a data do reforço';
+    }
+
     setErros(novos);
     return Object.keys(novos).length === 0;
   }
@@ -234,12 +244,38 @@ export function FichaPacienteScreen({ route }: Props) {
                   erro={erros.data}
                   bloquearFuturo
                 />
-                <CampoData
-                  rotulo="Próxima dose (opcional)"
-                  icone="alarm-outline"
-                  valor={proximaDose}
-                  onChange={setProximaDose}
-                />
+                {/* Nem toda vacina tem reforço: pergunta antes de pedir a data */}
+                <View style={estilos.temReforco}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={estilos.temReforcoTitulo}>Esta vacina tem reforço?</Text>
+                    <Text style={estilos.temReforcoTexto}>
+                      {temReforco
+                        ? 'O tutor será avisado quando a data chegar'
+                        : 'Dose única, sem reforço programado'}
+                    </Text>
+                  </View>
+
+                  <Switch
+                    value={temReforco}
+                    onValueChange={(marcado) => {
+                      setTemReforco(marcado);
+                      // Desmarcar limpa a data: reforço que não existe não tem quando
+                      if (!marcado) setProximaDose('');
+                    }}
+                    trackColor={{ false: cores.superficieAlt, true: cores.primariaSuave }}
+                    thumbColor={temReforco ? cores.primaria : cores.textoSuave}
+                  />
+                </View>
+
+                {temReforco && (
+                  <CampoData
+                    rotulo="Data do reforço"
+                    icone="alarm-outline"
+                    valor={proximaDose}
+                    onChange={setProximaDose}
+                    erro={erros.reforco}
+                  />
+                )}
                 <CampoTexto
                   rotulo="Lote (opcional)"
                   iconeRotulo="barcode-outline"
@@ -425,6 +461,20 @@ export function FichaPacienteScreen({ route }: Props) {
 }
 
 const estilos = StyleSheet.create({
+  temReforco: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    backgroundColor: cores.superficie,
+    borderRadius: raios.md,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    padding: espacamentos.sm + 2,
+    marginBottom: espacamentos.sm,
+  },
+  temReforcoTitulo: { fontSize: 13, fontWeight: '700', color: cores.textoPrincipal },
+  temReforcoTexto: { fontSize: 11, color: cores.textoSuave, marginTop: 2 },
+
   fundo: { flex: 1, backgroundColor: cores.fundo },
   avisoReceita: {
     flexDirection: 'row',

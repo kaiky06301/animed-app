@@ -70,6 +70,10 @@ export function CampoTexto({
             multiline={multiline}
             secureTextEntry={senha && !revelada}
             autoCapitalize={senha ? 'none' : rest.autoCapitalize}
+            // O navegador tenta adivinhar o que cada campo guarda e chega a
+            // tratar "lote" como dado de pagamento, exibindo aviso sobre
+            // conexão insegura. Nenhum campo daqui é de cartão.
+            autoComplete={rest.autoComplete ?? 'off'}
             {...rest}
             style={[estilos.entrada, style]}
           />
