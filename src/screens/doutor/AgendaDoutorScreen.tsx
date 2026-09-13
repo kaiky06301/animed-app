@@ -308,6 +308,7 @@ export function AgendaDoutorScreen() {
 
       <AcoesAtendimento
         atendimento={aberto}
+        data={dataEscolhida}
         onFechar={() => setAberto(null)}
         onConcluir={(item) => {
           setAberto(null);

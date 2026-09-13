@@ -1,11 +1,13 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Atendimento } from '../services/tipos';
 import { cores, espacamentos, raios, tipografia } from '../theme/cores';
 
 interface Props {
   atendimento: Atendimento | null;
+  /** Dia que a agenda está exibindo, em ISO — o atendimento só traz o horário. */
+  data: string;
   onFechar: () => void;
   onConcluir: (atendimento: Atendimento) => void;
   onFalta: (atendimento: Atendimento) => void;
@@ -22,12 +24,29 @@ interface Props {
  */
 export function AcoesAtendimento({
   atendimento,
+  data,
   onFechar,
   onConcluir,
   onFalta,
   registrandoFalta = false,
 }: Props) {
   const resolvido = atendimento?.status !== 'AGENDADA';
+
+  /**
+   * Atendimento que ainda não começou não se resolve.
+   *
+   * Concluir significa que o animal foi atendido; marcar falta significa que a
+   * hora passou e ninguém apareceu. Nenhuma das duas afirmações cabe sobre um
+   * horário no futuro — e as duas mexem na pontuação do tutor.
+   */
+  const aindaNaoComecou = useMemo(() => {
+    if (!atendimento) return false;
+
+    const [hora, minuto] = atendimento.horario.split(':').map(Number);
+    const [ano, mes, dia] = data.split('-').map(Number);
+
+    return new Date(ano, mes - 1, dia, hora, minuto) > new Date();
+  }, [atendimento, data]);
 
   return (
     <Modal
@@ -75,6 +94,14 @@ export function AcoesAtendimento({
             <Text style={estilos.resolvido}>
               Este atendimento já foi encerrado e não aceita novas ações.
             </Text>
+          ) : aindaNaoComecou ? (
+            <View style={estilos.aguardando}>
+              <Ionicons name="time-outline" size={17} color={cores.laranja} />
+              <Text style={estilos.aguardandoTexto}>
+                O horário ainda não chegou. Concluir ou registrar falta só depois
+                que o atendimento começar.
+              </Text>
+            </View>
           ) : (
             <>
               <Pressable
@@ -182,6 +209,22 @@ const estilos = StyleSheet.create({
   },
   faltaTitulo: { fontSize: 14, fontWeight: '700', color: cores.erro },
   faltaTexto: { fontSize: 11, color: cores.textoSuave, marginTop: 1 },
+
+  aguardando: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: espacamentos.xs,
+    backgroundColor: cores.laranjaSuave,
+    borderRadius: raios.md,
+    padding: espacamentos.sm + 2,
+    marginTop: espacamentos.md,
+  },
+  aguardandoTexto: {
+    flex: 1,
+    fontSize: 12.5,
+    color: cores.laranja,
+    lineHeight: 18,
+  },
 
   resolvido: {
     fontSize: 12,
