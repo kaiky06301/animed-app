@@ -280,7 +280,7 @@ export function FichaPacienteScreen({ route }: Props) {
                   rotulo="Lote (opcional)"
                   iconeRotulo="barcode-outline"
                   icone="barcode-outline"
-                  placeholder="Número do lote"
+                  placeholder="Ex: LT-2026-443"
                   value={lote}
                   onChangeText={setLote}
                 />

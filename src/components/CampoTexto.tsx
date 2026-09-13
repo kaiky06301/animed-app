@@ -70,9 +70,11 @@ export function CampoTexto({
             multiline={multiline}
             secureTextEntry={senha && !revelada}
             autoCapitalize={senha ? 'none' : rest.autoCapitalize}
-            // O navegador tenta adivinhar o que cada campo guarda e chega a
-            // tratar "lote" como dado de pagamento, exibindo aviso sobre
-            // conexão insegura. Nenhum campo daqui é de cartão.
+            // O navegador adivinha o conteúdo de cada campo pelo texto em
+            // volta e chega a tratar campo com "número" como cartão de
+            // crédito. Desligar ajuda, mas o Chrome ignora a instrução nesses
+            // casos: o que resolve de fato é não escrever "número" em campo
+            // que não é de pagamento.
             autoComplete={rest.autoComplete ?? 'off'}
             {...rest}
             style={[estilos.entrada, style]}
