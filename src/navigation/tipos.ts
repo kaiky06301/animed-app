@@ -13,6 +13,7 @@ export type AbasParamList = {
 export type AbasDoutorParamList = {
   AgendaDoutor: undefined;
   Pacientes: undefined;
+  CadastrarPessoa: undefined;
   PerfilDoutor: undefined;
 };
 
@@ -26,7 +27,6 @@ export type RaizParamList = {
 
   // Fluxo autenticado do veterinário
   AbasDoutor: NavigatorScreenParams<AbasDoutorParamList>;
-  CadastrarPessoa: undefined;
   FichaPaciente: { idPet: number; nomePet: string; especie?: string };
   MeusPets: undefined;
   FormPet: { pet?: Pet };

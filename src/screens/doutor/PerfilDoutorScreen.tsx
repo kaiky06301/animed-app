@@ -1,19 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../../components/Botao';
 import { Cartao } from '../../components/Cartao';
 import { TrocarSenha } from '../../components/TrocarSenha';
-import type { RaizParamList } from '../../navigation/tipos';
 import { usePacientes } from '../../hooks/usePacientes';
 import { useAuth } from '../../state/AuthContext';
 import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
 
 /** Perfil do veterinário, com um resumo da carteira de pacientes. */
 export function PerfilDoutorScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RaizParamList>>();
   const { usuario, sair } = useAuth();
   const [trocandoSenha, setTrocandoSenha] = useState(false);
   const [avisoSenha, setAvisoSenha] = useState<string | null>(null);
@@ -47,21 +43,6 @@ export function PerfilDoutorScreen() {
         <Linha icone="trophy-outline" texto="Cada registro credita pontos ao tutor" />
         <Linha icone="people-outline" texto="Consultar a carteira de pacientes da clínica" />
         <Linha icone="person-add-outline" texto="Cadastrar tutores e outros veterinários" />
-      </Cartao>
-
-      <Cartao>
-        <Text style={estilos.secao}>Administração da clínica</Text>
-        <Text style={estilos.explicacao}>
-          Quem chega ao balcão é o tutor, e é a clínica que abre o acesso dele.
-        </Text>
-
-        <Botao
-          titulo="Cadastrar tutor ou veterinário"
-          variante="sutil"
-          icone="person-add-outline"
-          onPress={() => navigation.navigate('CadastrarPessoa')}
-          estilo={{ marginTop: espacamentos.sm }}
-        />
       </Cartao>
 
       <Cartao>

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { AgendaDoutorScreen } from '../screens/doutor/AgendaDoutorScreen';
+import { CadastrarPessoaScreen } from '../screens/doutor/CadastrarPessoaScreen';
 import { PacientesScreen } from '../screens/doutor/PacientesScreen';
 import { PerfilDoutorScreen } from '../screens/doutor/PerfilDoutorScreen';
 import { cores } from '../theme/cores';
@@ -12,6 +13,7 @@ const Abas = createBottomTabNavigator<AbasDoutorParamList>();
 const ICONES: Record<keyof AbasDoutorParamList, keyof typeof Ionicons.glyphMap> = {
   AgendaDoutor: 'calendar',
   Pacientes: 'people',
+  CadastrarPessoa: 'person-add',
   PerfilDoutor: 'person-circle',
 };
 
@@ -45,6 +47,11 @@ export function AbasDoutorNavigator() {
         name="Pacientes"
         component={PacientesScreen}
         options={{ title: 'Pacientes' }}
+      />
+      <Abas.Screen
+        name="CadastrarPessoa"
+        component={CadastrarPessoaScreen}
+        options={{ title: 'Cadastrar' }}
       />
       <Abas.Screen
         name="PerfilDoutor"

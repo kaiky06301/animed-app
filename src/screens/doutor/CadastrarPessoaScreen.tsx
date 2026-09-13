@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { useMutation } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import {
@@ -33,7 +32,6 @@ const TAMANHO_MINIMO_DA_SENHA = 6;
  * vindo de quem já é veterinário — a validação está lá, não aqui.
  */
 export function CadastrarPessoaScreen() {
-  const navigation = useNavigation();
 
   const [perfil, setPerfil] = useState<Perfil>('TUTOR');
   const [nome, setNome] = useState('');
@@ -228,11 +226,6 @@ export function CadastrarPessoaScreen() {
             vale também para quem chamar a API diretamente.
           </Text>
         )}
-
-        <Pressable onPress={() => navigation.goBack()} style={estilos.voltar}>
-          <Ionicons name="chevron-back" size={15} color={cores.textoSecundario} />
-          <Text style={estilos.voltarTexto}>Voltar</Text>
-        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -305,12 +298,4 @@ const estilos = StyleSheet.create({
     marginTop: espacamentos.sm,
   },
 
-  voltar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    alignSelf: 'flex-start',
-    marginTop: espacamentos.md,
-  },
-  voltarTexto: { fontSize: 13, color: cores.textoSecundario, fontWeight: '600' },
 });
