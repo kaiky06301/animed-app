@@ -1,6 +1,6 @@
 # 🐾 Animed — Aplicativo Mobile
 
-Aplicativo do **Animed**, solução do nosso squad para o Challenge da empresa parceira **Clyvo VET** — FIAP 2026, turma 2TDS.
+Aplicativo do **Animed**, solução do nosso squad para o Challenge da empresa parceira **Clyvo VET** — FIAP 2026, turma 2TDSR.
 
 O Animed ataca um problema que a própria Clyvo VET descreveu: a jornada de saúde do pet é **episódica e reativa**. O tutor só procura a clínica quando algo já aconteceu. O aplicativo transforma cada ato de cuidado em pontos, os pontos em nível, e o nível em **desconto real** em pet shops parceiros — dando ao tutor um motivo concreto para cuidar antes de o problema aparecer.
 
@@ -22,7 +22,9 @@ O Animed ataca um problema que a própria Clyvo VET descreveu: a jornada de saú
 
 ## 🎬 Vídeo de demonstração
 
-> _(link a inserir)_
+**https://youtu.be/XrCdoGZwX0Y**
+
+O vídeo mostra a navegação entre telas, a autenticação contra a API Java, o CRUD consumindo a API e o aplicativo em uso real.
 
 ---
 
