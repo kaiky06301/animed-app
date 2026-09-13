@@ -2,17 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from 'react-native';
 import { mensagemDoErro } from '../../api/cliente';
 import { Botao } from '../../components/Botao';
 import { CampoTexto } from '../../components/CampoTexto';
+import { useMudarAcesso, useUsuarios } from '../../hooks/useUsuarios';
 import * as authService from '../../services/authService';
 import type { Perfil } from '../../services/tipos';
 import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
@@ -56,7 +59,33 @@ export function CadastrarPessoaScreen() {
       }),
   });
 
+  const { data: usuarios, isLoading: carregandoUsuarios } = useUsuarios();
+  const mudarAcesso = useMudarAcesso();
+
   const ehVeterinario = perfil === 'DOUTOR';
+
+  /**
+   * Liga ou desliga o acesso de alguém.
+   *
+   * A conta não é apagada: o histórico clínico que a pessoa produziu continua
+   * com autoria. Regras como "não desativar a si mesmo" vivem na API.
+   */
+  async function alternarAcesso(
+    usuario: { id: number; nome: string; ativo: boolean },
+    ligado: boolean,
+  ) {
+    setErro(null);
+    setSucesso(null);
+
+    try {
+      await mudarAcesso.mutateAsync({ id: usuario.id, ativo: ligado });
+      setSucesso(
+        `Acesso de ${usuario.nome} ${ligado ? 'liberado' : 'desligado'}.`,
+      );
+    } catch (e) {
+      setErro(mensagemDoErro(e, 'Não foi possível alterar o acesso'));
+    }
+  }
 
   function limpar() {
     setNome('');
@@ -226,6 +255,60 @@ export function CadastrarPessoaScreen() {
             vale também para quem chamar a API diretamente.
           </Text>
         )}
+
+        {/* Quem tem acesso hoje, e o que cada um pode fazer */}
+        <View style={estilos.tituloLista}>
+          <Text style={estilos.secao}>Acessos da clínica</Text>
+          {!!usuarios && (
+            <Text style={estilos.contagem}>
+              {usuarios.filter((u) => u.ativo).length} de {usuarios.length} ativos
+            </Text>
+          )}
+        </View>
+
+        {carregandoUsuarios ? (
+          <ActivityIndicator color={cores.primaria} style={{ marginTop: espacamentos.md }} />
+        ) : (
+          (usuarios ?? []).map((usuario) => (
+            <View
+              key={usuario.id}
+              style={[estilos.pessoa, !usuario.ativo && estilos.pessoaInativa]}
+            >
+              <View
+                style={[
+                  estilos.selo,
+                  { backgroundColor: usuario.role === 'DOUTOR'
+                      ? cores.primariaSuave : cores.superficieAlt },
+                ]}
+              >
+                <Ionicons
+                  name={usuario.role === 'DOUTOR' ? 'medkit' : 'person'}
+                  size={17}
+                  color={usuario.role === 'DOUTOR' ? cores.primaria : cores.textoSecundario}
+                />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={estilos.pessoaNome}>{usuario.nome}</Text>
+                <Text style={estilos.pessoaEmail}>{usuario.email}</Text>
+                <Text style={estilos.pessoaDetalhe}>
+                  {usuario.role === 'DOUTOR'
+                    ? 'Veterinário'
+                    : `Tutor · ${usuario.pets} ${usuario.pets === 1 ? 'pet' : 'pets'}`}
+                  {!usuario.ativo && ' · acesso desligado'}
+                </Text>
+              </View>
+
+              <Switch
+                value={usuario.ativo}
+                onValueChange={(ligado) => alternarAcesso(usuario, ligado)}
+                disabled={mudarAcesso.isPending}
+                trackColor={{ false: cores.superficieAlt, true: cores.primariaSuave }}
+                thumbColor={usuario.ativo ? cores.primaria : cores.textoSuave}
+              />
+            </View>
+          ))
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -290,6 +373,40 @@ const estilos = StyleSheet.create({
     marginBottom: espacamentos.sm,
   },
   avisoErroTexto: { flex: 1, fontSize: 13, color: cores.erro, lineHeight: 18 },
+
+  tituloLista: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: espacamentos.xs,
+    marginTop: espacamentos.lg,
+    marginBottom: espacamentos.sm,
+  },
+  secao: { ...tipografia.subtitulo, color: cores.textoPrincipal, flex: 1 },
+  contagem: { fontSize: 12, color: cores.textoSuave },
+
+  pessoa: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.sm,
+    backgroundColor: cores.fundoElevado,
+    borderRadius: raios.md,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    padding: espacamentos.sm + 2,
+    marginBottom: espacamentos.xs,
+  },
+  // Conta desligada continua na lista, apagada: some do sistema, não do histórico
+  pessoaInativa: { opacity: 0.55 },
+  selo: {
+    width: 36,
+    height: 36,
+    borderRadius: raios.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pessoaNome: { fontSize: 14, fontWeight: '700', color: cores.textoPrincipal },
+  pessoaEmail: { fontSize: 12, color: cores.textoSecundario, marginTop: 1 },
+  pessoaDetalhe: { fontSize: 11, color: cores.textoSuave, marginTop: 2 },
 
   nota: {
     fontSize: 11,
