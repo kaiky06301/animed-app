@@ -16,15 +16,14 @@ import { useMudarAcesso, useUsuarios } from '../../hooks/useUsuarios';
 import type { UsuarioDaClinica } from '../../services/usuarioService';
 import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
 
-type Filtro = 'TODOS' | 'DOUTOR' | 'TUTOR';
+/** Nulo significa sem recorte: a lista mostra todo mundo. */
+type Filtro = 'DOUTOR' | 'TUTOR' | null;
 
-/** Recortes da lista de acessos. */
 const FILTROS: {
-  chave: Filtro;
+  chave: Exclude<Filtro, null>;
   rotulo: string;
   icone: keyof typeof Ionicons.glyphMap;
 }[] = [
-  { chave: 'TODOS', rotulo: 'Todos', icone: 'people' },
   { chave: 'DOUTOR', rotulo: 'Veterinários', icone: 'medkit' },
   { chave: 'TUTOR', rotulo: 'Tutores', icone: 'person' },
 ];
@@ -42,7 +41,7 @@ export function CadastrarPessoaScreen() {
 
   const [cadastrando, setCadastrando] = useState(false);
   const [busca, setBusca] = useState('');
-  const [filtro, setFiltro] = useState<Filtro>('TODOS');
+  const [filtro, setFiltro] = useState<Filtro>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -52,7 +51,7 @@ export function CadastrarPessoaScreen() {
     const termo = busca.trim().toLowerCase();
 
     return (usuarios ?? []).filter((usuario) => {
-      if (filtro !== 'TODOS' && usuario.role !== filtro) return false;
+      if (filtro && usuario.role !== filtro) return false;
       if (!termo) return true;
 
       return (
@@ -115,18 +114,15 @@ export function CadastrarPessoaScreen() {
       {/* Recortes da lista: o filtro sem ninguém não vira botão morto */}
       <View style={estilos.filtros}>
         {FILTROS.map((opcao) => {
-          const total = opcao.chave === 'TODOS'
-            ? (usuarios ?? []).length
-            : (usuarios ?? []).filter((u) => u.role === opcao.chave).length;
-
-          if (total === 0 && opcao.chave !== 'TODOS') return null;
+          const total = (usuarios ?? []).filter((u) => u.role === opcao.chave).length;
+          if (total === 0) return null;
 
           const ativo = filtro === opcao.chave;
 
           return (
             <Pressable
               key={opcao.chave}
-              onPress={() => setFiltro(opcao.chave)}
+              onPress={() => setFiltro(ativo ? null : opcao.chave)}
               style={({ pressed }) => [
                 estilos.filtro,
                 ativo && estilos.filtroAtivo,
