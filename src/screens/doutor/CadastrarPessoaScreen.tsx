@@ -19,6 +19,15 @@ import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
 /** Nulo significa sem recorte: a lista mostra todo mundo. */
 type Filtro = 'DOUTOR' | 'TUTOR' | null;
 
+/**
+ * Recorte com que a tela abre.
+ *
+ * Quem entra aqui é o veterinário, e a primeira pergunta costuma ser sobre a
+ * própria equipe — quem está ativo no corpo clínico. A lista de tutores é
+ * longa e fica a um toque de distância.
+ */
+const FILTRO_INICIAL: Filtro = 'DOUTOR';
+
 const FILTROS: {
   chave: Exclude<Filtro, null>;
   rotulo: string;
@@ -41,7 +50,7 @@ export function CadastrarPessoaScreen() {
 
   const [cadastrando, setCadastrando] = useState(false);
   const [busca, setBusca] = useState('');
-  const [filtro, setFiltro] = useState<Filtro>(null);
+  const [filtro, setFiltro] = useState<Filtro>(FILTRO_INICIAL);
   const [aviso, setAviso] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
