@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { mensagemDoErro } from '../../api/cliente';
 import { Botao } from '../../components/Botao';
+import { ConfirmarAcao } from '../../components/ConfirmarAcao';
 import { PrescreverMedicamento } from '../../components/PrescreverMedicamento';
 import { useEncerrarMedicamento, useMedicamentos } from '../../hooks/useMedicamentos';
 import { CampoData } from '../../components/CampoData';
@@ -62,6 +63,7 @@ export function FichaPacienteScreen({ route }: Props) {
   const [erros, setErros] = useState<{ nome?: string; data?: string }>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [pontosCreditados, setPontosCreditados] = useState(false);
+  const [aExcluir, setAExcluir] = useState<Vacina | null>(null);
   const [prescrevendo, setPrescrevendo] = useState(false);
   const [avisoReceita, setAvisoReceita] = useState<string | null>(null);
 
@@ -139,29 +141,22 @@ export function FichaPacienteScreen({ route }: Props) {
     }
   }
 
-  function confirmarExclusao(vacina: Vacina) {
-    const remover = async () => {
-      try {
-        await excluir.mutateAsync(vacina.id);
-      } catch (e) {
-        const msg = mensagemDoErro(e);
-        if (Platform.OS === 'web') window.alert(msg);
-        else Alert.alert('Não foi possível excluir', msg);
-      }
-    };
+  // A confirmação é uma janela do próprio aplicativo: o Alert do React Native
+  // vira window.confirm na web, e o navegador desenha uma caixa que destoa.
+  function pedirExclusao(vacina: Vacina) {
+    setAExcluir(vacina);
+  }
 
-    const pergunta = `Excluir o registro da vacina ${vacina.nomeVacina}?`;
+  async function confirmarExclusao() {
+    if (!aExcluir) return;
 
-    if (Platform.OS === 'web') {
-      // eslint-disable-next-line no-alert
-      if (window.confirm(pergunta)) void remover();
-      return;
+    try {
+      await excluir.mutateAsync(aExcluir.id);
+      setAExcluir(null);
+    } catch (e) {
+      setAExcluir(null);
+      setErroGeral(mensagemDoErro(e, 'Não foi possível excluir o registro'));
     }
-
-    Alert.alert('Excluir registro', pergunta, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: remover },
-    ]);
   }
 
   if (isLoading) {
@@ -375,7 +370,7 @@ export function FichaPacienteScreen({ route }: Props) {
                 <Ionicons name="create-outline" size={16} color={cores.textoSecundario} />
                 <Text style={estilos.acaoTexto}>Editar</Text>
               </Pressable>
-              <Pressable style={estilos.acao} onPress={() => confirmarExclusao(item)}>
+              <Pressable style={estilos.acao} onPress={() => pedirExclusao(item)}>
                 <Ionicons name="trash-outline" size={16} color={cores.erro} />
                 <Text style={[estilos.acaoTexto, { color: cores.erro }]}>Excluir</Text>
               </Pressable>
@@ -413,6 +408,17 @@ export function FichaPacienteScreen({ route }: Props) {
         nomePet={nomePet}
         onFechar={() => setPrescrevendo(false)}
         onPrescrito={setAvisoReceita}
+      />
+
+      <ConfirmarAcao
+        visivel={!!aExcluir}
+        titulo="Excluir registro"
+        mensagem={`Excluir o registro da vacina ${aExcluir?.nomeVacina ?? ''}?`}
+        rotuloConfirmar="Excluir"
+        destrutiva
+        carregando={excluir.isPending}
+        onConfirmar={confirmarExclusao}
+        onCancelar={() => setAExcluir(null)}
       />
     </View>
   );

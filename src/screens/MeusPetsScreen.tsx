@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,6 +18,7 @@ import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { IconePet } from '../components/IconePet';
 import { mensagemDoErro } from '../api/cliente';
+import { ConfirmarAcao } from '../components/ConfirmarAcao';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { useExcluirPet, usePets } from '../hooks/usePets';
 import type { RaizParamList } from '../navigation/tipos';
@@ -36,38 +37,31 @@ export function MeusPetsScreen() {
   const { data: pets, isLoading, isRefetching, refetch, isError, error } = usePets(idTutor);
   const excluir = useExcluirPet();
 
-  function confirmarExclusao(pet: Pet) {
-    const remover = async () => {
-      try {
-        await excluir.mutateAsync(pet.id);
-      } catch (e) {
-        avisar('Não foi possível excluir', mensagemDoErro(e));
-      }
-    };
+  const [aExcluir, setAExcluir] = useState<Pet | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
 
-    // No navegador o Alert do React Native não oferece botões,
-    // então usamos a confirmação nativa da própria página.
-    if (Platform.OS === 'web') {
-      // eslint-disable-next-line no-alert
-      if (window.confirm(`Excluir ${pet.nome}? Esta ação não pode ser desfeita.`)) {
-        void remover();
-      }
-      return;
-    }
-
-    Alert.alert('Excluir pet', `Excluir ${pet.nome}? Esta ação não pode ser desfeita.`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: remover },
-    ]);
+  function pedirExclusao(pet: Pet) {
+    // A confirmação é uma janela do próprio aplicativo: o Alert do React
+    // Native vira window.confirm na web, e o navegador desenha uma caixa que
+    // destoa de tudo o mais.
+    setAExcluir(pet);
   }
 
-  function avisar(titulo: string, mensagem: string) {
-    if (Platform.OS === 'web') {
-      // eslint-disable-next-line no-alert
-      window.alert(`${titulo}\n\n${mensagem}`);
-      return;
+  async function confirmarExclusao() {
+    if (!aExcluir) return;
+
+    try {
+      await excluir.mutateAsync(aExcluir.id);
+      setAExcluir(null);
+    } catch (e) {
+      setAExcluir(null);
+      avisar('Não foi possível excluir', mensagemDoErro(e));
     }
-    Alert.alert(titulo, mensagem);
+  }
+
+  // O erro aparece na própria tela: caixa do navegador destoa do aplicativo
+  function avisar(_titulo: string, mensagem: string) {
+    setErro(mensagem);
   }
 
   if (isLoading) {
@@ -156,7 +150,7 @@ export function MeusPetsScreen() {
                 <Text style={estilos.acaoTexto}>Editar</Text>
               </Pressable>
 
-              <Pressable style={estilos.acao} onPress={() => confirmarExclusao(item)}>
+              <Pressable style={estilos.acao} onPress={() => pedirExclusao(item)}>
                 <Ionicons name="trash-outline" size={16} color={cores.erro} />
                 <Text style={[estilos.acaoTexto, { color: cores.erro }]}>Excluir</Text>
               </Pressable>
@@ -171,6 +165,27 @@ export function MeusPetsScreen() {
           onPress={() => navigation.navigate('FormPet', { pet: undefined })}
         />
       </View>
+
+      {!!erro && (
+        <View style={estilos.avisoErro}>
+          <Ionicons name="alert-circle" size={17} color={cores.erro} />
+          <Text style={estilos.avisoErroTexto}>{erro}</Text>
+          <Pressable onPress={() => setErro(null)} hitSlop={10}>
+            <Ionicons name="close" size={15} color={cores.textoSecundario} />
+          </Pressable>
+        </View>
+      )}
+
+      <ConfirmarAcao
+        visivel={!!aExcluir}
+        titulo="Excluir pet"
+        mensagem={`Excluir ${aExcluir?.nome ?? ''}? Esta ação não pode ser desfeita.`}
+        rotuloConfirmar="Excluir"
+        destrutiva
+        carregando={excluir.isPending}
+        onConfirmar={confirmarExclusao}
+        onCancelar={() => setAExcluir(null)}
+      />
     </View>
   );
 }
@@ -191,6 +206,18 @@ function AvatarPet({ idPet, especie }: { idPet: number; especie: string }) {
 }
 
 const estilos = StyleSheet.create({
+  avisoErro: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacamentos.xs,
+    backgroundColor: 'rgba(255,107,107,0.12)',
+    borderRadius: raios.md,
+    padding: espacamentos.sm + 2,
+    marginHorizontal: espacamentos.md,
+    marginBottom: espacamentos.sm,
+  },
+  avisoErroTexto: { flex: 1, fontSize: 13, color: cores.erro, lineHeight: 18 },
+
   fundo: { flex: 1, backgroundColor: cores.fundo },
   centro: {
     flex: 1,
