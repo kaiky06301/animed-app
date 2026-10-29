@@ -1,11 +1,10 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DetalheAtendimento } from '../components/DetalheAtendimento';
 import { IconePet } from '../components/IconePet';
 import { SemAtendimentos } from '../components/SemAtendimentos';
-import * as consultaService from '../services/consultaService';
+import { useConsultasDoPet } from '../hooks/useConsultas';
 import type { Consulta } from '../services/tipos';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -116,11 +115,7 @@ export function AgendamentosScreen() {
   const { petAtivo } = usePetAtivo();
   const [aberto, setAberto] = useState<number | null>(null);
 
-  const { data: consultas, isLoading } = useQuery({
-    queryKey: ['consultas', petAtivo?.id],
-    queryFn: () => consultaService.listarConsultasDoPet(petAtivo!.id),
-    enabled: !!petAtivo,
-  });
+  const { data: consultas, isLoading } = useConsultasDoPet(petAtivo?.id);
 
   const agora = new Date();
 

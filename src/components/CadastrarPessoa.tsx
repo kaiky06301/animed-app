@@ -1,6 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation } from '@tanstack/react-query';
-import { useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -13,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
-import * as authService from '../services/authService';
+import { useCadastrarPessoa } from '../hooks/useConta';
 import type { Perfil } from '../services/tipos';
 import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
 import { useEstilos, useTema } from '../state/TemaContext';
@@ -43,7 +41,6 @@ const TAMANHO_MINIMO_DA_SENHA = 6;
 export function CadastrarPessoa({ visivel, onFechar, onCadastrado }: Props) {
   const { cores } = useTema();
   const estilos = useEstilos(criarEstilos);
-  const client = useQueryClient();
 
   const [perfil, setPerfil] = useState<Perfil>('TUTOR');
   const [nome, setNome] = useState('');
@@ -55,17 +52,7 @@ export function CadastrarPessoa({ visivel, onFechar, onCadastrado }: Props) {
   const [erros, setErros] = useState<Record<string, string>>({});
   const [erro, setErro] = useState<string | null>(null);
 
-  const cadastrar = useMutation({
-    mutationFn: () =>
-      authService.cadastrarPessoa({
-        nome: nome.trim(),
-        email: email.trim(),
-        senha,
-        cpf: cpf.trim(),
-        telefone: telefone.trim() || undefined,
-        role: perfil,
-      }),
-  });
+  const cadastrar = useCadastrarPessoa();
 
   const ehVeterinario = perfil === 'DOUTOR';
 
@@ -99,8 +86,14 @@ export function CadastrarPessoa({ visivel, onFechar, onCadastrado }: Props) {
     setErro(null);
 
     try {
-      await cadastrar.mutateAsync();
-      void client.invalidateQueries({ queryKey: ['usuarios'] });
+      await cadastrar.mutateAsync({
+        nome: nome.trim(),
+        email: email.trim(),
+        senha,
+        cpf: cpf.trim(),
+        telefone: telefone.trim() || undefined,
+        role: perfil,
+      });
 
       onCadastrado(
         `${ehVeterinario ? 'Veterinário' : 'Tutor'} ${nome.trim()} cadastrado. `

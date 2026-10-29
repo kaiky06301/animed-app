@@ -17,8 +17,7 @@ import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { IconePet } from '../components/IconePet';
 import { useFotoPet } from '../hooks/useFotoPet';
-import { useQuery } from '@tanstack/react-query';
-import * as consultaService from '../services/consultaService';
+import { useConsultasDoPet } from '../hooks/useConsultas';
 import { usePet } from '../hooks/usePet';
 import { useTutor } from '../hooks/useTutor';
 import { useVacinas } from '../hooks/useVacinas';
@@ -67,10 +66,7 @@ export function VacinasScreen({ route }: Props) {
     return Array.from(encontrados).sort((a, b) => Number(b) - Number(a));
   }, [vacinas]);
 
-  const { data: atendimentos } = useQuery({
-    queryKey: ['consultas', idPet],
-    queryFn: () => consultaService.listarConsultasDoPet(idPet),
-  });
+  const { data: atendimentos } = useConsultasDoPet(idPet);
 
   /** Vacinações já marcadas, pelo nome da vacina. */
   const jaMarcadas = useMemo(() => {

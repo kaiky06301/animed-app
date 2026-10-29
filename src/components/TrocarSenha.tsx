@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
-import * as authService from '../services/authService';
+import { useTrocarSenha } from '../hooks/useConta';
 import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
 import { useEstilos, useTema } from '../state/TemaContext';
 import { Botao } from './Botao';
@@ -33,9 +32,7 @@ export function TrocarSenha({ visivel, onFechar, onTrocada }: Props) {
   const [erros, setErros] = useState<{ atual?: string; nova?: string; conf?: string }>({});
   const [erro, setErro] = useState<string | null>(null);
 
-  const trocar = useMutation({
-    mutationFn: () => authService.trocarSenha(atual, nova),
-  });
+  const trocar = useTrocarSenha();
 
   useEffect(() => {
     if (visivel) {
@@ -63,7 +60,7 @@ export function TrocarSenha({ visivel, onFechar, onTrocada }: Props) {
     setErro(null);
 
     try {
-      await trocar.mutateAsync();
+      await trocar.mutateAsync({ atual, nova });
       onTrocada('Senha alterada. Use a nova no próximo acesso.');
       onFechar();
     } catch (e) {

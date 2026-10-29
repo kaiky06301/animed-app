@@ -1,5 +1,4 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
-import * as consultaService from '../services/consultaService';
+import { useConsultasDoPet } from '../hooks/useConsultas';
 import { useAgendar, useDisponibilidade, useMesDaAgenda } from '../hooks/useAgenda';
 import type { AgendamentoConfirmado, Pet } from '../services/tipos';
 import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
@@ -100,11 +99,7 @@ export function AgendarAtendimento({
   const { data: calendario } = useMesDaAgenda(ano, mes + 1);
 
   /** Atendimentos que este pet já tem marcados. */
-  const { data: doPet } = useQuery({
-    queryKey: ['consultas', pet?.id],
-    queryFn: () => consultaService.listarConsultasDoPet(pet!.id),
-    enabled: !!pet && visivel,
-  });
+  const { data: doPet } = useConsultasDoPet(pet?.id, visivel);
   const { data: agenda, isLoading } = useDisponibilidade(visivel ? dataEscolhida : null);
   const agendar = useAgendar();
 
