@@ -28,6 +28,17 @@ O vídeo mostra a navegação entre telas, a autenticação contra a API Java, o
 
 ---
 
+## 🆕 Sprint 4 — o que entrou
+
+| Recurso | Como funciona |
+|---------|---------------|
+| 🌗 **Tema claro e escuro** | Segue o tema do celular (`useColorScheme`). No **Perfil** o usuário escolhe *Sistema*, *Claro* ou *Escuro*, e a escolha fica salva no AsyncStorage. As cores saem do `TemaContext`, e cada tela monta o próprio `StyleSheet` com a paleta atual. |
+| 🔔 **Notificações locais** | `expo-notifications`, disparadas por eventos reais do app. Ver [Notificações](#-notificações). |
+| ℹ️ **Sobre o App** | Mostra a versão e o **hash do commit** de onde o app publicado foi gerado, para conferir com este repositório. |
+| 🧱 **Hooks isolados da UI** | Nenhuma tela usa TanStack Query direto: consultas e mutações ficam em `src/hooks/`. |
+
+---
+
 ## 🏛️ Arquitetura
 
 O aplicativo não guarda regra de negócio: pontuação, níveis, disponibilidade de agenda e validações vivem na API Java. Isso é proposital — as mesmas regras precisam valer para o app do tutor e para a área do veterinário, e uma regra duplicada é uma regra que vai divergir.
@@ -38,7 +49,8 @@ graph TD
         TELAS["Telas<br/>tutor · veterinário"]
         HOOKS["Hooks<br/>TanStack Query"]
         SERVICES["Services<br/>axios"]
-        ESTADO["Contextos<br/>sessão · pet ativo"]
+        ESTADO["Contextos<br/>sessão · pet ativo · tema"]
+        NOTIF["Notificações locais<br/>expo-notifications"]
     end
 
     subgraph API["☕ API (Spring Boot)"]
@@ -48,11 +60,12 @@ graph TD
     end
 
     BANCO[("🗄️ Oracle / H2")]
-    STORAGE[("📦 AsyncStorage<br/>token · pet ativo · foto")]
+    STORAGE[("📦 AsyncStorage<br/>token · pet ativo · foto · tema")]
 
     TELAS --> HOOKS
     TELAS --> ESTADO
     HOOKS --> SERVICES
+    HOOKS --> NOTIF
     SERVICES -->|"HTTP + JWT"| CTRL
     ESTADO --> STORAGE
     CTRL --> SVC
@@ -67,7 +80,8 @@ graph TD
 | **Telas** | Só apresentação e interação | `src/screens/` |
 | **Hooks** | Cache, revalidação e estado de carregamento | `src/hooks/` |
 | **Services** | Fala HTTP com a API, um arquivo por recurso | `src/services/` |
-| **Contextos** | Sessão do usuário e pet selecionado | `src/state/` |
+| **Contextos** | Sessão do usuário, pet selecionado e tema | `src/state/` |
+| **Notificações** | Agenda e cancela os lembretes do celular | `src/services/notificacaoService.ts` |
 | **Componentes** | Peças reaproveitadas entre telas | `src/components/` |
 
 ---
@@ -160,6 +174,21 @@ O registro sempre acontece — o histórico clínico precisa refletir a realidad
 
 ---
 
+## 🔔 Notificações
+
+Lembretes **locais**: o próprio celular agenda e exibe os avisos, então eles funcionam mesmo sem internet. Todos nascem de um evento real do sistema, e o toque no aviso leva à tela certa, já com o pet do lembrete selecionado.
+
+| Evento que dispara | Aviso | Ao tocar |
+|--------------------|-------|----------|
+| Tutor **registra uma dose** | "Hora do remédio de Rex 💊", agendado para a próxima dose (horário calculado pela API) | Abre **Medicamentos** |
+| Veterinário **prescreve um remédio** e a dose já está liberada | Aviso imediato assim que o tutor abre o app ("Dose atrasada" quando passou da hora) | Abre **Medicamentos** |
+| Vacina salva **com data de reforço** | "Reforço de vacina amanhã 💉", às 9h da véspera | Abre **Vacinas** do pet |
+| Tratamento encerrado ou vacina excluída | Lembrete pendente é cancelado | — |
+
+Cada dose é avisada uma única vez, e reagendar substitui o lembrete anterior do mesmo medicamento. A lógica fica em `notificacaoService.ts` e no hook `useLembretes.ts`. No navegador os lembretes ficam desligados, porque a web não tem notificação local.
+
+---
+
 ## 📱 Telas
 
 ### Tutor
@@ -174,7 +203,8 @@ O registro sempre acontece — o histórico clínico precisa refletir a realidad
 | **Vacinas** | Carteira por ano, reforço vencido e agendamento da aplicação |
 | **Recompensas** | Vitrine dos parceiros, desconto do nível e compra com moedas |
 | **Histórico** | Extrato de pontuação, com estornos |
-| **Perfil** | Dados, foto do pet, plano, troca de senha |
+| **Perfil** | Dados, foto do pet, plano, tema claro/escuro, troca de senha |
+| **Sobre o App** | Versão e hash do commit publicado |
 | **Planos** | Gratuito, Intermediário e Premium |
 
 ### Veterinário
@@ -184,7 +214,7 @@ O registro sempre acontece — o histórico clínico precisa refletir a realidad
 | **Agenda** | Atendimentos do dia, concluir, registrar falta e marcar retorno |
 | **Pacientes** | Carteira da clínica, com busca |
 | **Ficha do paciente** | Vacinas aplicadas, prescrição e tratamentos em curso |
-| **Perfil** | Resumo da carteira e troca de senha |
+| **Perfil** | Resumo da carteira, tema claro/escuro, Sobre o App e troca de senha |
 
 ### Públicas
 
@@ -204,6 +234,8 @@ O registro sempre acontece — o histórico clínico precisa refletir a realidad
 | **axios** | 1.20 | cliente HTTP com token |
 | AsyncStorage | 2.2 | sessão, pet ativo e foto |
 | expo-image-picker | 56 | foto do pet |
+| **expo-notifications** | 56 | lembretes locais |
+| expo-constants | 56 | versão e commit na tela Sobre |
 
 ---
 
@@ -270,19 +302,20 @@ npm run ios           # simulador iOS
 ```
 animed-app/
 ├── App.tsx                     # providers e navegação raiz
+├── app.config.js               # injeta o hash do commit na build
 ├── assets/
 │   └── produtos/               # fotos da vitrine (Unsplash)
 ├── src/
 │   ├── api/cliente.ts          # axios, token e tradução de erro
-│   ├── components/             # 17 componentes reaproveitados
+│   ├── components/             # 22 componentes reaproveitados
 │   ├── data/                   # catálogo dos parceiros
-│   ├── hooks/                  # 12 hooks de dados (TanStack Query)
+│   ├── hooks/                  # 16 hooks (TanStack Query e lembretes)
 │   ├── navigation/             # navegação por perfil
 │   ├── screens/                # telas do tutor
 │   │   └── doutor/             # telas do veterinário
-│   ├── services/               # 11 clientes de recurso da API
-│   ├── state/                  # sessão e pet ativo
-│   ├── theme/                  # paleta e espaçamentos
+│   ├── services/               # clientes da API e notificações
+│   ├── state/                  # sessão, pet ativo e tema
+│   ├── theme/                  # paletas clara/escura e espaçamentos
 │   └── utils/                  # níveis e formatação
 └── package.json
 ```
