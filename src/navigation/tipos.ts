@@ -34,4 +34,5 @@ export type RaizParamList = {
   Planos: undefined;
   Historico: undefined;
   Medicamentos: undefined;
+  Sobre: undefined;
 };

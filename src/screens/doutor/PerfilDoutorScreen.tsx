@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../../components/Botao';
@@ -6,6 +8,7 @@ import { Cartao } from '../../components/Cartao';
 import { SeletorTema } from '../../components/SeletorTema';
 import { TrocarSenha } from '../../components/TrocarSenha';
 import { usePacientes } from '../../hooks/usePacientes';
+import type { RaizParamList } from '../../navigation/tipos';
 import { useAuth } from '../../state/AuthContext';
 import { espacamentos, raios, tipografia, type Paleta } from '../../theme/cores';
 import { useEstilos, useTema } from '../../state/TemaContext';
@@ -15,6 +18,7 @@ export function PerfilDoutorScreen() {
   const { cores } = useTema();
   const estilos = useEstilos(criarEstilos);
   const { usuario, sair } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<RaizParamList>>();
   const [trocandoSenha, setTrocandoSenha] = useState(false);
   const [avisoSenha, setAvisoSenha] = useState<string | null>(null);
   const { data: pacientes } = usePacientes();
@@ -52,6 +56,13 @@ export function PerfilDoutorScreen() {
       <Cartao>
         <Text style={estilos.secao}>Aparência</Text>
         <SeletorTema />
+        <Botao
+          titulo="Sobre o App"
+          variante="sutil"
+          icone="information-circle-outline"
+          onPress={() => navigation.navigate('Sobre')}
+          estilo={{ marginTop: espacamentos.md }}
+        />
       </Cartao>
 
       <Cartao>

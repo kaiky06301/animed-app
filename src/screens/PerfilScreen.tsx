@@ -148,6 +148,12 @@ export function PerfilScreen({ navigation }: Props) {
           subtitulo="Ações que renderam pontos"
           onPress={() => navigation.navigate('Historico')}
         />
+        <ItemMenu
+          icone="information-circle"
+          titulo="Sobre o App"
+          subtitulo="Versão e commit publicados"
+          onPress={() => navigation.navigate('Sobre')}
+        />
       </Cartao>
 
       <Cartao>

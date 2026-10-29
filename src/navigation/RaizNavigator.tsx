@@ -8,6 +8,7 @@ import { LoginScreen } from '../screens/LoginScreen';
 import { MedicamentosScreen } from '../screens/MedicamentosScreen';
 import { MeusPetsScreen } from '../screens/MeusPetsScreen';
 import { PlanosScreen } from '../screens/PlanosScreen';
+import { SobreScreen } from '../screens/SobreScreen';
 import { VacinasScreen } from '../screens/VacinasScreen';
 import { useAuth } from '../state/AuthContext';
 import { type Paleta } from '../theme/cores';
@@ -66,6 +67,7 @@ export function RaizNavigator() {
             component={FichaPacienteScreen}
             options={{ title: 'Ficha do paciente' }}
           />
+          <Stack.Screen name="Sobre" component={SobreScreen} options={{ title: 'Sobre o App' }} />
         </Stack.Group>
       ) : autenticado ? (
         <Stack.Group>
@@ -91,6 +93,7 @@ export function RaizNavigator() {
             component={MedicamentosScreen}
             options={{ title: 'Medicamentos' }}
           />
+          <Stack.Screen name="Sobre" component={SobreScreen} options={{ title: 'Sobre o App' }} />
         </Stack.Group>
       ) : (
         <Stack.Group>
