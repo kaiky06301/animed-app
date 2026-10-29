@@ -7,7 +7,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { MeusPetsScreen } from '../screens/MeusPetsScreen';
 import { PerfilScreen } from '../screens/PerfilScreen';
 import { RecompensasScreen } from '../screens/RecompensasScreen';
-import { cores } from '../theme/cores';
+import { useTema } from '../state/TemaContext';
 import type { AbasParamList } from './tipos';
 
 const Abas = createBottomTabNavigator<AbasParamList>();
@@ -22,6 +22,7 @@ const ICONES: Record<keyof AbasParamList, keyof typeof Ionicons.glyphMap> = {
 };
 
 export function AbasNavigator() {
+  const { cores } = useTema();
   return (
     <Abas.Navigator
       screenOptions={({ route }) => ({

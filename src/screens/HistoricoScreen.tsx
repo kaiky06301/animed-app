@@ -4,7 +4,8 @@ import { Cartao } from '../components/Cartao';
 import { useHistoricoPontos } from '../hooks/useHistoricoPontos';
 import { useTutor } from '../hooks/useTutor';
 import { useAuth } from '../state/AuthContext';
-import { cores, espacamentos } from '../theme/cores';
+import { espacamentos, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 function formatarData(iso: string): string {
   const data = new Date(iso);
@@ -17,6 +18,8 @@ function formatarData(iso: string): string {
 }
 
 export function HistoricoScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   // A pontuação é apurada na API: o histórico é o extrato dela
   const { usuario } = useAuth();
   const { data: tutor } = useTutor();
@@ -81,7 +84,8 @@ export function HistoricoScreen() {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   centro: { alignItems: 'center', justifyContent: 'center' },
   descricao: { color: cores.textoSecundario, fontSize: 12, marginTop: 1 },

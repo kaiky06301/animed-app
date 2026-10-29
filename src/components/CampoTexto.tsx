@@ -8,7 +8,8 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props extends TextInputProps {
   rotulo: string;
@@ -45,6 +46,8 @@ export function CampoTexto({
   multiline,
   ...rest
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const [revelada, setRevelada] = useState(false);
 
   return (
@@ -106,7 +109,8 @@ export function CampoTexto({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: {
     marginBottom: espacamentos.md,
   },

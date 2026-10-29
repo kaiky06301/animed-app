@@ -25,7 +25,8 @@ import { useVacinas } from '../hooks/useVacinas';
 import type { RaizParamList } from '../navigation/tipos';
 import type { Vacina } from '../services/tipos';
 import { isoParaBr } from '../utils/data';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 type Props = NativeStackScreenProps<RaizParamList, 'Vacinas'>;
 
@@ -47,6 +48,8 @@ type LinhaLista =
  * aplicação, e cada registro credita pontos ao tutor.
  */
 export function VacinasScreen({ route }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { idPet, nomePet } = route.params;
 
   const { data: vacinas, isLoading, isRefetching, refetch, isError, error } = useVacinas(idPet);
@@ -488,6 +491,8 @@ function OpcaoFiltro({
   ativa: boolean;
   onPress: () => void;
 }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <Pressable
       onPress={onPress}
@@ -520,6 +525,8 @@ function ItemVacina({
   venceuEm?: string;
   onAgendar?: () => void;
 }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   // O reforço é cobrado na linha própria dele, não na aplicação anterior
   const vencida =
     !agendadaPara
@@ -631,7 +638,8 @@ function ItemVacina({
   return <Cartao style={estilos.item}>{conteudo}</Cartao>;
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: { flex: 1, backgroundColor: cores.fundo },
   centro: {
     flex: 1,

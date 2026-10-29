@@ -20,7 +20,8 @@ import { useFotoPet } from '../hooks/useFotoPet';
 import { useAtualizarPet, useCriarPet } from '../hooks/usePets';
 import type { RaizParamList } from '../navigation/tipos';
 import { useAuth } from '../state/AuthContext';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 type Props = NativeStackScreenProps<RaizParamList, 'FormPet'>;
 
@@ -35,6 +36,8 @@ const SEXOS = [
 ] as const;
 
 export function FormPetScreen({ route, navigation }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const petEmEdicao = route.params?.pet;
   const editando = !!petEmEdicao;
 
@@ -334,6 +337,8 @@ export function FormPetScreen({ route, navigation }: Props) {
 
 /** Rótulo de seção com ícone, no mesmo padrão dos campos. */
 function Rotulo({ icone, texto }: { icone: keyof typeof Ionicons.glyphMap; texto: string }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.linhaRotulo}>
       <Ionicons name={icone} size={14} color={cores.textoSuave} />
@@ -348,7 +353,8 @@ function formatarDia(iso: string): string {
   return `${dia}/${mes}`;
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   avisoPeso: { color: cores.textoSuave, fontSize: 11, lineHeight: 15 },
   fundo: { flex: 1, backgroundColor: cores.fundo },
   conteudo: {

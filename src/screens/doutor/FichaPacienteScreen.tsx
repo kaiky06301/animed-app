@@ -33,7 +33,8 @@ import type { Vacina } from '../../services/tipos';
 import { vacinasSugeridas } from '../../data/vacinas';
 import { useAuth } from '../../state/AuthContext';
 import { isoParaBr } from '../../utils/data';
-import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../../theme/cores';
+import { useEstilos, useTema } from '../../state/TemaContext';
 
 type Props = NativeStackScreenProps<RaizParamList, 'FichaPaciente'>;
 
@@ -46,6 +47,8 @@ const HOJE = new Date().toISOString().slice(0, 10);
  * os pontos de cuidado ao tutor do pet.
  */
 export function FichaPacienteScreen({ route }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { idPet, nomePet, especie } = route.params;
   const { usuario } = useAuth();
 
@@ -460,7 +463,8 @@ export function FichaPacienteScreen({ route }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   temReforco: {
     flexDirection: 'row',
     alignItems: 'center',

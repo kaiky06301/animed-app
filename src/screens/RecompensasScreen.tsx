@@ -4,7 +4,8 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 import { ConfirmarCompra } from '../components/ConfirmarCompra';
 import { CATEGORIAS, PRODUTOS_PARCEIROS, type Produto } from '../data/parceiros';
 import { useTutor } from '../hooks/useTutor';
-import { cores, espacamentos, raios } from '../theme/cores';
+import { espacamentos, raios, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { proximoNivel } from '../utils/nivel';
 
 function formatarReais(valor: number): string {
@@ -25,6 +26,8 @@ const EMOJI_NIVEL: Record<string, string> = {
  * aparece em cada preço — e não apenas como um número solto no topo.
  */
 export function RecompensasScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { data: tutor } = useTutor();
 
   const pontos = tutor?.pontosTotais ?? 0;
@@ -233,7 +236,8 @@ export function RecompensasScreen() {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   lista: { padding: espacamentos.md, paddingBottom: espacamentos.xxl },
 

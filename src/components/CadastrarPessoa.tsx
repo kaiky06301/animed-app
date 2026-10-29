@@ -15,7 +15,8 @@ import {
 import { mensagemDoErro } from '../api/cliente';
 import * as authService from '../services/authService';
 import type { Perfil } from '../services/tipos';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { Botao } from './Botao';
 import { CampoTexto } from './CampoTexto';
 
@@ -40,6 +41,8 @@ const TAMANHO_MINIMO_DA_SENHA = 6;
  * vindo de quem já é veterinário — a validação está lá, não aqui.
  */
 export function CadastrarPessoa({ visivel, onFechar, onCadastrado }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const client = useQueryClient();
 
   const [perfil, setPerfil] = useState<Perfil>('TUTOR');
@@ -246,7 +249,8 @@ export function CadastrarPessoa({ visivel, onFechar, onCadastrado }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

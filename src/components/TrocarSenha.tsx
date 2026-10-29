@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
 import * as authService from '../services/authService';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { Botao } from './Botao';
 import { CampoTexto } from './CampoTexto';
 
@@ -24,6 +25,8 @@ const TAMANHO_MINIMO = 6;
  * desbloqueado esquecido em cima da mesa bastaria para tomar a conta.
  */
 export function TrocarSenha({ visivel, onFechar, onTrocada }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const [atual, setAtual] = useState('');
   const [nova, setNova] = useState('');
   const [confirmacao, setConfirmacao] = useState('');
@@ -138,7 +141,8 @@ export function TrocarSenha({ visivel, onFechar, onTrocada }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

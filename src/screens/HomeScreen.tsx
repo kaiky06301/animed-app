@@ -14,7 +14,8 @@ import { SeletorPet } from '../components/SeletorPet';
 import { useSaudeDoPet } from '../hooks/useSaudeDoPet';
 import { useTutor } from '../hooks/useTutor';
 import { usePetAtivo } from '../state/PetAtivoContext';
-import { cores, espacamentos, raios } from '../theme/cores';
+import { espacamentos, raios, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { NIVEIS, nivelPorPontos, progressoNivel, proximoNivel } from '../utils/nivel';
 import type { AbasParamList, RaizParamList } from '../navigation/tipos';
 
@@ -24,6 +25,8 @@ type Props = CompositeScreenProps<
 >;
 
 export function HomeScreen({ navigation }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   // Pontos, moedas e nível são calculados pela API
   const { data: tutor } = useTutor();
   const pontos = tutor?.pontosTotais ?? 0;
@@ -389,6 +392,8 @@ function AtalhoBotao({
   subtitulo: string;
   onPress: () => void;
 }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <Pressable
       onPress={onPress}
@@ -408,7 +413,8 @@ function AtalhoBotao({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: { padding: espacamentos.lg, paddingBottom: espacamentos.xxl, gap: espacamentos.md },
   cabecalho: {

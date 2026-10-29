@@ -13,7 +13,8 @@ import { mensagemDoErro } from '../api/cliente';
 import type { Produto } from '../data/parceiros';
 import { useComprar } from '../hooks/useComprar';
 import { useTutor } from '../hooks/useTutor';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { Botao } from './Botao';
 import { MoedaAnimed } from './MoedaAnimed';
 
@@ -47,6 +48,8 @@ function reais(valor: number): string {
  * real que ele deixou de pagar.
  */
 export function ConfirmarCompra({ produto, onFechar, onComprado }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { data: tutor } = useTutor();
   const comprar = useComprar();
 
@@ -244,7 +247,8 @@ export function ConfirmarCompra({ produto, onFechar, onComprado }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

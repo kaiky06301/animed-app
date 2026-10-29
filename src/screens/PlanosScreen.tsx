@@ -5,14 +5,16 @@ import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { useAnimed } from '../state/AnimedContext';
 import type { PlanoB2C } from '../state/tipos';
-import { cores, espacamentos, raios } from '../theme/cores';
+import { espacamentos, raios, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface InfoPlano {
   codigo: PlanoB2C;
   nome: string;
   emoji: string;
   preco: string;
-  cor: string;
+  /** Cor da paleta usada no destaque do plano. */
+  cor: keyof Paleta;
   beneficios: string[];
 }
 
@@ -22,7 +24,7 @@ const PLANOS: InfoPlano[] = [
     nome: 'Gratuito',
     emoji: '🆓',
     preco: 'R$ 0',
-    cor: cores.textoSecundario,
+    cor: 'textoSecundario',
     beneficios: [
       'Cadastro do pet',
       'Lembretes básicos',
@@ -35,7 +37,7 @@ const PLANOS: InfoPlano[] = [
     nome: 'Intermediário',
     emoji: '💼',
     preco: 'R$ 14,90/mês',
-    cor: cores.laranja,
+    cor: 'laranja',
     beneficios: [
       'Tudo do plano gratuito',
       'Relatórios personalizados',
@@ -49,7 +51,7 @@ const PLANOS: InfoPlano[] = [
     nome: 'Premium',
     emoji: '👑',
     preco: 'R$ 29,90/mês',
-    cor: cores.dourado,
+    cor: 'dourado',
     beneficios: [
       'Tudo do plano intermediário',
       'Telemedicina (em breve)',
@@ -61,6 +63,8 @@ const PLANOS: InfoPlano[] = [
 ];
 
 export function PlanosScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { plano, escolherPlano } = useAnimed();
 
   return (
@@ -72,22 +76,23 @@ export function PlanosScreen() {
 
       {PLANOS.map((p) => {
         const atual = p.codigo === plano;
+        const corDoPlano = cores[p.cor];
         return (
           <Cartao
             key={p.codigo}
             realce={atual}
-            style={atual ? { borderColor: p.cor } : undefined}
+            style={atual ? { borderColor: corDoPlano } : undefined}
           >
             <View style={estilos.topo}>
               <View>
-                <Text style={[estilos.nomePlano, { color: p.cor }]}>
+                <Text style={[estilos.nomePlano, { color: corDoPlano }]}>
                   {p.emoji} {p.nome}
                 </Text>
                 <Text style={estilos.preco}>{p.preco}</Text>
               </View>
               {atual && (
-                <View style={[estilos.tag, { backgroundColor: p.cor + '22' }]}>
-                  <Text style={{ color: p.cor, fontWeight: '700', fontSize: 11 }}>
+                <View style={[estilos.tag, { backgroundColor: corDoPlano + '22' }]}>
+                  <Text style={{ color: corDoPlano, fontWeight: '700', fontSize: 11 }}>
                     PLANO ATUAL
                   </Text>
                 </View>
@@ -97,7 +102,7 @@ export function PlanosScreen() {
             <View style={{ gap: 6, marginTop: espacamentos.md }}>
               {p.beneficios.map((b) => (
                 <View key={b} style={estilos.beneficio}>
-                  <Ionicons name="checkmark-circle" size={16} color={p.cor} />
+                  <Ionicons name="checkmark-circle" size={16} color={corDoPlano} />
                   <Text style={estilos.beneficioTexto}>{b}</Text>
                 </View>
               ))}
@@ -117,7 +122,8 @@ export function PlanosScreen() {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: { padding: espacamentos.lg, paddingBottom: espacamentos.xxl, gap: espacamentos.md },
   titulo: { color: cores.textoPrincipal, fontSize: 24, fontWeight: '700' },

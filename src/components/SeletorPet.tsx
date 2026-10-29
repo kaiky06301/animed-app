@@ -4,7 +4,8 @@ import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { IconePet } from './IconePet';
 import type { Pet } from '../services/tipos';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props {
   visivel: boolean;
@@ -24,6 +25,8 @@ export function SeletorPet({
   onFechar,
   onCadastrar,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <Modal visible={visivel} transparent animationType="fade" onRequestClose={onFechar}>
       <Pressable style={estilos.fundo} onPress={onFechar}>
@@ -64,6 +67,8 @@ export function SeletorPet({
 }
 
 function ItemPet({ pet, ativo, onPress }: { pet: Pet; ativo: boolean; onPress: () => void }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { uri } = useFotoPet(pet.id);
 
   return (
@@ -92,7 +97,8 @@ function ItemPet({ pet, ativo, onPress }: { pet: Pet; ativo: boolean; onPress: (
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

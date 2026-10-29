@@ -11,7 +11,8 @@ import { Botao } from '../components/Botao';
 import { CampoTexto } from '../components/CampoTexto';
 import { mensagemDoErro } from '../api/cliente';
 import { useAuth } from '../state/AuthContext';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos } from '../state/TemaContext';
 
 interface Erros {
   nome?: string;
@@ -21,6 +22,7 @@ interface Erros {
 }
 
 export function CriarContaScreen() {
+  const estilos = useEstilos(criarEstilos);
   const { cadastrar } = useAuth();
 
   const [nome, setNome] = useState('');
@@ -127,7 +129,8 @@ export function CriarContaScreen() {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.fundo,

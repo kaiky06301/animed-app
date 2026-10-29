@@ -10,7 +10,8 @@ import { MeusPetsScreen } from '../screens/MeusPetsScreen';
 import { PlanosScreen } from '../screens/PlanosScreen';
 import { VacinasScreen } from '../screens/VacinasScreen';
 import { useAuth } from '../state/AuthContext';
-import { cores } from '../theme/cores';
+import { type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { FichaPacienteScreen } from '../screens/doutor/FichaPacienteScreen';
 import { AbasDoutorNavigator } from './AbasDoutorNavigator';
 import { AbasNavigator } from './AbasNavigator';
@@ -26,6 +27,8 @@ const Stack = createNativeStackNavigator<RaizParamList>();
  * direta, porque elas nem chegam a existir na pilha.
  */
 export function RaizNavigator() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { usuario, carregando } = useAuth();
 
   // Enquanto a sessão salva é restaurada, evita piscar a tela de login
@@ -103,7 +106,8 @@ export function RaizNavigator() {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   carregando: {
     flex: 1,
     alignItems: 'center',

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props {
   visivel: boolean;
@@ -34,6 +35,8 @@ export function ConfirmarAcao({
   onConfirmar,
   onCancelar,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <Modal visible={visivel} transparent animationType="fade" onRequestClose={onCancelar}>
       <Pressable style={estilos.fundo} onPress={onCancelar}>
@@ -82,7 +85,8 @@ export function ConfirmarAcao({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

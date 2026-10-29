@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props {
   visivel: boolean;
@@ -54,6 +55,8 @@ export function Calendario({
   horariosPorDia,
   atalhoHoje = true,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const selecionada = valor ? new Date(`${valor}T12:00:00`) : null;
   const hoje = new Date();
 
@@ -342,7 +345,8 @@ export function Calendario({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

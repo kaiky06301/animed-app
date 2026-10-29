@@ -1,12 +1,15 @@
 import React from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
-import { cores, espacamentos, raios } from '../theme/cores';
+import { espacamentos, raios, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props extends ViewProps {
   realce?: boolean;
 }
 
 export function Cartao({ style, realce = false, children, ...rest }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <View
       {...rest}
@@ -21,7 +24,8 @@ export function Cartao({ style, realce = false, children, ...rest }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   base: {
     backgroundColor: cores.superficie,
     borderRadius: raios.lg,

@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { cores, espacamentos, raios } from '../theme/cores';
+import { espacamentos, raios, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props {
   onIrParaCuidados: () => void;
@@ -20,6 +21,8 @@ export function SemAtendimentos({
   titulo = 'Nenhum atendimento\npor aqui ainda.',
   texto = 'Marque o primeiro na aba Cuidados\ne comece a cuidar ainda melhor\ndo seu melhor amigo!',
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.container}>
       {/* Patinhas de fundo, bem discretas */}
@@ -66,7 +69,8 @@ export function SemAtendimentos({
 
 const TAMANHO = 190;
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',

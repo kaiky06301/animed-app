@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Calendario } from './Calendario';
 import { brParaIso, dataBrValida, isoParaBr, mascaraData } from '../utils/data';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props {
   rotulo: string;
@@ -47,6 +48,8 @@ export function CampoData({
   horariosPorDia,
   onTexto,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const [texto, setTexto] = useState(isoParaBr(valor));
   const [calendarioAberto, setCalendarioAberto] = useState(false);
 
@@ -121,7 +124,8 @@ export function CampoData({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { marginBottom: espacamentos.md },
   linhaRotulo: {
     flexDirection: 'row',

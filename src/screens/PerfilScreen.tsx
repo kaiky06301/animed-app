@@ -8,11 +8,13 @@ import { Botao } from '../components/Botao';
 import { Cartao } from '../components/Cartao';
 import { useFotoPet } from '../hooks/useFotoPet';
 import { usePetAtivo } from '../state/PetAtivoContext';
+import { SeletorTema } from '../components/SeletorTema';
 import { TrocarSenha } from '../components/TrocarSenha';
 import { useTutor } from '../hooks/useTutor';
 import { useAnimed } from '../state/AnimedContext';
 import { useAuth } from '../state/AuthContext';
-import { cores, espacamentos, raios } from '../theme/cores';
+import { espacamentos, raios, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { nivelPorPontos } from '../utils/nivel';
 import type { AbasParamList, RaizParamList } from '../navigation/tipos';
 
@@ -28,6 +30,8 @@ const ROTULO_PLANO: Record<'gratuito' | 'intermediario' | 'premium', string> = {
 };
 
 export function PerfilScreen({ navigation }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   // Pontuação e nível são apurados na API; o plano segue local por ora
   const { data: tutor } = useTutor();
   const { plano } = useAnimed();
@@ -146,6 +150,11 @@ export function PerfilScreen({ navigation }: Props) {
         />
       </Cartao>
 
+      <Cartao>
+        <Text style={estilos.secao}>Aparência</Text>
+        <SeletorTema />
+      </Cartao>
+
       <TrocarSenha
         visivel={trocandoSenha}
         onFechar={() => setTrocandoSenha(false)}
@@ -182,6 +191,7 @@ export function PerfilScreen({ navigation }: Props) {
 }
 
 function Linha({ rotulo, valor }: { rotulo: string; valor: string }) {
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.linha}>
       <Text style={estilos.rotuloLinha}>{rotulo}</Text>
@@ -203,6 +213,7 @@ function Indicador({
   cor?: string;
   onPress?: () => void;
 }) {
+  const estilos = useEstilos(criarEstilos);
   const conteudo = (
     <Cartao style={estilos.indicador}>
       {selo ?? (
@@ -227,6 +238,8 @@ function Indicador({
 
 /** Selo do plano atual, desenhado com estilo próprio de cada faixa. */
 function SeloPlano({ plano }: { plano: 'gratuito' | 'intermediario' | 'premium' }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const aparencia = {
     gratuito: {
       texto: 'FREE',
@@ -271,6 +284,8 @@ function ItemMenu({
   subtitulo: string;
   onPress: () => void;
 }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.itemMenu}>
       <Ionicons name={icone} size={20} color={cores.primaria} />
@@ -283,7 +298,8 @@ function ItemMenu({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: {
     padding: espacamentos.lg,

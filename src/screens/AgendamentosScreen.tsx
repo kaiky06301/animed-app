@@ -11,7 +11,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { AbasParamList } from '../navigation/tipos';
 import { usePetAtivo } from '../state/PetAtivoContext';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 const MESES = [
   'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
@@ -50,14 +51,16 @@ const ROTULOS: Record<Consulta['status'], string> = {
   NAO_COMPARECEU: 'Não compareceu',
 };
 
-const CORES: Record<Consulta['status'], string> = {
+const coresDoStatus = (cores: Paleta): Record<Consulta['status'], string> => ({
   AGENDADA: cores.laranja,
   REALIZADA: cores.primaria,
   CANCELADA: cores.erro,
   NAO_COMPARECEU: cores.textoSuave,
-};
+});
 
 function Cartao({ consulta, onPress }: { consulta: Consulta; onPress: () => void }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { dia, mes, hora } = partesDaData(consulta.dataHora);
 
   return (
@@ -74,7 +77,7 @@ function Cartao({ consulta, onPress }: { consulta: Consulta; onPress: () => void
         <MaterialCommunityIcons
           name={iconeDoMotivo(consulta.motivo)}
           size={19}
-          color={CORES[consulta.status]}
+          color={coresDoStatus(cores)[consulta.status]}
         />
       </View>
 
@@ -89,8 +92,8 @@ function Cartao({ consulta, onPress }: { consulta: Consulta; onPress: () => void
         )}
       </View>
 
-      <View style={[estilos.status, { backgroundColor: `${CORES[consulta.status]}22` }]}>
-        <Text style={[estilos.statusTexto, { color: CORES[consulta.status] }]}>
+      <View style={[estilos.status, { backgroundColor: `${coresDoStatus(cores)[consulta.status]}22` }]}>
+        <Text style={[estilos.statusTexto, { color: coresDoStatus(cores)[consulta.status] }]}>
           {ROTULOS[consulta.status]}
         </Text>
       </View>
@@ -107,6 +110,8 @@ function Cartao({ consulta, onPress }: { consulta: Consulta; onPress: () => void
  * atendimento, o registro muda de seção aqui.
  */
 export function AgendamentosScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const navigation = useNavigation<BottomTabNavigationProp<AbasParamList>>();
   const { petAtivo } = usePetAtivo();
   const [aberto, setAberto] = useState<number | null>(null);
@@ -192,7 +197,8 @@ export function AgendamentosScreen() {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   // flexGrow permite que o estado vazio ocupe a altura toda e se centre
   conteudo: { padding: espacamentos.md, paddingBottom: espacamentos.xxl, flexGrow: 1 },

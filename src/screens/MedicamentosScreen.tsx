@@ -18,7 +18,8 @@ import {
 import type { Medicamento } from '../services/tipos';
 import { Botao } from '../components/Botao';
 import { usePetAtivo } from '../state/PetAtivoContext';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 /** "2026-09-12T03:09" -> "amanhã às 03:09" / "hoje às 14:00" / "12/09 às 03:09" */
 function quando(iso: string): string {
@@ -79,6 +80,8 @@ function Cartao({
   registrando: boolean;
   confirmando: boolean;
 }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { emCurso, doseLiberada, aguardandoConfirmacao, minutosDeAtraso } = medicamento;
   const atrasada = minutosDeAtraso > 0;
 
@@ -251,6 +254,8 @@ function Cartao({
  * valendo como histórico, mas não rende pontos.
  */
 export function MedicamentosScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { petAtivo } = usePetAtivo();
   const { data: medicamentos, isLoading } = useMedicamentos(petAtivo?.id ?? null);
   const registrarDose = useRegistrarDose();
@@ -430,7 +435,8 @@ export function MedicamentosScreen() {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: { padding: espacamentos.md, paddingBottom: espacamentos.xxl, flexGrow: 1 },
 

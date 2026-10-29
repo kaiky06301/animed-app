@@ -24,12 +24,15 @@ import { useExcluirPet, usePets } from '../hooks/usePets';
 import type { RaizParamList } from '../navigation/tipos';
 import type { Pet } from '../services/tipos';
 import { useAuth } from '../state/AuthContext';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 /** A tela é usada como aba, então a navegação da pilha vem do hook. */
 type NavegacaoPilha = NativeStackNavigationProp<RaizParamList>;
 
 export function MeusPetsScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const navigation = useNavigation<NavegacaoPilha>();
   const { usuario } = useAuth();
   const idTutor = usuario?.idTutor ?? null;
@@ -192,6 +195,7 @@ export function MeusPetsScreen() {
 
 /** Avatar do pet na lista: usa a foto escolhida ou o ícone da espécie. */
 function AvatarPet({ idPet, especie }: { idPet: number; especie: string }) {
+  const estilos = useEstilos(criarEstilos);
   const { uri } = useFotoPet(idPet);
 
   return (
@@ -205,7 +209,8 @@ function AvatarPet({ idPet, especie }: { idPet: number; especie: string }) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   avisoErro: {
     flexDirection: 'row',
     alignItems: 'center',

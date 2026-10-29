@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { cores, espacamentos, tipografia } from '../theme/cores';
+import { espacamentos, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props {
   titulo?: string;
@@ -26,6 +27,8 @@ export function AgendaTranquila({
   titulo = 'Tudo certo por enquanto!',
   texto = 'Quando houver novas consultas,\nelas aparecerão aqui.',
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.container}>
       <View style={estilos.ilustracao}>
@@ -58,7 +61,8 @@ export function AgendaTranquila({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { alignItems: 'center', paddingVertical: espacamentos.xl },
 
   ilustracao: {

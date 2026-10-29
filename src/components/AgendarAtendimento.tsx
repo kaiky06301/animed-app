@@ -14,7 +14,8 @@ import { mensagemDoErro } from '../api/cliente';
 import * as consultaService from '../services/consultaService';
 import { useAgendar, useDisponibilidade, useMesDaAgenda } from '../hooks/useAgenda';
 import type { AgendamentoConfirmado, Pet } from '../services/tipos';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { Botao } from './Botao';
 
 interface Props {
@@ -82,6 +83,8 @@ export function AgendarAtendimento({
   onFechar,
   onConfirmado,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const hoje = useMemo(() => new Date(), []);
 
   const [mesVisivel, setMesVisivel] = useState(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
@@ -393,7 +396,8 @@ export function AgendarAtendimento({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

@@ -14,7 +14,8 @@ import { CadastrarPessoa } from '../../components/CadastrarPessoa';
 import { CampoTexto } from '../../components/CampoTexto';
 import { useMudarAcesso, useUsuarios } from '../../hooks/useUsuarios';
 import type { UsuarioDaClinica } from '../../services/usuarioService';
-import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../../theme/cores';
+import { useEstilos, useTema } from '../../state/TemaContext';
 
 /** Nulo significa sem recorte: a lista mostra todo mundo. */
 type Filtro = 'DOUTOR' | 'TUTOR' | null;
@@ -45,6 +46,8 @@ const FILTROS: {
  * é para conferir ou suspender um acesso, não para criar conta nova.
  */
 export function CadastrarPessoaScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { data: usuarios, isLoading } = useUsuarios();
   const mudarAcesso = useMudarAcesso();
 
@@ -226,6 +229,7 @@ export function CadastrarPessoaScreen() {
 }
 
 function Secao({ titulo, quantidade }: { titulo: string; quantidade: number }) {
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.secao}>
       <Text style={estilos.secaoTitulo}>{titulo}</Text>
@@ -243,6 +247,8 @@ function Pessoa({
   ocupado: boolean;
   onAlternar: (usuario: UsuarioDaClinica, ligado: boolean) => void;
 }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const ehVeterinario = usuario.role === 'DOUTOR';
 
   return (
@@ -282,7 +288,8 @@ function Pessoa({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: { padding: espacamentos.md, paddingBottom: espacamentos.xxl },
 

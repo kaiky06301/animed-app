@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props {
   rotulo: string;
@@ -33,6 +34,8 @@ export function CampoSugestao({
   icone,
   dica,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const [aberto, setAberto] = useState(false);
 
   const filtradas = useMemo(() => {
@@ -106,7 +109,8 @@ export function CampoSugestao({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { marginBottom: espacamentos.md },
   linhaRotulo: {
     flexDirection: 'row',

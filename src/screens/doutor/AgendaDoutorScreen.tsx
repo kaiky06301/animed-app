@@ -14,7 +14,8 @@ import { ConcluirAtendimento } from '../../components/ConcluirAtendimento';
 import { mensagemDoErro } from '../../api/cliente';
 import { useAgendaDoDia, useRegistrarFalta } from '../../hooks/useAgenda';
 import type { Atendimento } from '../../services/tipos';
-import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../../theme/cores';
+import { useEstilos, useTema } from '../../state/TemaContext';
 
 const DIAS_SEMANA = [
   'domingo', 'segunda-feira', 'terça-feira', 'quarta-feira',
@@ -37,12 +38,12 @@ function porExtenso(iso: string): string {
   )}`;
 }
 
-const CORES_STATUS: Record<Atendimento['status'], string> = {
+const coresDoStatus = (cores: Paleta): Record<Atendimento['status'], string> => ({
   AGENDADA: cores.laranja,
   REALIZADA: cores.primaria,
   CANCELADA: cores.erro,
   NAO_COMPARECEU: cores.textoSuave,
-};
+});
 
 const ROTULOS_STATUS: Record<Atendimento['status'], string> = {
   AGENDADA: 'Agendado',
@@ -69,6 +70,8 @@ type Filtro = (typeof FILTROS)[number]['chave'];
  * credita os pontos prometidos ao tutor.
  */
 export function AgendaDoutorScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const [dataEscolhida, setDataEscolhida] = useState(paraIso(new Date()));
   const [filtro, setFiltro] = useState<Filtro>('TODOS');
   const [aberto, setAberto] = useState<Atendimento | null>(null);
@@ -293,10 +296,10 @@ export function AgendaDoutorScreen() {
                 <View
                   style={[
                     estilos.status,
-                    { backgroundColor: `${CORES_STATUS[item.status]}22` },
+                    { backgroundColor: `${coresDoStatus(cores)[item.status]}22` },
                   ]}
                 >
-                  <Text style={[estilos.statusTexto, { color: CORES_STATUS[item.status] }]}>
+                  <Text style={[estilos.statusTexto, { color: coresDoStatus(cores)[item.status] }]}>
                     {ROTULOS_STATUS[item.status]}
                   </Text>
                 </View>
@@ -327,7 +330,8 @@ export function AgendaDoutorScreen() {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: {
     padding: espacamentos.md,

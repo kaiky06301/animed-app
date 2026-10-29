@@ -3,7 +3,8 @@ import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MoedaAnimed } from './MoedaAnimed';
 import { NIVEIS } from '../utils/nivel';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 export type TipoRecompensa = 'pontos' | 'moedas';
 
@@ -32,6 +33,8 @@ export function ExplicacaoRecompensa({
   pontosParaPremium,
   onFechar,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   if (!tipo) return null;
 
   const ehPontos = tipo === 'pontos';
@@ -151,6 +154,8 @@ export function ExplicacaoRecompensa({
 }
 
 function Linha({ texto }: { texto: string }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.linha}>
       <Ionicons name="checkmark-circle" size={15} color={cores.primaria} />
@@ -159,7 +164,8 @@ function Linha({ texto }: { texto: string }) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

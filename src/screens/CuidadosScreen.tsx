@@ -20,7 +20,8 @@ import { useTutor } from '../hooks/useTutor';
 import type { RaizParamList } from '../navigation/tipos';
 import type { AgendamentoConfirmado, TipoCuidado } from '../services/tipos';
 import { usePetAtivo } from '../state/PetAtivoContext';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 type Navegacao = NativeStackNavigationProp<RaizParamList>;
 
@@ -96,6 +97,8 @@ const ACOES_CLINICAS = [
 ];
 
 export function CuidadosScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const navigation = useNavigation<Navegacao>();
   const { petAtivo } = usePetAtivo();
   const { data: tutor } = useTutor();
@@ -438,7 +441,8 @@ function formatarDataHora(iso: string): string {
   return `${semana}, ${dia}/${mes} às ${hora}:${minuto}`;
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   regraCaixa: {
     flexDirection: 'row',

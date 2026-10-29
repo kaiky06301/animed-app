@@ -15,7 +15,8 @@ import { useConcluirAtendimento, useDisponibilidade, useMesDaAgenda } from '../h
 import { useMedicamentos } from '../hooks/useMedicamentos';
 import type { Atendimento } from '../services/tipos';
 import { useAuth } from '../state/AuthContext';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { Botao } from './Botao';
 import { CampoData } from './CampoData';
 import { PrescreverMedicamento } from './PrescreverMedicamento';
@@ -52,6 +53,8 @@ function daquiUmaSemana(): string {
  * que horário da própria agenda ele fica reservado.
  */
 export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const [querRetorno, setQuerRetorno] = useState(false);
   const [dataRetorno, setDataRetorno] = useState(daquiUmaSemana);
   const [horario, setHorario] = useState<string | null>(null);
@@ -327,7 +330,8 @@ export function ConcluirAtendimento({ atendimento, onFechar, onConcluido }: Prop
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

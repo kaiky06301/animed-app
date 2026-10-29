@@ -11,13 +11,15 @@ import { Botao } from '../components/Botao';
 import { CampoTexto } from '../components/CampoTexto';
 import { mensagemDoErro } from '../api/cliente';
 import { useAuth } from '../state/AuthContext';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos } from '../state/TemaContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RaizParamList } from '../navigation/tipos';
 
 type Props = NativeStackScreenProps<RaizParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
+  const estilos = useEstilos(criarEstilos);
   const { entrar } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -109,7 +111,8 @@ export function LoginScreen({ navigation }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.fundo,

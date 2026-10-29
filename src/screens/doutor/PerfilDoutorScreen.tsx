@@ -3,13 +3,17 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../../components/Botao';
 import { Cartao } from '../../components/Cartao';
+import { SeletorTema } from '../../components/SeletorTema';
 import { TrocarSenha } from '../../components/TrocarSenha';
 import { usePacientes } from '../../hooks/usePacientes';
 import { useAuth } from '../../state/AuthContext';
-import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../../theme/cores';
+import { useEstilos, useTema } from '../../state/TemaContext';
 
 /** Perfil do veterinário, com um resumo da carteira de pacientes. */
 export function PerfilDoutorScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { usuario, sair } = useAuth();
   const [trocandoSenha, setTrocandoSenha] = useState(false);
   const [avisoSenha, setAvisoSenha] = useState<string | null>(null);
@@ -43,6 +47,11 @@ export function PerfilDoutorScreen() {
         <Linha icone="trophy-outline" texto="Cada registro credita pontos ao tutor" />
         <Linha icone="people-outline" texto="Consultar a carteira de pacientes da clínica" />
         <Linha icone="person-add-outline" texto="Cadastrar tutores e outros veterinários" />
+      </Cartao>
+
+      <Cartao>
+        <Text style={estilos.secao}>Aparência</Text>
+        <SeletorTema />
       </Cartao>
 
       <Cartao>
@@ -81,6 +90,7 @@ export function PerfilDoutorScreen() {
 }
 
 function Indicador({ valor, rotulo }: { valor: string; rotulo: string }) {
+  const estilos = useEstilos(criarEstilos);
   return (
     <Cartao style={estilos.indicador}>
       <Text style={estilos.indicadorValor}>{valor}</Text>
@@ -90,6 +100,8 @@ function Indicador({ valor, rotulo }: { valor: string; rotulo: string }) {
 }
 
 function Linha({ icone, texto }: { icone: keyof typeof Ionicons.glyphMap; texto: string }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.linha}>
       <Ionicons name={icone} size={17} color={cores.primaria} />
@@ -98,7 +110,8 @@ function Linha({ icone, texto }: { icone: keyof typeof Ionicons.glyphMap; texto:
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: {
     padding: espacamentos.lg,

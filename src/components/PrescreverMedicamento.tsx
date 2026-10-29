@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { mensagemDoErro } from '../api/cliente';
 import { usePrescrever } from '../hooks/useMedicamentos';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { Botao } from './Botao';
 
 interface Props {
@@ -77,6 +78,8 @@ export function PrescreverMedicamento({
   onFechar,
   onPrescrito,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const prescrever = usePrescrever();
 
   const [nome, setNome] = useState('');
@@ -241,7 +244,8 @@ export function PrescreverMedicamento({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

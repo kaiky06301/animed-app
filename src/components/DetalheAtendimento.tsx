@@ -12,7 +12,8 @@ import {
 import { mensagemDoErro } from '../api/cliente';
 import { useCancelarAtendimento, useDetalheAtendimento } from '../hooks/useAgenda';
 import type { DetalheAtendimento as Detalhe } from '../services/tipos';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 import { Botao } from './Botao';
 
 interface Props {
@@ -37,12 +38,12 @@ const ROTULOS: Record<Detalhe['status'], string> = {
   NAO_COMPARECEU: 'Não compareceu',
 };
 
-const CORES: Record<Detalhe['status'], string> = {
+const coresDoStatus = (cores: Paleta): Record<Detalhe['status'], string> => ({
   AGENDADA: cores.laranja,
   REALIZADA: cores.primaria,
   CANCELADA: cores.erro,
   NAO_COMPARECEU: cores.textoSuave,
-};
+});
 
 /** "2026-09-16T09:00" -> "quarta-feira, 16 de setembro de 2026" */
 function dataPorExtenso(iso: string): string {
@@ -72,6 +73,8 @@ function Linha({
   valor: string;
   detalhe?: string | null;
 }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <View style={estilos.linha}>
       <View style={estilos.linhaIcone}>
@@ -95,6 +98,8 @@ function Linha({
  * apenas quando o veterinário escreveu uma orientação para aquele caso.
  */
 export function DetalheAtendimento({ idConsulta, onFechar }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { data: atendimento, isLoading } = useDetalheAtendimento(idConsulta);
   const cancelar = useCancelarAtendimento();
 
@@ -151,10 +156,10 @@ export function DetalheAtendimento({ idConsulta, onFechar }: Props) {
               <View
                 style={[
                   estilos.status,
-                  { backgroundColor: `${CORES[atendimento.status]}22` },
+                  { backgroundColor: `${coresDoStatus(cores)[atendimento.status]}22` },
                 ]}
               >
-                <Text style={[estilos.statusTexto, { color: CORES[atendimento.status] }]}>
+                <Text style={[estilos.statusTexto, { color: coresDoStatus(cores)[atendimento.status] }]}>
                   {ROTULOS[atendimento.status]}
                 </Text>
               </View>
@@ -277,7 +282,8 @@ export function DetalheAtendimento({ idConsulta, onFechar }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

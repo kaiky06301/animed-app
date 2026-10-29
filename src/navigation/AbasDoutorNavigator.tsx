@@ -5,7 +5,7 @@ import { AgendaDoutorScreen } from '../screens/doutor/AgendaDoutorScreen';
 import { CadastrarPessoaScreen } from '../screens/doutor/CadastrarPessoaScreen';
 import { PacientesScreen } from '../screens/doutor/PacientesScreen';
 import { PerfilDoutorScreen } from '../screens/doutor/PerfilDoutorScreen';
-import { cores } from '../theme/cores';
+import { useTema } from '../state/TemaContext';
 import type { AbasDoutorParamList } from './tipos';
 
 const Abas = createBottomTabNavigator<AbasDoutorParamList>();
@@ -19,6 +19,7 @@ const ICONES: Record<keyof AbasDoutorParamList, keyof typeof Ionicons.glyphMap> 
 
 /** Navegação do perfil veterinário, distinta da do tutor. */
 export function AbasDoutorNavigator() {
+  const { cores } = useTema();
   return (
     <Abas.Navigator
       screenOptions={({ route }) => ({

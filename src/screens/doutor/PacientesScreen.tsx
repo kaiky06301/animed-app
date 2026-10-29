@@ -22,12 +22,15 @@ import { useFotoPet } from '../../hooks/useFotoPet';
 import { usePacientes } from '../../hooks/usePacientes';
 import type { RaizParamList } from '../../navigation/tipos';
 import type { Pet, SexoPet } from '../../services/tipos';
-import { cores, espacamentos, raios, tipografia } from '../../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../../theme/cores';
+import { useEstilos, useTema } from '../../state/TemaContext';
 
 type Navegacao = NativeStackNavigationProp<RaizParamList>;
 
 /** Lista de pacientes da clínica, com busca por pet ou tutor. */
 export function PacientesScreen() {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const navigation = useNavigation<Navegacao>();
   const { data: pacientes, isLoading, isRefetching, refetch, isError, error } = usePacientes();
 
@@ -201,6 +204,8 @@ const SEXOS: { valor: SexoPet; rotulo: string }[] = [
 function FiltrosPacientes({
   visivel, especie, sexo, onEspecie, onSexo, onLimpar, onFechar, encontrados,
 }: FiltrosProps) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   return (
     <Modal visible={visivel} transparent animationType="fade" onRequestClose={onFechar}>
       <Pressable style={estilos.fundoModal} onPress={onFechar}>
@@ -272,6 +277,8 @@ function FiltrosPacientes({
 }
 
 function ItemPaciente({ pet, onPress }: { pet: Pet; onPress: () => void }) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const { uri } = useFotoPet(pet.id);
 
   return (
@@ -315,7 +322,8 @@ function ItemPaciente({ pet, onPress }: { pet: Pet; onPress: () => void }) {
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: { flex: 1, backgroundColor: cores.fundo },
   centro: {
     flex: 1,

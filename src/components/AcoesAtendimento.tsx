@@ -2,7 +2,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Atendimento } from '../services/tipos';
-import { cores, espacamentos, raios, tipografia } from '../theme/cores';
+import { espacamentos, raios, tipografia, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 interface Props {
   atendimento: Atendimento | null;
@@ -30,6 +31,8 @@ export function AcoesAtendimento({
   onFalta,
   registrandoFalta = false,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const resolvido = atendimento?.status !== 'AGENDADA';
 
   /**
@@ -140,7 +143,8 @@ export function AcoesAtendimento({
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   fundo: {
     flex: 1,
     backgroundColor: cores.overlay,

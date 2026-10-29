@@ -1,4 +1,5 @@
-export const cores = {
+/** Paleta usada quando o app está no tema escuro. */
+export const coresEscuras = {
   fundo: '#0F1419',
   fundoElevado: '#171D24',
   superficie: '#1B2330',
@@ -30,7 +31,43 @@ export const cores = {
   alerta: '#FFB454',
 
   overlay: 'rgba(0,0,0,0.55)',
-} as const;
+};
+
+export type Paleta = typeof coresEscuras;
+
+/** Paleta usada quando o app está no tema claro. Tons mais fechados para dar contraste no fundo branco. */
+export const coresClaras: Paleta = {
+  fundo: '#F4F6F8',
+  fundoElevado: '#FFFFFF',
+  superficie: '#FFFFFF',
+  superficieAlt: '#E9EEF2',
+  borda: 'rgba(15,20,25,0.10)',
+
+  textoPrincipal: '#0F1419',
+  textoSecundario: '#4A5A66',
+  textoSuave: '#7A8994',
+
+  primaria: '#0E9F78',
+  primariaForte: '#0B8463',
+  primariaSuave: 'rgba(14, 159, 120, 0.12)',
+
+  laranja: '#E8691C',
+  laranjaSuave: 'rgba(232, 105, 28, 0.12)',
+
+  azulSuave: '#5B85B0',
+
+  dourado: '#C98A00',
+  douradoSuave: 'rgba(201, 138, 0, 0.15)',
+
+  bronze: '#A9652A',
+  prata: '#8A8F94',
+
+  erro: '#D64545',
+  sucesso: '#0E9F78',
+  alerta: '#C77A00',
+
+  overlay: 'rgba(15,20,25,0.45)',
+};
 
 export const espacamentos = {
   xs: 4,

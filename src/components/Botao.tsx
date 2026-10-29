@@ -1,7 +1,8 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
-import { cores, raios } from '../theme/cores';
+import { raios, type Paleta } from '../theme/cores';
+import { useEstilos, useTema } from '../state/TemaContext';
 
 type Variante = 'primaria' | 'laranja' | 'contorno' | 'sutil' | 'perigo';
 
@@ -16,21 +17,21 @@ interface Props {
   icone?: keyof typeof Ionicons.glyphMap;
 }
 
-const fundos: Record<Variante, string> = {
+const fundosDaVariante = (cores: Paleta): Record<Variante, string> => ({
   primaria: cores.primaria,
   laranja: cores.laranja,
   contorno: 'transparent',
   sutil: cores.superficieAlt,
   perigo: 'transparent',
-};
+});
 
-const textos: Record<Variante, string> = {
+const textosDaVariante = (cores: Paleta): Record<Variante, string> => ({
   primaria: '#04261C',
   laranja: '#3B1A05',
   contorno: cores.primaria,
   sutil: cores.textoPrincipal,
   perigo: cores.erro,
-};
+});
 
 export function Botao({
   titulo,
@@ -41,6 +42,8 @@ export function Botao({
   estilo,
   icone,
 }: Props) {
+  const { cores } = useTema();
+  const estilos = useEstilos(criarEstilos);
   const indisponivel = desabilitado || carregando;
   return (
     <Pressable
@@ -49,7 +52,7 @@ export function Botao({
       style={({ pressed }) => [
         estilos.base,
         {
-          backgroundColor: fundos[variante],
+          backgroundColor: fundosDaVariante(cores)[variante],
           borderColor:
             variante === 'contorno'
               ? cores.primaria
@@ -62,18 +65,19 @@ export function Botao({
       ]}
     >
       {carregando ? (
-        <ActivityIndicator color={textos[variante]} />
+        <ActivityIndicator color={textosDaVariante(cores)[variante]} />
       ) : (
         <>
-          {!!icone && <Ionicons name={icone} size={17} color={textos[variante]} />}
-          <Text style={[estilos.titulo, { color: textos[variante] }]}>{titulo}</Text>
+          {!!icone && <Ionicons name={icone} size={17} color={textosDaVariante(cores)[variante]} />}
+          <Text style={[estilos.titulo, { color: textosDaVariante(cores)[variante] }]}>{titulo}</Text>
         </>
       )}
     </Pressable>
   );
 }
 
-const estilos = StyleSheet.create({
+const criarEstilos = (cores: Paleta) =>
+  StyleSheet.create({
   base: {
     flexDirection: 'row',
     gap: 8,
