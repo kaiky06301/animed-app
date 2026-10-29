@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as medicamentoService from '../services/medicamentoService';
+import * as notificacaoService from '../services/notificacaoService';
+import type { Medicamento } from '../services/tipos';
 
 /** Medicamentos prescritos ao pet. */
 export function useMedicamentos(idPet: number | null) {
@@ -10,16 +12,17 @@ export function useMedicamentos(idPet: number | null) {
   });
 }
 
-/** Registro de uma dose pelo tutor. */
+/** Registro de uma dose pelo tutor; já deixa agendado o lembrete da próxima. */
 export function useRegistrarDose() {
   const client = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ idMedicamento, observacao }: {
-      idMedicamento: number;
+    mutationFn: ({ medicamento, observacao }: {
+      medicamento: Medicamento;
       observacao?: string;
-    }) => medicamentoService.registrarDose(idMedicamento, observacao),
-    onSuccess: () => {
+    }) => medicamentoService.registrarDose(medicamento.id, observacao),
+    onSuccess: (dose, { medicamento }) => {
+      void notificacaoService.agendarProximaDose(medicamento, dose.proximaDose);
       client.invalidateQueries({ queryKey: ['medicamentos'] });
       client.invalidateQueries({ queryKey: ['tutor'] });
     },
@@ -32,7 +35,10 @@ export function useConfirmarFimTratamento() {
 
   return useMutation({
     mutationFn: medicamentoService.confirmarFim,
-    onSuccess: () => client.invalidateQueries({ queryKey: ['medicamentos'] }),
+    onSuccess: (_, idMedicamento) => {
+      void notificacaoService.cancelarLembreteDeDose(idMedicamento);
+      client.invalidateQueries({ queryKey: ['medicamentos'] });
+    },
   });
 }
 

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import { useAberturaPorNotificacao, useLembretesDeMedicamentos } from '../hooks/useLembretes';
 import { AgendamentosScreen } from '../screens/AgendamentosScreen';
 import { CuidadosScreen } from '../screens/CuidadosScreen';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -23,6 +24,8 @@ const ICONES: Record<keyof AbasParamList, keyof typeof Ionicons.glyphMap> = {
 
 export function AbasNavigator() {
   const { cores } = useTema();
+  useLembretesDeMedicamentos();
+  useAberturaPorNotificacao();
   return (
     <Abas.Navigator
       screenOptions={({ route }) => ({

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as notificacaoService from '../services/notificacaoService';
 import * as vacinaService from '../services/vacinaService';
 import { VacinaRequisicao } from '../services/tipos';
 
@@ -18,7 +19,10 @@ export function useCriarVacina() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (vacina: VacinaRequisicao) => vacinaService.criarVacina(vacina),
-    onSuccess: () => client.invalidateQueries({ queryKey: [CHAVE_VACINAS] }),
+    onSuccess: (salva) => {
+      void notificacaoService.agendarReforcoDeVacina(salva);
+      client.invalidateQueries({ queryKey: [CHAVE_VACINAS] });
+    },
   });
 }
 
@@ -27,7 +31,10 @@ export function useAtualizarVacina() {
   return useMutation({
     mutationFn: ({ id, vacina }: { id: number; vacina: VacinaRequisicao }) =>
       vacinaService.atualizarVacina(id, vacina),
-    onSuccess: () => client.invalidateQueries({ queryKey: [CHAVE_VACINAS] }),
+    onSuccess: (salva) => {
+      void notificacaoService.agendarReforcoDeVacina(salva);
+      client.invalidateQueries({ queryKey: [CHAVE_VACINAS] });
+    },
   });
 }
 
@@ -35,6 +42,9 @@ export function useExcluirVacina() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => vacinaService.excluirVacina(id),
-    onSuccess: () => client.invalidateQueries({ queryKey: [CHAVE_VACINAS] }),
+    onSuccess: (_, id) => {
+      void notificacaoService.cancelarReforcoDeVacina(id);
+      client.invalidateQueries({ queryKey: [CHAVE_VACINAS] });
+    },
   });
 }

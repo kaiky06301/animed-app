@@ -274,7 +274,7 @@ export function MedicamentosScreen() {
     setAConfirmar(null);
 
     try {
-      const dose = await registrarDose.mutateAsync({ idMedicamento: medicamento.id });
+      const dose = await registrarDose.mutateAsync({ medicamento });
 
       setAvisoPontuou(dose.pontosGanhos > 0);
       setAviso(

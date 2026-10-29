@@ -16,13 +16,22 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "br.com.fiap.animed"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "experiments": {
       "baseUrl": "/animed-app"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#22D3A0"
+        }
+      ]
+    ]
   }
 }
