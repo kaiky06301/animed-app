@@ -32,6 +32,13 @@
           "color": "#22D3A0"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "commit": "4cd685b3f4011f347a2fa69f75d720309283ca37",
+      "eas": {
+        "projectId": "c6b78d69-4feb-468d-9f91-3f2feaadb307"
+      }
+    },
+    "owner": "kaiky06"
   }
 }
