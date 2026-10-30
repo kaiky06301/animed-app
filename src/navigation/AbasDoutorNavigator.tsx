@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AgendaDoutorScreen } from '../screens/doutor/AgendaDoutorScreen';
 import { CadastrarPessoaScreen } from '../screens/doutor/CadastrarPessoaScreen';
 import { PacientesScreen } from '../screens/doutor/PacientesScreen';
@@ -20,16 +21,19 @@ const ICONES: Record<keyof AbasDoutorParamList, keyof typeof Ionicons.glyphMap> 
 /** Navegação do perfil veterinário, distinta da do tutor. */
 export function AbasDoutorNavigator() {
   const { cores } = useTema();
+  // abas sem cabeçalho: afasta o conteúdo da barra de status e a barra de abas dos gestos do Android
+  const margens = useSafeAreaInsets();
   return (
     <Abas.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        sceneStyle: { paddingTop: margens.top, backgroundColor: cores.fundo },
         tabBarStyle: {
           backgroundColor: cores.fundoElevado,
           borderTopColor: cores.borda,
-          height: 64,
+          height: 64 + margens.bottom,
           paddingTop: 6,
-          paddingBottom: 8,
+          paddingBottom: 8 + margens.bottom,
         },
         tabBarActiveTintColor: cores.primaria,
         tabBarInactiveTintColor: cores.textoSuave,

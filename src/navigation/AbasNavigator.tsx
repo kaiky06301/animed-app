@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAberturaPorNotificacao, useLembretesDeMedicamentos } from '../hooks/useLembretes';
 import { AgendamentosScreen } from '../screens/AgendamentosScreen';
 import { CuidadosScreen } from '../screens/CuidadosScreen';
@@ -24,6 +25,8 @@ const ICONES: Record<keyof AbasParamList, keyof typeof Ionicons.glyphMap> = {
 
 export function AbasNavigator() {
   const { cores } = useTema();
+  // abas sem cabeçalho: afasta o conteúdo da barra de status e a barra de abas dos gestos do Android
+  const margens = useSafeAreaInsets();
   useLembretesDeMedicamentos();
   useAberturaPorNotificacao();
   return (
@@ -35,12 +38,13 @@ export function AbasNavigator() {
         },
         headerTitleStyle: { color: cores.textoPrincipal },
         headerShown: false,
+        sceneStyle: { paddingTop: margens.top, backgroundColor: cores.fundo },
         tabBarStyle: {
           backgroundColor: cores.fundoElevado,
           borderTopColor: cores.borda,
-          height: 64,
+          height: 64 + margens.bottom,
           paddingTop: 6,
-          paddingBottom: 8,
+          paddingBottom: 8 + margens.bottom,
         },
         tabBarActiveTintColor: cores.primaria,
         tabBarInactiveTintColor: cores.textoSuave,
