@@ -46,9 +46,9 @@ O APK é gerado pelo **EAS Build** (perfil `preview` do `eas.json`) e publicado 
 | | |
 |---|---|
 | **Versão publicada** | 1.0.0 (1) |
-| **Commit do build** | [`202fcc4`](https://github.com/kaiky06301/animed-app/commit/202fcc482492427f8bd7ab86f01c57d19035d23c) — o mesmo hash aparece na tela **Sobre o App** |
+| **Commit do build** | [`603b57c`](https://github.com/kaiky06301/animed-app/commit/603b57c7653c92487803f9d97436430e641b628a) — o mesmo hash aparece na tela **Sobre o App** |
 | **API usada pelo APK** | `https://animed-api-559523.azurewebsites.net` (Azure Web App) |
-| **Link para testers** | https://appdistribution.firebase.google.com/testerapps/1:215868489972:android:0dc2eaacbcf3852857dea1/releases/4gdmt5r62cem8 |
+| **Link para testers** | https://appdistribution.firebase.google.com/testerapps/1:215868489972:android:0dc2eaacbcf3852857dea1/releases/4gvo1rnc4isq0 |
 
 O link abre para os testers convidados. O convite chega por e-mail; depois de aceitar, basta tocar em **Download** no celular Android.
 
