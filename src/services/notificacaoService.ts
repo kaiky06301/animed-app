@@ -97,9 +97,10 @@ export async function cancelarLembreteDeDose(idMedicamento: number): Promise<voi
  * de prescrever). Cada dose é avisada uma única vez.
  */
 export async function avisarDoseLiberada(medicamento: Medicamento): Promise<void> {
-  if (!suportado || !medicamento.proximaDose) return;
+  if (!suportado) return;
 
-  const chaveDaDose = `${medicamento.id}@${medicamento.proximaDose}`;
+  // na primeira dose a API ainda não tem proximaDose
+  const chaveDaDose = `${medicamento.id}@${medicamento.proximaDose ?? 'primeira'}`;
   const salvas: string[] = JSON.parse((await AsyncStorage.getItem(CHAVE_AVISADAS)) ?? '[]');
   if (salvas.includes(chaveDaDose)) return;
 
