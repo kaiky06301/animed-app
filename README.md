@@ -39,6 +39,30 @@ O vídeo mostra a navegação entre telas, a autenticação contra a API Java, o
 
 ---
 
+## 📲 Instalação (Firebase App Distribution)
+
+O APK é gerado pelo **EAS Build** (perfil `preview` do `eas.json`) e publicado no **Firebase App Distribution**, projeto `animed-fiap-2026`.
+
+| | |
+|---|---|
+| **Versão publicada** | 1.0.0 (1) |
+| **Commit do build** | [`202fcc4`](https://github.com/kaiky06301/animed-app/commit/202fcc482492427f8bd7ab86f01c57d19035d23c) — o mesmo hash aparece na tela **Sobre o App** |
+| **API usada pelo APK** | `https://animed-api-559523.azurewebsites.net` (Azure Web App) |
+| **Link para testers** | https://appdistribution.firebase.google.com/testerapps/1:215868489972:android:0dc2eaacbcf3852857dea1/releases/4gdmt5r62cem8 |
+
+O link abre para os testers convidados. O convite chega por e-mail; depois de aceitar, basta tocar em **Download** no celular Android.
+
+Para gerar uma nova versão:
+
+```bash
+npx eas-cli build -p android --profile preview
+firebase appdistribution:distribute animed.apk \
+  --app 1:215868489972:android:0dc2eaacbcf3852857dea1 \
+  --testers "profantonio.neto@fiap.com.br"
+```
+
+---
+
 ## 🏛️ Arquitetura
 
 O aplicativo não guarda regra de negócio: pontuação, níveis, disponibilidade de agenda e validações vivem na API Java. Isso é proposital — as mesmas regras precisam valer para o app do tutor e para a área do veterinário, e uma regra duplicada é uma regra que vai divergir.
