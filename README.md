@@ -22,9 +22,11 @@ O Animed ataca um problema que a própria Clyvo VET descreveu: a jornada de saú
 
 ## 🎬 Vídeo de demonstração
 
-**https://youtu.be/XrCdoGZwX0Y**
+**Sprint 4:** **https://youtu.be/fB4YVEYV36A**
 
-O vídeo mostra a navegação entre telas, a autenticação contra a API Java, o CRUD consumindo a API e o aplicativo em uso real.
+O vídeo é contínuo e usa o APK publicado no Firebase App Distribution: login real na API Java, agendamento, cadastro e edição de pets, pesagem, recompensas, tema e o veterinário vendo o atendimento marcado pelo tutor.
+
+Sprint 3: https://youtu.be/XrCdoGZwX0Y
 
 ---
 
